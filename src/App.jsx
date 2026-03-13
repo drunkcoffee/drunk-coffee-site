@@ -1,4 +1,3 @@
-import logo from "./assets/logo.png";
 import { useEffect, useMemo, useState } from "react";
 
 const FALLBACK_BEANS = [
@@ -479,16 +478,7 @@ export default function DrunkCoffeeRoastersStorefront() {
       <header className="sticky top-0 z-50 border-b border-white/10 bg-neutral-950/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-6">
           <a href="#top" className="block">
-  <a href="#top" className="flex flex-col">
-  <img
-    src={logo}
-    alt="Drunk Coffee Roasters"
-    className="h-10 md:h-12"
-  />
-  <p className="mt-1 text-xs text-white/55 md:text-sm">
-    Fresh roasted coffee made easy to enjoy
-  </p>
-</a>
+            <img src="/logo.png" alt="Drunk Coffee Roasters" className="h-12 md:h-14 object-contain" />
             <p className="mt-1 text-xs text-white/55 md:text-sm">
               Fresh roasted coffee made easy to enjoy
             </p>
@@ -749,9 +739,9 @@ export default function DrunkCoffeeRoastersStorefront() {
                   </p>
                 </div>
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
-                  <p className="text-lg font-semibold">Live CMS</p>
+                  <p className="text-lg font-semibold">Fresh Roasted</p>
                   <p className="mt-3 text-sm leading-7 text-white/65">
-                    Update coffees, prices, tasting notes, and images directly in Contentful.
+                    Roasted in small batches to keep clarity, sweetness and consistency in every cup.
                   </p>
                 </div>
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 sm:col-span-2">
