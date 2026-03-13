@@ -549,169 +549,82 @@ export default function DrunkCoffeeRoastersStorefront() {
         </div>
       </header>
 
-      <main id="top">
-        <section className="relative mx-auto max-w-7xl px-5 py-16 md:px-6 md:py-24">
+<main id="top">
+  <section className="relative mx-auto max-w-7xl px-5 py-16 md:px-6 md:py-24">
+    <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+      <div>
+        <p className="inline-flex rounded-full border border-white/12 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-white/75">
+          Johor Specialty Coffee Roaster
+        </p>
 
-  <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+        <h1 className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.05] text-white md:text-6xl">
+          Specialty coffee, roasted to make brewing easier.
+        </h1>
 
-    {/* LEFT TEXT */}
-    <div>
+        <p className="mt-6 max-w-xl text-base leading-8 text-white/75 md:text-lg">
+          Espresso, filter, and omni-roast coffees built for cleaner choices,
+          simpler ordering, and better daily cups.
+        </p>
 
-      <p className="inline-flex rounded-full border border-white/12 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-white/75">
-        Johor Specialty Coffee Roaster
-      </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <a
+            href="#beans"
+            className="rounded-2xl bg-white px-6 py-3 text-sm font-medium text-neutral-950 transition hover:opacity-90"
+          >
+            Shop Beans
+          </a>
 
-      <h1 className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.05] text-white md:text-6xl">
-        Specialty coffee, roasted to make brewing easier.
-      </h1>
-
-      <p className="mt-6 max-w-xl text-base leading-8 text-white/75 md:text-lg">
-        Espresso, filter, and omni-roast coffees built for cleaner choices,
-        simpler ordering, and better daily cups.
-      </p>
-
-      <div className="mt-8 flex flex-wrap gap-3">
-
-        <a
-          href="#beans"
-          className="rounded-2xl bg-white px-6 py-3 text-sm font-medium text-neutral-950 transition hover:opacity-90"
-        >
-          Shop Beans
-        </a>
-
-        <button
-          type="button"
-          onClick={() => setCartOpen(true)}
-          className="rounded-2xl border border-white/15 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/5"
-        >
-          Open Cart
-        </button>
-
-      </div>
-
-      <div className="mt-8 flex flex-wrap gap-3 text-sm text-white/70">
-
-        <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
-          Espresso
-        </span>
-
-        <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
-          Filter
-        </span>
-
-        <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
-          Omni
-        </span>
-
-      </div>
-
-    </div>
-
-    {/* RIGHT IMAGE */}
-    <div className="relative">
-
-      <div className="absolute -inset-4 rounded-[36px] bg-white/5 blur-3xl" />
-
-      <div className="relative overflow-hidden rounded-[32px] border border-white/10 shadow-2xl shadow-black/40">
-
-        <img
-          src="/hero-coffee.jpg"
-          alt="Drunk Coffee Roasters roasting coffee"
-          className="h-[560px] w-full object-cover md:h-[620px]"
-        />
-
-        {/* DARK GRADIENT */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
-
-        {/* BOTTOM TEXT */}
-        <div className="absolute bottom-0 left-0 p-6 md:p-8">
-
-          <p className="text-xs uppercase tracking-[0.22em] text-white/80">
-            Drunk Coffee Roasters
-          </p>
-
-          <p className="mt-2 max-w-sm text-2xl font-semibold leading-tight text-white md:text-3xl">
-            Roasting coffee for everyday brewing.
-          </p>
-
+          <button
+            type="button"
+            onClick={() => setCartOpen(true)}
+            className="rounded-2xl border border-white/15 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/5"
+          >
+            Open Cart
+          </button>
         </div>
 
+        <div className="mt-8 flex flex-wrap gap-3 text-sm text-white/70">
+          <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
+            Espresso
+          </span>
+
+          <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
+            Filter
+          </span>
+
+          <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
+            Omni
+          </span>
+        </div>
       </div>
 
-    </div>
+      <div className="relative">
+        <div className="absolute -inset-4 rounded-[36px] bg-white/5 blur-3xl" />
 
-  </div>
+        <div className="relative overflow-hidden rounded-[32px] border border-white/10 shadow-2xl shadow-black/40">
+          <img
+            src="/hero-coffee.jpg"
+            alt="Drunk Coffee Roasters roasting coffee"
+            className="h-[560px] w-full object-cover md:h-[620px]"
+          />
 
-</section>
-          <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-            <div>
-              <p className="inline-flex rounded-full border border-white/12 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-white/60">
-                Johor Specialty Coffee Roaster
-              </p>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
 
-              <h1 className="mt-5 max-w-3xl text-4xl font-semibold leading-[1.02] md:text-6xl">
-                Specialty coffee, roasted to make brewing easier.
-              </h1>
+          <div className="absolute bottom-0 left-0 p-6 md:p-8">
+            <p className="text-xs uppercase tracking-[0.22em] text-white/80">
+              Drunk Coffee Roasters
+            </p>
 
-              <p className="mt-5 max-w-xl text-base leading-8 text-white/68 md:text-lg">
-                Espresso, filter, and omni-roast coffees built for cleaner choices,
-                simpler ordering, and better daily cups.
-              </p>
-
-              <div className="mt-8 flex flex-wrap gap-3">
-                <a
-                  href="#beans"
-                  className="rounded-2xl bg-white px-5 py-3 text-sm font-medium text-neutral-950 transition hover:opacity-90"
-                >
-                  Shop Beans
-                </a>
-
-                <button
-                  type="button"
-                  onClick={() => setCartOpen(true)}
-                  className="rounded-2xl border border-white/12 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/5"
-                >
-                  Open Cart
-                </button>
-              </div>
-
-              <div className="mt-8 flex flex-wrap gap-3 text-sm text-white/70">
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2">
-                  Espresso
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2">
-                  Filter
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2">
-                  Omni
-                </span>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute -inset-5 rounded-[38px] bg-white/5 blur-3xl" />
-
-              <div className="relative overflow-hidden rounded-[34px] border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/30">
-                <img
-                  src="/hero-coffee.jpg"
-                  alt="Drunk Coffee Roasters specialty coffee"
-                  className="h-[560px] w-full object-cover md:h-[620px]"
-                />
-
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-6 md:p-8">
-                  <p className="text-xs uppercase tracking-[0.22em] text-white/60">
-                    Drunk Coffee Roasters
-                  </p>
-                  <p className="mt-2 max-w-md text-2xl font-semibold leading-tight md:text-3xl">
-                    Roasted for everyday brewing, with less guesswork and more clarity.
-                  </p>
-                </div>
-              </div>
-            </div>
+            <p className="mt-2 max-w-sm text-2xl font-semibold leading-tight text-white md:text-3xl">
+              Roasting coffee for everyday brewing.
+            </p>
           </div>
-        </section>
+        </div>
+      </div>
+    </div>
+  </section>
 
-        {featured.length > 0 ? (
+  {featured.length > 0 ? (
           <section className="mx-auto max-w-7xl px-5 pb-6 md:px-6 md:pb-10">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
@@ -885,7 +798,7 @@ export default function DrunkCoffeeRoastersStorefront() {
                     Instagram: @drunkcoffeeroasters · 小红书: {XHS_LABEL}
                   </p>
                 </div>
-              </div>
+              </div><div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
             </div>
           </div>
         </section>
