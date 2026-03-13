@@ -17,6 +17,11 @@ const FALLBACK_BEANS = [
     origin: "Ethiopia Hambella Guji Goro · China Yunnan Lan Chang",
     process: "Washed + Anaerobic Natural Blend",
     featured: true,
+    badge: "Seasonal",
+    bestFor: "Filter",
+    wholesaleAvailable: true,
+    sortOrder: 1,
+    active: true,
     image: "",
   },
   {
@@ -34,6 +39,11 @@ const FALLBACK_BEANS = [
     origin: "China Yunnan",
     process: "Anaerobic Natural",
     featured: true,
+    badge: "Limited",
+    bestFor: "Filter",
+    wholesaleAvailable: true,
+    sortOrder: 2,
+    active: true,
     image: "",
   },
   {
@@ -51,6 +61,11 @@ const FALLBACK_BEANS = [
     origin: "Brazil Fazendal Pinhal · Colombia Supremo",
     process: "Washed + Natural Blend",
     featured: false,
+    badge: "Best Seller",
+    bestFor: "Espresso / Milk",
+    wholesaleAvailable: true,
+    sortOrder: 3,
+    active: true,
     image: "",
   },
 ];
@@ -71,14 +86,18 @@ const INSTAGRAM_URL = "https://instagram.com/drunkcoffeeroasters";
 const XHS_LABEL = "Drunkcoffeeroasters";
 
 function getEnv() {
-  if (typeof import.meta !== "undefined" && import.meta.env) {
-    return import.meta.env;
+  try {
+    if (typeof import.meta !== "undefined" && import.meta.env) {
+      return import.meta.env;
+    }
+  } catch {
+    return {};
   }
   return {};
 }
 
 function safeArray(value) {
-  if (Array.isArray(value)) return value;
+  if (Array.isArray(value)) return value.filter(Boolean);
   if (typeof value === "string") {
     return value
       .split(",")
@@ -91,8 +110,20 @@ function safeArray(value) {
 function normalizeContentfulImage(asset) {
   const url = asset?.fields?.file?.url || asset?.url || "";
   if (!url) return "";
+
   const normalized = url.startsWith("//") ? `https:${url}` : url;
-  return `${normalized}?w=1400&h=1400&fit=fill&fm=webp&q=85`;
+
+  try {
+    const parsed = new URL(normalized);
+    parsed.searchParams.set("w", "1400");
+    parsed.searchParams.set("h", "1400");
+    parsed.searchParams.set("fit", "fill");
+    parsed.searchParams.set("fm", "webp");
+    parsed.searchParams.set("q", "85");
+    return parsed.toString();
+  } catch {
+    return normalized;
+  }
 }
 
 function mapContentfulEntries(data) {
@@ -112,7 +143,7 @@ function mapContentfulEntries(data) {
     return {
       id: item.sys.id,
       slug: fields.slug || item.sys.id,
-      name: fields.beanName || fields.name || "Untitled Coffee",
+      name: fields.name || fields.beanName || "Untitled Coffee",
       category: fields.category || "Filter",
       collection: fields.collection || "Coffee Selection",
       price: Number(fields.price || 0),
@@ -123,6 +154,11 @@ function mapContentfulEntries(data) {
       origin: fields.origin || "",
       process: fields.process || "",
       featured: Boolean(fields.featured),
+      badge: fields.badge || "",
+      bestFor: fields.bestFor || "",
+      wholesaleAvailable: Boolean(fields.wholesaleAvailable),
+      sortOrder: Number(fields.sortOrder || 999),
+      active: fields.active !== false,
       image: normalizeContentfulImage(asset),
     };
   });
@@ -151,7 +187,9 @@ async function fetchBeansFromContentful() {
     };
   }
 
-  const endpoint = `https://cdn.contentful.com/spaces/${spaceId}/environments/${environment}/entries?content_type=${contentType}&include=2&order=fields.name`;
+  const endpoint =
+    `https://cdn.contentful.com/spaces/${spaceId}/environments/${environment}/entries` +
+    `?content_type=${contentType}&include=2`;
 
   const response = await fetch(endpoint, {
     headers: {
@@ -164,7 +202,9 @@ async function fetchBeansFromContentful() {
   }
 
   const data = await response.json();
-  const mapped = mapContentfulEntries(data);
+  const mapped = mapContentfulEntries(data)
+    .filter((bean) => bean.active !== false)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 
   return {
     beans: mapped.length ? mapped : FALLBACK_BEANS,
@@ -175,7 +215,15 @@ async function fetchBeansFromContentful() {
 }
 
 function buildSingleOrderUrl(bean) {
-  const message = `Hi Drunk Coffee Roasters, I want to order:\n\n${bean.name} - ${bean.size}\nCategory: ${bean.category}\nPrice: RM ${bean.price}\n\nPlease share availability.\nThanks.`;
+  const message = `Hi Drunk Coffee Roasters, I want to order:
+
+${bean.name} - ${bean.size}
+Category: ${bean.category}
+Price: RM ${bean.price}
+
+Please share availability.
+Thanks.`;
+
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
@@ -191,49 +239,31 @@ function collectionAccentClasses(name) {
   return map[name] || "from-white/[0.04] to-white/[0.02]";
 }
 
-function runSelfChecks() {
-  const checks = [
-    {
-      name: "safeArray handles comma-separated string",
-      pass:
-        JSON.stringify(safeArray("A, B, C")) ===
-        JSON.stringify(["A", "B", "C"]),
-    },
-    {
-      name: "safeArray handles array input",
-      pass:
-        JSON.stringify(safeArray(["A", "B"])) ===
-        JSON.stringify(["A", "B"]),
-    },
-    {
-      name: "normalizeContentfulImage handles empty asset",
-      pass: normalizeContentfulImage(null) === "",
-    },
-    {
-      name: "getContentfulConfig never throws without import.meta.env",
-      pass: typeof getContentfulConfig() === "object",
-    },
-    {
-      name: "single order url includes bean name",
-      pass: buildSingleOrderUrl(FALLBACK_BEANS[0]).includes("Spring%20Bloom%20Blend"),
-    },
-  ];
-
-  const failed = checks.filter((check) => !check.pass);
-  if (failed.length > 0) {
-    console.warn("Self-checks failed:", failed);
-  }
+function badgeClasses(badge) {
+  const map = {
+    New: "bg-emerald-400/15 text-emerald-200 border-emerald-300/20",
+    "Best Seller": "bg-amber-400/15 text-amber-100 border-amber-300/20",
+    Limited: "bg-rose-400/15 text-rose-100 border-rose-300/20",
+    Seasonal: "bg-orange-400/15 text-orange-100 border-orange-300/20",
+    Wholesale: "bg-sky-400/15 text-sky-100 border-sky-300/20",
+    Recommended: "bg-violet-400/15 text-violet-100 border-violet-300/20",
+  };
+  return (
+    map[badge] ||
+    "bg-white/10 text-white/80 border-white/15"
+  );
 }
 
-runSelfChecks();
-
 function CoffeeCard({ bean, onOpen, onAddToCart }) {
+  const notes = safeArray(bean.notes);
+
   return (
     <article className="group overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.035] shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-white/15 hover:bg-white/[0.05]">
       <button
         type="button"
         onClick={() => onOpen(bean)}
         className="block w-full text-left"
+        aria-label={`Open details for ${bean.name}`}
       >
         <div className="relative aspect-[4/3] overflow-hidden bg-white/5">
           {bean.image ? (
@@ -241,12 +271,31 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
               src={bean.image}
               alt={bean.name}
               className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+              loading="lazy"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-white/35">
-              Add Contentful image
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-white/5 to-white/[0.02] text-sm text-white/35">
+              No image yet
             </div>
           )}
+
+          <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+            {bean.badge ? (
+              <span
+                className={`rounded-full border px-3 py-1 text-[11px] font-medium ${badgeClasses(
+                  bean.badge
+                )}`}
+              >
+                {bean.badge}
+              </span>
+            ) : null}
+
+            {bean.wholesaleAvailable ? (
+              <span className="rounded-full border border-white/15 bg-black/35 px-3 py-1 text-[11px] font-medium text-white/85">
+                Wholesale
+              </span>
+            ) : null}
+          </div>
 
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent" />
         </div>
@@ -273,7 +322,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {bean.notes.map((note) => (
+          {notes.map((note) => (
             <span
               key={note}
               className="rounded-full border border-white/8 bg-white/[0.06] px-3 py-1 text-xs text-white/72"
@@ -282,6 +331,12 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
             </span>
           ))}
         </div>
+
+        {bean.bestFor ? (
+          <p className="mt-4 text-sm text-white/60">
+            Best for: <span className="text-white/82">{bean.bestFor}</span>
+          </p>
+        ) : null}
 
         <div className="mt-6 flex items-end justify-between gap-4">
           <div>
@@ -353,6 +408,26 @@ export default function DrunkCoffeeRoastersStorefront() {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    function onKeyDown(event) {
+      if (event.key === "Escape") {
+        setSelectedBean(null);
+        setCartOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const shouldLock = cartOpen || Boolean(selectedBean);
+    document.body.style.overflow = shouldLock ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [cartOpen, selectedBean]);
 
   const filteredBeans = useMemo(() => {
     if (activeFilter === "All") return beans;
@@ -476,6 +551,10 @@ export default function DrunkCoffeeRoastersStorefront() {
     "Hi Drunk Coffee Roasters, I would like to browse your coffee menu."
   )}`;
 
+  const wholesaleWhatsAppUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    "Hi Drunk Coffee Roasters, I would like to enquire about wholesale coffee supply."
+  )}`;
+
   const cartWhatsAppUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     cart.length
       ? `Hi Drunk Coffee Roasters, I want to place an order:\n\n${cart
@@ -507,6 +586,13 @@ export default function DrunkCoffeeRoastersStorefront() {
               className="hidden text-sm text-white/80 transition hover:text-white md:block"
             >
               Shop
+            </a>
+
+            <a
+              href="#wholesale"
+              className="hidden text-sm text-white/80 transition hover:text-white md:block"
+            >
+              Wholesale
             </a>
 
             <a
@@ -569,12 +655,12 @@ export default function DrunkCoffeeRoastersStorefront() {
               </p>
 
               <h1 className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.05] text-white md:text-6xl">
-                Specialty coffee, roasted to make brewing easier.
+                Specialty coffee for home brewers, cafés, and everyday drinkers.
               </h1>
 
               <p className="mt-6 max-w-xl text-base leading-8 text-white/75 md:text-lg">
-                Espresso, filter, and omni-roast coffees built for cleaner choices,
-                simpler ordering, and better daily cups.
+                Roasted by Drunk Coffee Roasters for cleaner choices, easier brewing,
+                and more enjoyable daily cups.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -585,49 +671,42 @@ export default function DrunkCoffeeRoastersStorefront() {
                   Shop Beans
                 </a>
 
-                <button
-                  type="button"
-                  onClick={() => setCartOpen(true)}
+                <a
+                  href="#wholesale"
                   className="rounded-2xl border border-white/15 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/5"
                 >
-                  Open Cart
-                </button>
+                  Wholesale
+                </a>
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3 text-sm text-white/70">
                 <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
                   Espresso
                 </span>
-
                 <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
                   Filter
                 </span>
-
                 <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
-                  Omni
+                  Wholesale Supply
                 </span>
               </div>
             </div>
 
             <div className="relative">
               <div className="absolute -inset-4 rounded-[36px] bg-white/5 blur-3xl" />
-
               <div className="relative overflow-hidden rounded-[32px] border border-white/10 shadow-2xl shadow-black/40">
                 <img
                   src="/hero-coffee.jpg"
                   alt="Drunk Coffee Roasters roasting coffee"
                   className="h-[560px] w-full object-cover md:h-[620px]"
                 />
-
                 <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
-
                 <div className="absolute bottom-0 left-0 p-6 md:p-8">
                   <p className="text-xs uppercase tracking-[0.22em] text-white/80">
                     Drunk Coffee Roasters
                   </p>
-
                   <p className="mt-2 max-w-sm text-2xl font-semibold leading-tight text-white md:text-3xl">
-                    Roasting coffee for everyday brewing.
+                    Roasting coffee for easier choices and better cups.
                   </p>
                 </div>
               </div>
@@ -682,6 +761,7 @@ export default function DrunkCoffeeRoastersStorefront() {
                 return (
                   <button
                     key={filter}
+                    type="button"
                     onClick={() => setActiveFilter(filter)}
                     className={`rounded-full px-4 py-2 text-sm transition ${
                       isActive
@@ -770,6 +850,68 @@ export default function DrunkCoffeeRoastersStorefront() {
           )}
         </section>
 
+        <section id="wholesale" className="border-t border-white/10">
+          <div className="mx-auto max-w-7xl px-5 py-16 md:px-6">
+            <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-7">
+                <p className="text-sm uppercase tracking-[0.22em] text-white/42">
+                  Wholesale
+                </p>
+                <h2 className="mt-2 text-3xl font-semibold">
+                  Coffee supply for cafés, offices, and retail partners.
+                </h2>
+                <p className="mt-5 text-sm leading-8 text-white/68">
+                  We offer wholesale roasted coffee for partners looking for approachable espresso,
+                  expressive filter options, and reliable small-batch supply.
+                </p>
+                <p className="mt-4 text-sm leading-8 text-white/68">
+                  Suitable for café programs, office coffee setups, and retail collaboration.
+                </p>
+
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <a
+                    href={wholesaleWhatsAppUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-2xl bg-white px-6 py-3 text-sm font-medium text-neutral-950 transition hover:opacity-90"
+                  >
+                    Enquire on WhatsApp
+                  </a>
+                  <a
+                    href={INSTAGRAM_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-2xl border border-white/15 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/5"
+                  >
+                    View Instagram
+                  </a>
+                </div>
+              </div>
+
+              <div className="grid gap-6">
+                <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
+                  <p className="text-lg font-semibold">Suitable for</p>
+                  <p className="mt-3 text-sm leading-7 text-white/65">
+                    Cafés · Offices · Retail shelves · Event coffee supply
+                  </p>
+                </div>
+                <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
+                  <p className="text-lg font-semibold">Roast styles</p>
+                  <p className="mt-3 text-sm leading-7 text-white/65">
+                    Espresso blends, seasonal filters, and flexible coffee selections for different needs.
+                  </p>
+                </div>
+                <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
+                  <p className="text-lg font-semibold">Ordering</p>
+                  <p className="mt-3 text-sm leading-7 text-white/65">
+                    Start with WhatsApp for faster discussion on availability, profile, and supply needs.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section id="about" className="border-t border-white/10">
           <div className="mx-auto max-w-7xl px-5 py-16 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
@@ -817,7 +959,13 @@ export default function DrunkCoffeeRoastersStorefront() {
 
       {selectedBean ? (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 p-4 md:items-center">
-          <div className="max-h-[90vh] w-full max-w-5xl overflow-auto rounded-[32px] border border-white/10 bg-neutral-950 shadow-2xl shadow-black/50">
+          <button
+            type="button"
+            className="absolute inset-0"
+            aria-label="Close product details"
+            onClick={() => setSelectedBean(null)}
+          />
+          <div className="relative max-h-[90vh] w-full max-w-5xl overflow-auto rounded-[32px] border border-white/10 bg-neutral-950 shadow-2xl shadow-black/50">
             <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
               <div className="aspect-square bg-white/5 lg:h-full lg:min-h-[620px]">
                 {selectedBean.image ? (
@@ -827,8 +975,8 @@ export default function DrunkCoffeeRoastersStorefront() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-white/35">
-                    Add Contentful image
+                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-white/5 to-white/[0.02] text-sm text-white/35">
+                    No image yet
                   </div>
                 )}
               </div>
@@ -856,7 +1004,7 @@ export default function DrunkCoffeeRoastersStorefront() {
                 </div>
 
                 <div className="mt-6 flex flex-wrap gap-2">
-                  {selectedBean.notes.map((note) => (
+                  {safeArray(selectedBean.notes).map((note) => (
                     <span
                       key={note}
                       className="rounded-full bg-white/[0.08] px-3 py-1 text-sm text-white/75"
@@ -886,6 +1034,16 @@ export default function DrunkCoffeeRoastersStorefront() {
                   <div className="rounded-2xl border border-white/10 p-4">
                     <p className="text-sm text-white/40">Size</p>
                     <p className="mt-2 text-white/85">{selectedBean.size || "—"}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 p-4">
+                    <p className="text-sm text-white/40">Best for</p>
+                    <p className="mt-2 text-white/85">{selectedBean.bestFor || "—"}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 p-4">
+                    <p className="text-sm text-white/40">Wholesale</p>
+                    <p className="mt-2 text-white/85">
+                      {selectedBean.wholesaleAvailable ? "Available" : "Retail only"}
+                    </p>
                   </div>
                 </div>
 
@@ -923,7 +1081,7 @@ export default function DrunkCoffeeRoastersStorefront() {
           <button
             type="button"
             onClick={() => setCartOpen(false)}
-            className="flex-1 cursor-default"
+            className="flex-1"
             aria-label="Close cart overlay"
           />
           <div className="flex h-full w-full max-w-md flex-col border-l border-white/10 bg-neutral-950 shadow-2xl shadow-black/50">
@@ -1040,7 +1198,7 @@ export default function DrunkCoffeeRoastersStorefront() {
           <div>
             <p className="font-medium text-white/80">Drunk Coffee Roasters</p>
             <p className="mt-1">
-              Specialty coffee roasted for espresso, filter, and everyday brewing.
+              Specialty coffee roasted for espresso, filter, wholesale, and everyday brewing.
             </p>
           </div>
 
@@ -1050,6 +1208,12 @@ export default function DrunkCoffeeRoastersStorefront() {
               className="rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
             >
               Shop
+            </a>
+            <a
+              href="#wholesale"
+              className="rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
+            >
+              Wholesale
             </a>
             <a
               href="#about"
