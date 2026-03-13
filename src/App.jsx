@@ -137,7 +137,7 @@ async function fetchBeansFromContentful() {
     };
   }
 
-  const endpoint = `https://cdn.contentful.com/spaces/${spaceId}/environments/${environment}/entries?content_type=${contentType}&include=2&order=fields.beanName`;
+  const endpoint = `https://cdn.contentful.com/spaces/${spaceId}/environments/${environment}/entries?content_type=${contentType}&include=2&order=fields.name`;
 
   const response = await fetch(endpoint, {
     headers: {
