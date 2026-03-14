@@ -70,7 +70,7 @@ const FALLBACK_BEANS = [
   },
 ];
 
-const FILTERS = ["All", "Filter", "Espresso", "Omni"];
+const FILTERS = ["All", "Filter", "Espresso"];
 const COLLECTION_ORDER = [
   "Seasonal Highlight",
   "Clean Filter",
@@ -107,6 +107,19 @@ function safeArray(value) {
   return [];
 }
 
+function appendImageParams(url, params = {}) {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    Object.entries(params).forEach(([key, value]) => {
+      parsed.searchParams.set(key, String(value));
+    });
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
 function normalizeContentfulImage(asset) {
   const url = asset?.fields?.file?.url || asset?.url || "";
   if (!url) return "";
@@ -115,11 +128,11 @@ function normalizeContentfulImage(asset) {
 
   try {
     const parsed = new URL(normalized);
-    parsed.searchParams.set("w", "1400");
-    parsed.searchParams.set("h", "1400");
+    parsed.searchParams.set("w", "1000");
+    parsed.searchParams.set("h", "1000");
     parsed.searchParams.set("fit", "fill");
     parsed.searchParams.set("fm", "webp");
-    parsed.searchParams.set("q", "85");
+    parsed.searchParams.set("q", "82");
     return parsed.toString();
   } catch {
     return normalized;
@@ -215,14 +228,16 @@ async function fetchBeansFromContentful() {
 }
 
 function buildSingleOrderUrl(bean) {
-  const message = `Hi Drunk Coffee Roasters, I want to order:
+  const message = `Hi Drunk Coffee Roasters,
 
-${bean.name} - ${bean.size}
+I would like to order:
+
+${bean.name} (${bean.size})
 Category: ${bean.category}
 Price: RM ${bean.price}
 
-Please share availability.
-Thanks.`;
+Please share availability and roasting lead time.
+Thank you.`;
 
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
@@ -248,17 +263,23 @@ function badgeClasses(badge) {
     Wholesale: "bg-sky-400/15 text-sky-100 border-sky-300/20",
     Recommended: "bg-violet-400/15 text-violet-100 border-violet-300/20",
   };
-  return (
-    map[badge] ||
-    "bg-white/10 text-white/80 border-white/15"
-  );
+  return map[badge] || "bg-white/10 text-white/80 border-white/15";
 }
 
 function CoffeeCard({ bean, onOpen, onAddToCart }) {
-  const notes = safeArray(bean.notes);
+  const notes = safeArray(bean.notes).slice(0, 3);
+  const cardImage = bean.image
+    ? appendImageParams(bean.image, {
+        w: 820,
+        h: 620,
+        fit: "fill",
+        fm: "webp",
+        q: 80,
+      })
+    : "";
 
   return (
-    <article className="group overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.035] shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-white/15 hover:bg-white/[0.05]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.035] shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-white/15 hover:bg-white/[0.05]">
       <button
         type="button"
         onClick={() => onOpen(bean)}
@@ -266,9 +287,9 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
         aria-label={`Open details for ${bean.name}`}
       >
         <div className="relative aspect-[4/3] overflow-hidden bg-white/5">
-          {bean.image ? (
+          {cardImage ? (
             <img
-              src={bean.image}
+              src={cardImage}
               alt={bean.name}
               className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
               loading="lazy"
@@ -282,7 +303,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
           <div className="absolute left-4 top-4 flex flex-wrap gap-2">
             {bean.badge ? (
               <span
-                className={`rounded-full border px-3 py-1 text-[11px] font-medium ${badgeClasses(
+                className={`font-body rounded-full border px-3 py-1 text-[11px] font-medium ${badgeClasses(
                   bean.badge
                 )}`}
               >
@@ -291,7 +312,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
             ) : null}
 
             {bean.wholesaleAvailable ? (
-              <span className="rounded-full border border-white/15 bg-black/35 px-3 py-1 text-[11px] font-medium text-white/85">
+              <span className="font-body rounded-full border border-white/15 bg-black/35 px-3 py-1 text-[11px] font-medium text-white/85">
                 Wholesale
               </span>
             ) : null}
@@ -301,72 +322,98 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
         </div>
       </button>
 
-      <div className="p-6">
+      <div className="flex flex-1 flex-col p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-white/45">
+            <p className="font-body text-[11px] uppercase tracking-[0.24em] text-white/45">
               {bean.category}
             </p>
-            <h3 className="mt-2 text-xl font-semibold text-white md:text-2xl">
+            <h3 className="font-display mt-2 text-2xl leading-tight font-semibold text-white md:text-[30px]">
               {bean.name}
             </h3>
           </div>
 
-          <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-sm text-white/70">
+          <span className="font-body shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-sm text-white/70">
             {bean.size}
           </span>
         </div>
 
-        <p className="mt-4 line-clamp-2 text-sm leading-7 text-white/72">
+        <p className="font-body mt-4 min-h-[56px] text-sm leading-7 text-white/72">
           {bean.origin || "Origin TBC"}
         </p>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex min-h-[52px] flex-wrap gap-2">
           {notes.map((note) => (
             <span
               key={note}
-              className="rounded-full border border-white/8 bg-white/[0.06] px-3 py-1 text-xs text-white/72"
+              className="font-body rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-white/70"
             >
               {note}
             </span>
           ))}
         </div>
 
-        {bean.bestFor ? (
-          <p className="mt-4 text-sm text-white/60">
-            Best for: <span className="text-white/82">{bean.bestFor}</span>
-          </p>
-        ) : null}
-
-        <div className="mt-6 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-white/38">
-              Price
+        <div className="mt-4 min-h-[24px]">
+          {bean.bestFor ? (
+            <p className="font-body text-sm text-white/60">
+              Best for: <span className="text-white/82">{bean.bestFor}</span>
             </p>
-            <p className="mt-2 text-xl font-semibold text-white">
-              RM {bean.price}
-            </p>
-          </div>
+          ) : null}
+        </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onOpen(bean)}
-              className="rounded-2xl border border-white/10 px-4 py-2 text-sm text-white/80 transition hover:bg-white/5"
-            >
-              Details
-            </button>
-            <button
-              type="button"
-              onClick={() => onAddToCart(bean)}
-              className="rounded-2xl bg-white px-4 py-2 text-sm font-medium text-neutral-950 transition hover:opacity-90"
-            >
-              Add
-            </button>
+        <div className="mt-auto pt-6">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="font-body text-xs uppercase tracking-[0.18em] text-white/38">
+                Price
+              </p>
+              <p className="font-body mt-2 text-2xl font-semibold text-white">
+                RM {bean.price}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onOpen(bean)}
+                className="font-body rounded-2xl border border-white/10 px-4 py-2 text-sm text-white/80 transition hover:bg-white/5"
+              >
+                Details
+              </button>
+              <button
+                type="button"
+                onClick={() => onAddToCart(bean)}
+                className="font-body rounded-2xl bg-white px-4 py-2 text-sm font-medium text-neutral-950 transition hover:opacity-90"
+              >
+                Add
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </article>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div className="overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.035]">
+      <div className="aspect-[4/3] animate-pulse bg-white/5" />
+      <div className="space-y-4 p-6">
+        <div className="h-3 w-20 animate-pulse rounded bg-white/10" />
+        <div className="h-7 w-40 animate-pulse rounded bg-white/10" />
+        <div className="h-5 w-full animate-pulse rounded bg-white/10" />
+        <div className="h-5 w-4/5 animate-pulse rounded bg-white/10" />
+        <div className="flex gap-2">
+          <div className="h-7 w-20 animate-pulse rounded-xl bg-white/10" />
+          <div className="h-7 w-20 animate-pulse rounded-xl bg-white/10" />
+        </div>
+        <div className="flex items-center justify-between pt-4">
+          <div className="h-8 w-24 animate-pulse rounded bg-white/10" />
+          <div className="h-10 w-24 animate-pulse rounded-2xl bg-white/10" />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -378,6 +425,7 @@ export default function DrunkCoffeeRoastersStorefront() {
   const [selectedBean, setSelectedBean] = useState(null);
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [toast, setToast] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -429,6 +477,12 @@ export default function DrunkCoffeeRoastersStorefront() {
     };
   }, [cartOpen, selectedBean]);
 
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(""), 1800);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
   const filteredBeans = useMemo(() => {
     if (activeFilter === "All") return beans;
     return beans.filter((bean) => bean.category === activeFilter);
@@ -438,6 +492,14 @@ export default function DrunkCoffeeRoastersStorefront() {
     () => beans.filter((bean) => bean.featured).slice(0, 3),
     [beans]
   );
+
+  const filterCounts = useMemo(() => {
+    return {
+      All: beans.length,
+      Filter: beans.filter((bean) => bean.category === "Filter").length,
+      Espresso: beans.filter((bean) => bean.category === "Espresso").length,
+    };
+  }, [beans]);
 
   const collectionMeta = {
     "Seasonal Highlight": {
@@ -458,11 +520,13 @@ export default function DrunkCoffeeRoastersStorefront() {
     },
     "Experimental Fruit": {
       title: "Experimental Fruit",
-      subtitle: "Fruit-driven coffees with modern processing and louder profiles.",
+      subtitle:
+        "Fruit-driven coffees with modern processing and louder profiles.",
     },
     "Espresso Lovers": {
       title: "Espresso Lovers",
-      subtitle: "Comforting coffees for espresso, milk drinks, and daily use.",
+      subtitle:
+        "Comforting coffees for espresso, milk drinks, and daily use.",
     },
   };
 
@@ -515,6 +579,7 @@ export default function DrunkCoffeeRoastersStorefront() {
       ];
     });
     setCartOpen(true);
+    setToast(`${bean.name} added to cart`);
   }
 
   function decreaseCartItem(itemId) {
@@ -557,136 +622,167 @@ export default function DrunkCoffeeRoastersStorefront() {
 
   const cartWhatsAppUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     cart.length
-      ? `Hi Drunk Coffee Roasters, I want to place an order:\n\n${cart
-          .map(
-            (item) =>
-              `• ${item.name} (${item.size}) x${item.quantity} — RM ${
-                Number(item.price || 0) * item.quantity
-              }`
-          )
-          .join("\n")}\n\nTotal: RM ${cartTotal}\n\nPlease confirm availability. Thanks.`
+      ? `Hi Drunk Coffee Roasters,
+
+I would like to place an order:
+
+${cart
+  .map(
+    (item, index) =>
+      `${index + 1}. ${item.name} (${item.size}) x${item.quantity}
+RM ${Number(item.price || 0) * item.quantity}`
+  )
+  .join("\n\n")}
+
+Total: RM ${cartTotal}
+
+Please confirm availability and roasting lead time.
+Thank you.`
       : "Hi Drunk Coffee Roasters, I would like to place an order."
   )}`;
+
+  const detailImage = selectedBean?.image
+    ? appendImageParams(selectedBean.image, {
+        w: 1200,
+        h: 1200,
+        fit: "fill",
+        fm: "webp",
+        q: 84,
+      })
+    : "";
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
       <header className="sticky top-0 z-50 border-b border-white/10 bg-neutral-950/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-6">
-          <a href="#top" className="block">
-            <img
-              src="/logo.png"
-              alt="Drunk Coffee Roasters"
-              className="h-12 object-contain md:h-14"
-            />
-          </a>
+  <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
 
-          <div className="flex items-center gap-4">
-            <a
-              href="#beans"
-              className="hidden text-sm text-white/80 transition hover:text-white md:block"
-            >
-              Shop
-            </a>
+    {/* Logo */}
+    <a href="#top" className="flex items-center">
+      <img
+        src="/logo.png"
+        alt="Drunk Coffee Roasters"
+        className="h-[72px] object-contain transition duration-300 hover:scale-105 md:h-[110px]"
+      />
+    </a>
 
-            <a
-              href="#wholesale"
-              className="hidden text-sm text-white/80 transition hover:text-white md:block"
-            >
-              Wholesale
-            </a>
+    {/* Navigation */}
+    <nav className="hidden items-center gap-6 md:flex">
+      <a
+        href="#beans"
+        className="font-body text-sm text-white/80 transition hover:text-white"
+      >
+        Shop
+      </a>
 
-            <a
-              href="#about"
-              className="hidden text-sm text-white/80 transition hover:text-white md:block"
-            >
-              About
-            </a>
+      <a
+        href="#wholesale"
+        className="font-body text-sm text-white/80 transition hover:text-white"
+      >
+        Wholesale
+      </a>
 
-            <button
-              type="button"
-              onClick={() => setCartOpen(true)}
-              className="relative flex items-center justify-center text-white/80 transition hover:text-white"
-              aria-label="Open cart"
-            >
-              <ShoppingCart size={20} />
-              {cartCount > 0 && (
-                <span className="absolute -right-2 -top-2 rounded-full bg-white px-1.5 py-0.5 text-[10px] font-semibold text-black">
-                  {cartCount}
-                </span>
-              )}
-            </button>
+      <a
+        href="#about"
+        className="font-body text-sm text-white/80 transition hover:text-white"
+      >
+        About
+      </a>
+    </nav>
 
-            <a
-              href={openGeneralWhatsApp}
-              target="_blank"
-              rel="noreferrer"
-              className="transition hover:scale-110"
-              aria-label="WhatsApp"
-            >
-              <img
-                src="https://cdn.simpleicons.org/whatsapp/ffffff"
-                alt="WhatsApp"
-                className="h-5 w-5 opacity-80 transition hover:opacity-100"
-              />
-            </a>
+    {/* Right side icons */}
+    <div className="flex items-center gap-5">
 
-            <a
-              href={INSTAGRAM_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="transition hover:scale-110"
-              aria-label="Instagram"
-            >
-              <Instagram
-                size={20}
-                className="opacity-80 transition hover:opacity-100"
-              />
-            </a>
-          </div>
-        </div>
-      </header>
+      {/* Cart */}
+      <button
+        type="button"
+        onClick={() => setCartOpen(true)}
+        className="relative text-white/80 transition hover:text-white"
+        aria-label="Open cart"
+      >
+        <ShoppingCart size={22} />
+        {cartCount > 0 && (
+          <span className="font-body absolute -right-2 -top-2 rounded-full bg-white px-1.5 py-0.5 text-[10px] font-semibold text-black">
+            {cartCount}
+          </span>
+        )}
+      </button>
 
+      {/* WhatsApp */}
+      <a
+        href={openGeneralWhatsApp}
+        target="_blank"
+        rel="noreferrer"
+        className="transition hover:scale-110"
+      >
+        <img
+          src="https://cdn.simpleicons.org/whatsapp/ffffff"
+          alt="WhatsApp"
+          className="h-5 w-5 opacity-80 transition hover:opacity-100"
+        />
+      </a>
+
+      {/* Instagram */}
+      <a
+        href={INSTAGRAM_URL}
+        target="_blank"
+        rel="noreferrer"
+        className="transition hover:scale-110"
+      >
+        <Instagram
+          size={22}
+          className="opacity-80 transition hover:opacity-100"
+        />
+      </a>
+
+    </div>
+  </div>
+</header>
       <main id="top">
         <section className="relative mx-auto max-w-7xl px-5 py-16 md:px-6 md:py-24">
           <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
             <div>
-              <p className="inline-flex rounded-full border border-white/12 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-white/75">
+              <p className="font-body inline-flex rounded-full border border-white/12 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-white/75">
                 Johor Specialty Coffee Roaster
               </p>
 
-              <h1 className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.05] text-white md:text-6xl">
+              <h1 className="font-display mt-6 max-w-3xl text-4xl font-semibold leading-[1.05] text-white md:text-6xl">
                 Specialty coffee for home brewers, cafés, and everyday drinkers.
               </h1>
 
-              <p className="mt-6 max-w-xl text-base leading-8 text-white/75 md:text-lg">
-                Roasted by Drunk Coffee Roasters for cleaner choices, easier brewing,
-                and more enjoyable daily cups.
+              <p className="font-body mt-6 max-w-xl text-base leading-8 text-white/75 md:text-lg">
+                Roasted by Drunk Coffee Roasters for cleaner choices, easier
+                brewing, and more enjoyable daily cups.
+              </p>
+
+              <p className="font-body mt-4 max-w-xl text-sm leading-7 text-white/55 md:text-base">
+                Small-batch roasted in Johor, Malaysia for filter, espresso,
+                wholesale supply, and daily coffee routines.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <a
                   href="#beans"
-                  className="rounded-2xl bg-white px-6 py-3 text-sm font-medium text-neutral-950 transition hover:opacity-90"
+                  className="font-body rounded-2xl bg-white px-6 py-3 text-sm font-medium text-neutral-950 transition hover:opacity-90"
                 >
                   Shop Beans
                 </a>
 
                 <a
                   href="#wholesale"
-                  className="rounded-2xl border border-white/15 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/5"
+                  className="font-body rounded-2xl border border-white/15 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/5"
                 >
                   Wholesale
                 </a>
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3 text-sm text-white/70">
-                <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
+                <span className="font-body rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
                   Espresso
                 </span>
-                <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
+                <span className="font-body rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
                   Filter
                 </span>
-                <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
+                <span className="font-body rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
                   Wholesale Supply
                 </span>
               </div>
@@ -702,10 +798,10 @@ export default function DrunkCoffeeRoastersStorefront() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
                 <div className="absolute bottom-0 left-0 p-6 md:p-8">
-                  <p className="text-xs uppercase tracking-[0.22em] text-white/80">
+                  <p className="font-body text-xs uppercase tracking-[0.22em] text-white/80">
                     Drunk Coffee Roasters
                   </p>
-                  <p className="mt-2 max-w-sm text-2xl font-semibold leading-tight text-white md:text-3xl">
+                  <p className="font-display mt-2 max-w-sm text-2xl font-semibold leading-tight text-white md:text-3xl">
                     Roasting coffee for easier choices and better cups.
                   </p>
                 </div>
@@ -718,16 +814,17 @@ export default function DrunkCoffeeRoastersStorefront() {
           <section className="mx-auto max-w-7xl px-5 pb-6 md:px-6 md:pb-10">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.22em] text-white/42">
+                <p className="font-body text-sm uppercase tracking-[0.22em] text-white/42">
                   Featured coffees
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold md:text-3xl">
+                <h2 className="font-display mt-2 text-2xl font-semibold md:text-3xl">
                   Start with these picks
                 </h2>
               </div>
 
-              <p className="max-w-xl text-sm leading-7 text-white/62">
-                A shorter starting point for customers who want the most approachable coffees first.
+              <p className="font-body max-w-xl text-sm leading-7 text-white/62">
+                A shorter starting point for customers who want the most
+                approachable coffees first.
               </p>
             </div>
 
@@ -744,13 +841,16 @@ export default function DrunkCoffeeRoastersStorefront() {
           </section>
         ) : null}
 
-        <section id="beans" className="mx-auto max-w-7xl px-5 py-12 md:px-6 md:py-16">
+        <section
+          id="beans"
+          className="mx-auto max-w-7xl px-5 py-12 md:px-6 md:py-16"
+        >
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.22em] text-white/42">
+              <p className="font-body text-sm uppercase tracking-[0.22em] text-white/42">
                 Coffee menu
               </p>
-              <h2 className="mt-2 text-3xl font-semibold md:text-4xl">
+              <h2 className="font-display mt-2 text-3xl font-semibold md:text-4xl">
                 Shop by brew style
               </h2>
             </div>
@@ -763,13 +863,13 @@ export default function DrunkCoffeeRoastersStorefront() {
                     key={filter}
                     type="button"
                     onClick={() => setActiveFilter(filter)}
-                    className={`rounded-full px-4 py-2 text-sm transition ${
+                    className={`font-body rounded-full px-4 py-2 text-sm transition ${
                       isActive
                         ? "bg-white text-neutral-950"
                         : "border border-white/10 text-white/70 hover:bg-white/5"
                     }`}
                   >
-                    {filter}
+                    {filter} ({filterCounts[filter] ?? 0})
                   </button>
                 );
               })}
@@ -777,25 +877,31 @@ export default function DrunkCoffeeRoastersStorefront() {
           </div>
 
           <div className="mt-4 flex items-center justify-between gap-4 border-b border-white/10 pb-5 text-sm text-white/50">
-            <p>
+            <p className="font-body">
               Showing <span className="text-white/80">{filteredBeans.length}</span>{" "}
               coffee{filteredBeans.length > 1 ? "s" : ""}
             </p>
-            <p className="hidden md:block">
+            <p className="font-body hidden md:block">
               {loading ? "Loading from Contentful..." : "Live from Contentful."}
             </p>
           </div>
 
           {error ? (
-            <div className="mt-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-100">
+            <div className="font-body mt-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-100">
               {error}
             </div>
           ) : null}
 
-          {filteredBeans.length === 0 ? (
+          {loading ? (
+            <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <SkeletonCard key={index} />
+              ))}
+            </div>
+          ) : filteredBeans.length === 0 ? (
             <div className="mt-8 rounded-[28px] border border-white/10 bg-white/[0.04] p-10 text-center">
-              <p className="text-lg font-semibold">No beans found</p>
-              <p className="mt-3 text-sm leading-7 text-white/60">
+              <p className="font-display text-lg font-semibold">No beans found</p>
+              <p className="font-body mt-3 text-sm leading-7 text-white/60">
                 Try another filter, or publish more coffee entries in Contentful.
               </p>
             </div>
@@ -817,18 +923,19 @@ export default function DrunkCoffeeRoastersStorefront() {
                     >
                       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                         <div>
-                          <p className="text-sm uppercase tracking-[0.22em] text-white/45">
+                          <p className="font-body text-sm uppercase tracking-[0.22em] text-white/45">
                             Collection
                           </p>
-                          <h3 className="mt-2 text-2xl font-semibold md:text-3xl">
+                          <h3 className="font-display mt-2 text-2xl font-semibold md:text-3xl">
                             {meta.title}
                           </h3>
-                          <p className="mt-2 max-w-2xl text-sm leading-7 text-white/65">
+                          <p className="font-body mt-2 max-w-2xl text-sm leading-7 text-white/65">
                             {meta.subtitle}
                           </p>
                         </div>
-                        <p className="text-sm text-white/38">
-                          {collectionBeans.length} coffee{collectionBeans.length > 1 ? "s" : ""}
+                        <p className="font-body text-sm text-white/38">
+                          {collectionBeans.length} coffee
+                          {collectionBeans.length > 1 ? "s" : ""}
                         </p>
                       </div>
                     </div>
@@ -854,18 +961,20 @@ export default function DrunkCoffeeRoastersStorefront() {
           <div className="mx-auto max-w-7xl px-5 py-16 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
               <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-7">
-                <p className="text-sm uppercase tracking-[0.22em] text-white/42">
+                <p className="font-body text-sm uppercase tracking-[0.22em] text-white/42">
                   Wholesale
                 </p>
-                <h2 className="mt-2 text-3xl font-semibold">
+                <h2 className="font-display mt-2 text-3xl font-semibold">
                   Coffee supply for cafés, offices, and retail partners.
                 </h2>
-                <p className="mt-5 text-sm leading-8 text-white/68">
-                  We offer wholesale roasted coffee for partners looking for approachable espresso,
-                  expressive filter options, and reliable small-batch supply.
+                <p className="font-body mt-5 text-sm leading-8 text-white/68">
+                  We offer wholesale roasted coffee for partners looking for
+                  approachable espresso, expressive filter options, and reliable
+                  small-batch supply.
                 </p>
-                <p className="mt-4 text-sm leading-8 text-white/68">
-                  Suitable for café programs, office coffee setups, and retail collaboration.
+                <p className="font-body mt-4 text-sm leading-8 text-white/68">
+                  Suitable for café programs, office coffee setups, and retail
+                  collaboration.
                 </p>
 
                 <div className="mt-8 flex flex-wrap gap-3">
@@ -873,7 +982,7 @@ export default function DrunkCoffeeRoastersStorefront() {
                     href={wholesaleWhatsAppUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="rounded-2xl bg-white px-6 py-3 text-sm font-medium text-neutral-950 transition hover:opacity-90"
+                    className="font-body rounded-2xl bg-white px-6 py-3 text-sm font-medium text-neutral-950 transition hover:opacity-90"
                   >
                     Enquire on WhatsApp
                   </a>
@@ -881,7 +990,7 @@ export default function DrunkCoffeeRoastersStorefront() {
                     href={INSTAGRAM_URL}
                     target="_blank"
                     rel="noreferrer"
-                    className="rounded-2xl border border-white/15 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/5"
+                    className="font-body rounded-2xl border border-white/15 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/5"
                   >
                     View Instagram
                   </a>
@@ -890,21 +999,23 @@ export default function DrunkCoffeeRoastersStorefront() {
 
               <div className="grid gap-6">
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
-                  <p className="text-lg font-semibold">Suitable for</p>
-                  <p className="mt-3 text-sm leading-7 text-white/65">
+                  <p className="font-display text-lg font-semibold">Suitable for</p>
+                  <p className="font-body mt-3 text-sm leading-7 text-white/65">
                     Cafés · Offices · Retail shelves · Event coffee supply
                   </p>
                 </div>
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
-                  <p className="text-lg font-semibold">Roast styles</p>
-                  <p className="mt-3 text-sm leading-7 text-white/65">
-                    Espresso blends, seasonal filters, and flexible coffee selections for different needs.
+                  <p className="font-display text-lg font-semibold">Roast styles</p>
+                  <p className="font-body mt-3 text-sm leading-7 text-white/65">
+                    Espresso blends, seasonal filters, and flexible coffee
+                    selections for different needs.
                   </p>
                 </div>
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
-                  <p className="text-lg font-semibold">Ordering</p>
-                  <p className="mt-3 text-sm leading-7 text-white/65">
-                    Start with WhatsApp for faster discussion on availability, profile, and supply needs.
+                  <p className="font-display text-lg font-semibold">Ordering</p>
+                  <p className="font-body mt-3 text-sm leading-7 text-white/65">
+                    Start with WhatsApp for faster discussion on availability,
+                    profile, and supply needs.
                   </p>
                 </div>
               </div>
@@ -916,38 +1027,53 @@ export default function DrunkCoffeeRoastersStorefront() {
           <div className="mx-auto max-w-7xl px-5 py-16 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
               <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-7">
-                <p className="text-sm uppercase tracking-[0.22em] text-white/42">
+                <p className="font-body text-sm uppercase tracking-[0.22em] text-white/42">
                   About
                 </p>
-                <h2 className="mt-2 text-3xl font-semibold">
-                  From training mornings to specialty roasting.
+                <h2 className="font-display mt-2 text-3xl font-semibold">
+                  Roasting coffee that feels easier to choose, brew, and enjoy.
                 </h2>
-                <p className="mt-5 text-sm leading-8 text-white/68">
-                  Drunk Coffee Roasters was founded by Lun, whose coffee journey began through
-                  fitness, early mornings, and the search for better daily coffee.
+                <p className="font-body mt-5 text-sm leading-8 text-white/68">
+                  Drunk Coffee Roasters began with a simple obsession: finding coffee
+                  that could make daily routines feel sharper, more enjoyable, and more
+                  intentional. What started from early mornings, training days, and a
+                  deep personal curiosity gradually grew into a roasting practice built
+                  around balance, clarity, and drinkability.
                 </p>
-                <p className="mt-4 text-sm leading-8 text-white/68">
-                  Today, the goal is simple: roast coffees that are easier to choose, easier to
-                  brew, and more enjoyable to drink.
+                <p className="font-body mt-4 text-sm leading-8 text-white/68">
+                   Today, we roast coffees for home brewers, cafés, and everyday drinkers
+                   who want cleaner choices and more satisfying cups. The goal is not to
+                   make coffee feel complicated, but to roast coffees that are expressive,
+                   dependable, and easy to return to every day.
                 </p>
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2">
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
-                  <p className="text-lg font-semibold">WhatsApp ordering</p>
-                  <p className="mt-3 text-sm leading-7 text-white/65">
-                    Build your cart first, then send one cleaner order request through WhatsApp.
+                  <p className="font-display text-lg font-semibold">
+                    Simple ordering
+                  </p>
+                  <p className="font-body mt-3 text-sm leading-7 text-white/65">
+                    Browse the menu, build ur cart, and send one clear order request
+                    through WhatsApp for faster confirmation.
                   </p>
                 </div>
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
-                  <p className="text-lg font-semibold">Fresh Roasted</p>
-                  <p className="mt-3 text-sm leading-7 text-white/65">
-                    Roasted in small batches to keep clarity, sweetness and consistency in every cup.
+                  <p className="font-display text-lg font-semibold">Fresh Roasted</p>
+                  <p className="font-body mt-3 text-sm leading-7 text-white/65">
+                    Roasted in small batches to maintain sweetness, clarity, and consistency
+                    across espresso,fi in every cup.
                   </p>
                 </div>
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 sm:col-span-2">
-                  <p className="text-lg font-semibold">Where to find us</p>
-                  <p className="mt-3 text-sm leading-7 text-white/65">
+                  <p className="font-display text-lg font-semibold">
+                    Find the brand
+                  </p>
+                  <p className="font-body mt-3 text-sm leading-7 text-white/65">
+                    Follow Drunk Coffee Roasters on Instagram and 小红书 for new releases,
+                    coffee updates, and brand highlights.  
+                  </p>
+                  <p className="font-body mt-3 text-sm leading-7 text-white/65">
                     Instagram: @drunkcoffeeroasters · 小红书: {XHS_LABEL}
                   </p>
                 </div>
@@ -966,38 +1092,40 @@ export default function DrunkCoffeeRoastersStorefront() {
             onClick={() => setSelectedBean(null)}
           />
           <div className="relative max-h-[90vh] w-full max-w-5xl overflow-auto rounded-[32px] border border-white/10 bg-neutral-950 shadow-2xl shadow-black/50">
-            <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
-              <div className="aspect-square bg-white/5 lg:h-full lg:min-h-[620px]">
-                {selectedBean.image ? (
-                  <img
-                    src={selectedBean.image}
-                    alt={selectedBean.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-white/5 to-white/[0.02] text-sm text-white/35">
-                    No image yet
-                  </div>
-                )}
+            <div className="grid items-start lg:grid-cols-[0.9fr_1.1fr]">
+              <div className="bg-white/5 p-4 md:p-5">
+                <div className="mx-auto w-full max-w-[440px] overflow-hidden rounded-[28px] bg-white/5">
+                  {detailImage ? (
+                    <img
+                      src={detailImage}
+                      alt={selectedBean.name}
+                      className="h-auto max-h-[420px] w-full object-contain"
+                    />
+                  ) : (
+                    <div className="flex h-[320px] items-center justify-center bg-gradient-to-br from-white/5 to-white/[0.02] text-sm text-white/35">
+                      No image yet
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="p-6 md:p-8">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-white/45">
+                    <p className="font-body text-xs uppercase tracking-[0.2em] text-white/45">
                       {selectedBean.collection || selectedBean.category}
                     </p>
-                    <h3 className="mt-2 text-3xl font-semibold md:text-4xl">
+                    <h3 className="font-display mt-2 text-3xl font-semibold leading-tight md:text-4xl">
                       {selectedBean.name}
                     </h3>
-                    <p className="mt-3 text-sm font-medium text-white/70">
+                    <p className="font-body mt-3 text-sm font-medium text-white/70">
                       {selectedBean.origin || "Origin TBC"}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setSelectedBean(null)}
-                    className="rounded-full border border-white/10 px-3 py-1 text-sm text-white/70 transition hover:bg-white/5"
+                    className="font-body rounded-full border border-white/10 px-3 py-1 text-sm text-white/70 transition hover:bg-white/5"
                   >
                     Close
                   </button>
@@ -1007,56 +1135,70 @@ export default function DrunkCoffeeRoastersStorefront() {
                   {safeArray(selectedBean.notes).map((note) => (
                     <span
                       key={note}
-                      className="rounded-full bg-white/[0.08] px-3 py-1 text-sm text-white/75"
+                      className="font-body rounded-xl border border-white/10 bg-white/[0.05] px-3 py-1.5 text-[12px] font-medium uppercase tracking-[0.08em] text-white/75"
                     >
                       {note}
                     </span>
                   ))}
                 </div>
 
-                <p className="mt-6 text-base leading-8 text-white/68">
+                <p className="font-body mt-6 text-base leading-8 text-white/68">
                   {selectedBean.description || "Description coming soon."}
                 </p>
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl border border-white/10 p-4">
-                    <p className="text-sm text-white/40">Origin</p>
-                    <p className="mt-2 text-white/85">{selectedBean.origin || "—"}</p>
+                    <p className="font-body text-sm text-white/40">Origin</p>
+                    <p className="font-body mt-2 text-white/85">
+                      {selectedBean.origin || "—"}
+                    </p>
                   </div>
                   <div className="rounded-2xl border border-white/10 p-4">
-                    <p className="text-sm text-white/40">Roast</p>
-                    <p className="mt-2 text-white/85">{selectedBean.roast || "—"}</p>
+                    <p className="font-body text-sm text-white/40">Roast</p>
+                    <p className="font-body mt-2 text-white/85">
+                      {selectedBean.roast || "—"}
+                    </p>
                   </div>
                   <div className="rounded-2xl border border-white/10 p-4">
-                    <p className="text-sm text-white/40">Process</p>
-                    <p className="mt-2 text-white/85">{selectedBean.process || "—"}</p>
+                    <p className="font-body text-sm text-white/40">Process</p>
+                    <p className="font-body mt-2 text-white/85">
+                      {selectedBean.process || "—"}
+                    </p>
                   </div>
                   <div className="rounded-2xl border border-white/10 p-4">
-                    <p className="text-sm text-white/40">Size</p>
-                    <p className="mt-2 text-white/85">{selectedBean.size || "—"}</p>
+                    <p className="font-body text-sm text-white/40">Size</p>
+                    <p className="font-body mt-2 text-white/85">
+                      {selectedBean.size || "—"}
+                    </p>
                   </div>
                   <div className="rounded-2xl border border-white/10 p-4">
-                    <p className="text-sm text-white/40">Best for</p>
-                    <p className="mt-2 text-white/85">{selectedBean.bestFor || "—"}</p>
+                    <p className="font-body text-sm text-white/40">Best for</p>
+                    <p className="font-body mt-2 text-white/85">
+                      {selectedBean.bestFor || "—"}
+                    </p>
                   </div>
                   <div className="rounded-2xl border border-white/10 p-4">
-                    <p className="text-sm text-white/40">Wholesale</p>
-                    <p className="mt-2 text-white/85">
-                      {selectedBean.wholesaleAvailable ? "Available" : "Retail only"}
+                    <p className="font-body text-sm text-white/40">Wholesale</p>
+                    <p className="font-body mt-2 text-white/85">
+                      {selectedBean.wholesaleAvailable
+                        ? "Available"
+                        : "Retail only"}
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-8 flex items-end justify-between gap-4">
                   <div>
-                    <p className="text-sm text-white/40">Price</p>
-                    <p className="mt-2 text-3xl font-semibold">RM {selectedBean.price}</p>
+                    <p className="font-body text-sm text-white/40">Price</p>
+                    <p className="font-body mt-2 text-3xl font-semibold">
+                      RM {selectedBean.price}
+                    </p>
                   </div>
                   <div className="flex flex-wrap justify-end gap-3">
                     <button
                       type="button"
                       onClick={() => addToCart(selectedBean)}
-                      className="rounded-2xl border border-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/5"
+                      className="font-body rounded-2xl border border-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/5"
                     >
                       Add to cart
                     </button>
@@ -1064,7 +1206,7 @@ export default function DrunkCoffeeRoastersStorefront() {
                       href={buildSingleOrderUrl(selectedBean)}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-2xl bg-white px-5 py-3 text-sm font-medium text-neutral-950 transition hover:opacity-90"
+                      className="font-body rounded-2xl bg-white px-5 py-3 text-sm font-medium text-neutral-950 transition hover:opacity-90"
                     >
                       Order on WhatsApp
                     </a>
@@ -1087,15 +1229,15 @@ export default function DrunkCoffeeRoastersStorefront() {
           <div className="flex h-full w-full max-w-md flex-col border-l border-white/10 bg-neutral-950 shadow-2xl shadow-black/50">
             <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
               <div>
-                <p className="text-lg font-semibold">Your cart</p>
-                <p className="mt-1 text-sm text-white/50">
+                <p className="font-display text-lg font-semibold">Your cart</p>
+                <p className="font-body mt-1 text-sm text-white/50">
                   {cartCount} item{cartCount > 1 ? "s" : ""}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setCartOpen(false)}
-                className="rounded-full border border-white/10 px-3 py-1 text-sm text-white/70 transition hover:bg-white/5"
+                className="font-body rounded-full border border-white/10 px-3 py-1 text-sm text-white/70 transition hover:bg-white/5"
               >
                 Close
               </button>
@@ -1104,10 +1246,18 @@ export default function DrunkCoffeeRoastersStorefront() {
             <div className="flex-1 overflow-auto px-5 py-5">
               {cart.length === 0 ? (
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 text-center">
-                  <p className="text-lg font-semibold">Cart is empty</p>
-                  <p className="mt-3 text-sm leading-7 text-white/60">
-                    Add a few coffees, then send one combined order through WhatsApp.
+                  <p className="font-display text-lg font-semibold">Cart is empty</p>
+                  <p className="font-body mt-3 text-sm leading-7 text-white/60">
+                    Add a few coffees, then send one combined order through
+                    WhatsApp.
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => setCartOpen(false)}
+                    className="font-body mt-5 rounded-2xl border border-white/10 px-4 py-2 text-sm text-white/75 transition hover:bg-white/5"
+                  >
+                    Continue shopping
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -1118,15 +1268,20 @@ export default function DrunkCoffeeRoastersStorefront() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-base font-semibold">{item.name}</p>
-                          <p className="mt-1 text-sm text-white/55">
+                          <p className="font-display text-base font-semibold">
+                            {item.name}
+                          </p>
+                          <p className="font-body mt-1 text-sm text-white/55">
                             {item.category} · {item.size}
+                          </p>
+                          <p className="font-body mt-1 text-xs text-white/40">
+                            RM {item.price} each
                           </p>
                         </div>
                         <button
                           type="button"
                           onClick={() => removeCartItem(item.id)}
-                          className="text-sm text-white/45 transition hover:text-white"
+                          className="font-body text-sm text-white/45 transition hover:text-white"
                         >
                           Remove
                         </button>
@@ -1137,22 +1292,22 @@ export default function DrunkCoffeeRoastersStorefront() {
                           <button
                             type="button"
                             onClick={() => decreaseCartItem(item.id)}
-                            className="h-9 w-9 rounded-full border border-white/10 text-sm text-white/80 transition hover:bg-white/5"
+                            className="font-body h-9 w-9 rounded-full border border-white/10 text-sm text-white/80 transition hover:bg-white/5"
                           >
                             −
                           </button>
-                          <span className="min-w-8 text-center text-sm font-medium">
+                          <span className="font-body min-w-8 text-center text-sm font-medium">
                             {item.quantity}
                           </span>
                           <button
                             type="button"
                             onClick={() => increaseCartItem(item.id)}
-                            className="h-9 w-9 rounded-full border border-white/10 text-sm text-white/80 transition hover:bg-white/5"
+                            className="font-body h-9 w-9 rounded-full border border-white/10 text-sm text-white/80 transition hover:bg-white/5"
                           >
                             +
                           </button>
                         </div>
-                        <p className="text-base font-semibold">
+                        <p className="font-body text-base font-semibold">
                           RM {Number(item.price || 0) * item.quantity}
                         </p>
                       </div>
@@ -1164,14 +1319,14 @@ export default function DrunkCoffeeRoastersStorefront() {
 
             <div className="border-t border-white/10 px-5 py-5">
               <div className="mb-4 flex items-center justify-between">
-                <p className="text-sm text-white/55">Total</p>
-                <p className="text-2xl font-semibold">RM {cartTotal}</p>
+                <p className="font-body text-sm text-white/55">Total</p>
+                <p className="font-body text-2xl font-semibold">RM {cartTotal}</p>
               </div>
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={clearCart}
-                  className="rounded-2xl border border-white/10 px-4 py-3 text-sm text-white/75 transition hover:bg-white/5"
+                  className="font-body rounded-2xl border border-white/10 px-4 py-3 text-sm text-white/75 transition hover:bg-white/5"
                 >
                   Clear
                 </button>
@@ -1179,7 +1334,7 @@ export default function DrunkCoffeeRoastersStorefront() {
                   href={cartWhatsAppUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className={`flex-1 rounded-2xl px-4 py-3 text-center text-sm font-medium transition ${
+                  className={`font-body flex-1 rounded-2xl px-4 py-3 text-center text-sm font-medium transition ${
                     cart.length
                       ? "bg-white text-neutral-950 hover:opacity-90"
                       : "pointer-events-none border border-white/10 text-white/35"
@@ -1193,31 +1348,40 @@ export default function DrunkCoffeeRoastersStorefront() {
         </div>
       ) : null}
 
+      {toast ? (
+        <div className="font-body fixed bottom-6 left-1/2 z-[80] -translate-x-1/2 rounded-2xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-white shadow-2xl shadow-black/40">
+          {toast}
+        </div>
+      ) : null}
+
       <footer className="border-t border-white/10 bg-black/20">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 text-sm text-white/55 md:flex-row md:items-center md:justify-between md:px-6">
           <div>
-            <p className="font-medium text-white/80">Drunk Coffee Roasters</p>
-            <p className="mt-1">
-              Specialty coffee roasted for espresso, filter, wholesale, and everyday brewing.
+            <p className="font-display text-lg font-medium text-white/80">
+              Drunk Coffee Roasters
+            </p>
+            <p className="font-body mt-1">
+              Specialty coffee roasted for espresso, filter, wholesale, and
+              everyday brewing.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
             <a
               href="#beans"
-              className="rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
+              className="font-body rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
             >
               Shop
             </a>
             <a
               href="#wholesale"
-              className="rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
+              className="font-body rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
             >
               Wholesale
             </a>
             <a
               href="#about"
-              className="rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
+              className="font-body rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
             >
               About
             </a>
@@ -1225,7 +1389,7 @@ export default function DrunkCoffeeRoastersStorefront() {
               href={INSTAGRAM_URL}
               target="_blank"
               rel="noreferrer"
-              className="rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
+              className="font-body rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
             >
               Instagram
             </a>
