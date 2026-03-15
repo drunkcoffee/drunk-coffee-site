@@ -6,5 +6,5 @@ import DrunkCoffeeRoastersStorefront from "./App.jsx";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <DrunkCoffeeRoastersStorefront />
-  </React.StrictMode>
+  </React.StrictMode>,
 );

@@ -279,7 +279,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
     : "";
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.035] shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-white/15 hover:bg-white/[0.05]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.035] shadow-[0_20px_50px_rgba(0,0,0,0.35)] transition duration-300 hover:-translate-y-2 hover:border-white/20 hover:bg-white/[0.06] hover:shadow-[0_40px_90px_rgba(0,0,0,0.6)]">
       <button
         type="button"
         onClick={() => onOpen(bean)}
@@ -291,7 +291,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
             <img
               src={cardImage}
               alt={bean.name}
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+              className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.07]"
               loading="lazy"
             />
           ) : (
@@ -654,109 +654,99 @@ Thank you.`
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
       <header className="sticky top-0 z-50 border-b border-white/10 bg-neutral-950/85 backdrop-blur-xl">
-  <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+          <a href="#top" className="flex items-center">
+            <img
+              src="/logo.png"
+              alt="Drunk Coffee Roasters"
+              className="h-[72px] object-contain transition duration-300 hover:scale-105 md:h-[96px]"
+            />
+          </a>
 
-    {/* Logo */}
-    <a href="#top" className="flex items-center">
-      <img
-        src="/logo.png"
-        alt="Drunk Coffee Roasters"
-        className="h-[72px] object-contain transition duration-300 hover:scale-105 md:h-[110px]"
-      />
-    </a>
+          <nav className="hidden items-center gap-6 md:flex">
+            <a
+              href="#beans"
+              className="font-body text-sm text-white/80 transition hover:text-white"
+            >
+              Shop
+            </a>
 
-    {/* Navigation */}
-    <nav className="hidden items-center gap-6 md:flex">
-      <a
-        href="#beans"
-        className="font-body text-sm text-white/80 transition hover:text-white"
-      >
-        Shop
-      </a>
+            <a
+              href="#wholesale"
+              className="font-body text-sm text-white/80 transition hover:text-white"
+            >
+              Wholesale
+            </a>
 
-      <a
-        href="#wholesale"
-        className="font-body text-sm text-white/80 transition hover:text-white"
-      >
-        Wholesale
-      </a>
+            <a
+              href="#about"
+              className="font-body text-sm text-white/80 transition hover:text-white"
+            >
+              About
+            </a>
+          </nav>
 
-      <a
-        href="#about"
-        className="font-body text-sm text-white/80 transition hover:text-white"
-      >
-        About
-      </a>
-    </nav>
+          <div className="flex items-center gap-5">
+            <button
+              type="button"
+              onClick={() => setCartOpen(true)}
+              className="relative text-white/80 transition hover:text-white"
+              aria-label="Open cart"
+            >
+              <ShoppingCart size={22} />
+              {cartCount > 0 && (
+                <span className="font-body absolute -right-2 -top-2 rounded-full bg-white px-1.5 py-0.5 text-[10px] font-semibold text-black">
+                  {cartCount}
+                </span>
+              )}
+            </button>
 
-    {/* Right side icons */}
-    <div className="flex items-center gap-5">
+            <a
+              href={openGeneralWhatsApp}
+              target="_blank"
+              rel="noreferrer"
+              className="transition hover:scale-110"
+              aria-label="WhatsApp"
+            >
+              <img
+                src="https://cdn.simpleicons.org/whatsapp/ffffff"
+                alt="WhatsApp"
+                className="h-5 w-5 opacity-80 transition hover:opacity-100"
+              />
+            </a>
 
-      {/* Cart */}
-      <button
-        type="button"
-        onClick={() => setCartOpen(true)}
-        className="relative text-white/80 transition hover:text-white"
-        aria-label="Open cart"
-      >
-        <ShoppingCart size={22} />
-        {cartCount > 0 && (
-          <span className="font-body absolute -right-2 -top-2 rounded-full bg-white px-1.5 py-0.5 text-[10px] font-semibold text-black">
-            {cartCount}
-          </span>
-        )}
-      </button>
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="transition hover:scale-110"
+              aria-label="Instagram"
+            >
+              <Instagram
+                size={22}
+                className="opacity-80 transition hover:opacity-100"
+              />
+            </a>
+          </div>
+        </div>
+      </header>
 
-      {/* WhatsApp */}
-      <a
-        href={openGeneralWhatsApp}
-        target="_blank"
-        rel="noreferrer"
-        className="transition hover:scale-110"
-      >
-        <img
-          src="https://cdn.simpleicons.org/whatsapp/ffffff"
-          alt="WhatsApp"
-          className="h-5 w-5 opacity-80 transition hover:opacity-100"
-        />
-      </a>
-
-      {/* Instagram */}
-      <a
-        href={INSTAGRAM_URL}
-        target="_blank"
-        rel="noreferrer"
-        className="transition hover:scale-110"
-      >
-        <Instagram
-          size={22}
-          className="opacity-80 transition hover:opacity-100"
-        />
-      </a>
-
-    </div>
-  </div>
-</header>
       <main id="top">
-        <section className="relative mx-auto max-w-7xl px-5 py-16 md:px-6 md:py-24">
+        <section className="relative mx-auto max-w-7xl px-5 py-14 md:px-6 md:py-24">
           <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
             <div>
               <p className="font-body inline-flex rounded-full border border-white/12 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-white/75">
                 Johor Specialty Coffee Roaster
               </p>
 
-              <h1 className="font-display mt-6 max-w-3xl text-4xl font-semibold leading-[1.05] text-white md:text-6xl">
-                Specialty coffee for home brewers, cafés, and everyday drinkers.
+              <h1 className="font-display mt-6 max-w-3xl text-4xl font-semibold leading-[1.02] text-white md:text-6xl">
+                Coffee roasted for better daily cups.
               </h1>
 
               <p className="font-body mt-6 max-w-xl text-base leading-8 text-white/75 md:text-lg">
-                Roasted by Drunk Coffee Roasters for cleaner choices, easier
-                brewing, and more enjoyable daily cups.
-              </p>
-
-              <p className="font-body mt-4 max-w-xl text-sm leading-7 text-white/55 md:text-base">
-                Small-batch roasted in Johor, Malaysia for filter, espresso,
-                wholesale supply, and daily coffee routines.
+                Small-batch roasted in Johor for home brewers, cafés, and
+                everyday coffee drinkers looking for expressive but approachable
+                coffees.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -764,7 +754,7 @@ Thank you.`
                   href="#beans"
                   className="font-body rounded-2xl bg-white px-6 py-3 text-sm font-medium text-neutral-950 transition hover:opacity-90"
                 >
-                  Shop Beans
+                  Shop Coffee
                 </a>
 
                 <a
@@ -777,11 +767,13 @@ Thank you.`
 
               <div className="mt-8 flex flex-wrap gap-3 text-sm text-white/70">
                 <span className="font-body rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
-                  Espresso
-                </span>
-                <span className="font-body rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
                   Filter
                 </span>
+
+                <span className="font-body rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
+                  Espresso
+                </span>
+
                 <span className="font-body rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
                   Wholesale Supply
                 </span>
@@ -794,7 +786,7 @@ Thank you.`
                 <img
                   src="/hero-coffee.jpg"
                   alt="Drunk Coffee Roasters roasting coffee"
-                  className="h-[560px] w-full object-cover md:h-[620px]"
+                  className="h-[420px] w-full object-cover md:h-[620px]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
                 <div className="absolute bottom-0 left-0 p-6 md:p-8">
@@ -811,7 +803,7 @@ Thank you.`
         </section>
 
         {featured.length > 0 ? (
-          <section className="mx-auto max-w-7xl px-5 pb-6 md:px-6 md:pb-10">
+          <section className="mx-auto max-w-7xl px-5 pb-8 md:px-6 md:pb-10">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="font-body text-sm uppercase tracking-[0.22em] text-white/42">
@@ -855,7 +847,7 @@ Thank you.`
               </h2>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {FILTERS.map((filter) => {
                 const isActive = activeFilter === filter;
                 return (
@@ -863,7 +855,7 @@ Thank you.`
                     key={filter}
                     type="button"
                     onClick={() => setActiveFilter(filter)}
-                    className={`font-body rounded-full px-4 py-2 text-sm transition ${
+                    className={`font-body rounded-full px-5 py-2 text-sm transition ${
                       isActive
                         ? "bg-white text-neutral-950"
                         : "border border-white/10 text-white/70 hover:bg-white/5"
@@ -880,9 +872,6 @@ Thank you.`
             <p className="font-body">
               Showing <span className="text-white/80">{filteredBeans.length}</span>{" "}
               coffee{filteredBeans.length > 1 ? "s" : ""}
-            </p>
-            <p className="font-body hidden md:block">
-              {loading ? "Loading from Contentful..." : "Live from Contentful."}
             </p>
           </div>
 
@@ -1034,17 +1023,19 @@ Thank you.`
                   Roasting coffee that feels easier to choose, brew, and enjoy.
                 </h2>
                 <p className="font-body mt-5 text-sm leading-8 text-white/68">
-                  Drunk Coffee Roasters began with a simple obsession: finding coffee
-                  that could make daily routines feel sharper, more enjoyable, and more
-                  intentional. What started from early mornings, training days, and a
-                  deep personal curiosity gradually grew into a roasting practice built
-                  around balance, clarity, and drinkability.
+                  Drunk Coffee Roasters began with a simple obsession: finding
+                  coffee that could make daily routines feel sharper, more
+                  enjoyable, and more intentional. What started from early
+                  mornings, training days, and a deep personal curiosity
+                  gradually grew into a roasting practice built around balance,
+                  clarity, and drinkability.
                 </p>
                 <p className="font-body mt-4 text-sm leading-8 text-white/68">
-                   Today, we roast coffees for home brewers, cafés, and everyday drinkers
-                   who want cleaner choices and more satisfying cups. The goal is not to
-                   make coffee feel complicated, but to roast coffees that are expressive,
-                   dependable, and easy to return to every day.
+                  Today, we roast coffees for home brewers, cafés, and everyday
+                  drinkers who want cleaner choices and more satisfying cups.
+                  The goal is not to make coffee feel complicated, but to roast
+                  coffees that are expressive, dependable, and easy to return to
+                  every day.
                 </p>
               </div>
 
@@ -1054,28 +1045,46 @@ Thank you.`
                     Simple ordering
                   </p>
                   <p className="font-body mt-3 text-sm leading-7 text-white/65">
-                    Browse the menu, build ur cart, and send one clear order request
-                    through WhatsApp for faster confirmation.
+                    Browse the menu, build your cart, and send one clean order
+                    request through WhatsApp for faster confirmation.
                   </p>
                 </div>
+
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
-                  <p className="font-display text-lg font-semibold">Fresh Roasted</p>
+                  <p className="font-display text-lg font-semibold">
+                    Small-batch roasting
+                  </p>
                   <p className="font-body mt-3 text-sm leading-7 text-white/65">
-                    Roasted in small batches to maintain sweetness, clarity, and consistency
-                    across espresso,fi in every cup.
+                    Roasted in small batches to maintain sweetness, clarity, and
+                    consistency across espresso, filter, and wholesale supply.
                   </p>
                 </div>
+
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 sm:col-span-2">
                   <p className="font-display text-lg font-semibold">
                     Find the brand
                   </p>
                   <p className="font-body mt-3 text-sm leading-7 text-white/65">
-                    Follow Drunk Coffee Roasters on Instagram and 小红书 for new releases,
-                    coffee updates, and brand highlights.  
+                    Follow Drunk Coffee Roasters on Instagram and 小红书 for new
+                    releases, coffee updates, and brand highlights.
                   </p>
-                  <p className="font-body mt-3 text-sm leading-7 text-white/65">
-                    Instagram: @drunkcoffeeroasters · 小红书: {XHS_LABEL}
-                  </p>
+
+                  <div className="mt-4 space-y-3 text-sm text-white/65">
+                    <a
+                      href="https://instagram.com/drunkcoffeeroasters"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-3 hover:text-white"
+                    >
+                      <span className="w-24 text-white/40">Instagram</span>
+                      <span>@drunkcoffeeroasters</span>
+                    </a>
+
+                    <div className="flex items-center gap-3">
+                      <span className="w-24 text-white/40">小红书</span>
+                      <span>{XHS_LABEL}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1349,50 +1358,74 @@ Thank you.`
       ) : null}
 
       {toast ? (
-        <div className="font-body fixed bottom-6 left-1/2 z-[80] -translate-x-1/2 rounded-2xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-white shadow-2xl shadow-black/40">
+        <div className="font-body fixed bottom-6 left-1/2 z-[80] -translate-x-1/2 rounded-2xl border border-white/10 bg-neutral-900 px-5 py-2 text-sm text-white shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
           {toast}
         </div>
       ) : null}
 
       <footer className="border-t border-white/10 bg-black/20">
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 text-sm text-white/55 md:flex-row md:items-center md:justify-between md:px-6">
-          <div>
-            <p className="font-display text-lg font-medium text-white/80">
-              Drunk Coffee Roasters
-            </p>
-            <p className="font-body mt-1">
-              Specialty coffee roasted for espresso, filter, wholesale, and
-              everyday brewing.
-            </p>
+        <div className="mx-auto max-w-7xl px-6 py-12">
+          <div className="grid gap-10 md:grid-cols-3">
+            <div>
+              <p className="font-display text-xl font-semibold text-white">
+                Drunk Coffee Roasters
+              </p>
+
+              <p className="font-body mt-3 text-sm leading-7 text-white/60">
+                Specialty coffee roasted in Johor, Malaysia for espresso,
+                filter brewing, and wholesale supply.
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-3 font-display text-lg text-white">Explore</p>
+
+              <div className="flex flex-col gap-2 text-sm text-white/65">
+                <a href="#beans" className="font-body hover:text-white">
+                  Shop Coffee
+                </a>
+
+                <a href="#wholesale" className="font-body hover:text-white">
+                  Wholesale
+                </a>
+
+                <a href="#about" className="font-body hover:text-white">
+                  About
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-3 font-display text-lg text-white">Connect</p>
+
+              <div className="flex flex-col gap-2 text-sm text-white/65">
+                <a
+                  href="https://instagram.com/drunkcoffeeroasters"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-body hover:text-white"
+                >
+                  Instagram
+                </a>
+
+                <a
+                  href="https://wa.me/601127060012"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-body hover:text-white"
+                >
+                  WhatsApp
+                </a>
+
+                <p className="font-body">小红书: Drunkcoffeeroasters</p>
+                <p className="font-body">Johor, Malaysia</p>
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <a
-              href="#beans"
-              className="font-body rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
-            >
-              Shop
-            </a>
-            <a
-              href="#wholesale"
-              className="font-body rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
-            >
-              Wholesale
-            </a>
-            <a
-              href="#about"
-              className="font-body rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
-            >
-              About
-            </a>
-            <a
-              href={INSTAGRAM_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="font-body rounded-full border border-white/10 px-3 py-1.5 transition hover:bg-white/5"
-            >
-              Instagram
-            </a>
+          <div className="mt-10 border-t border-white/10 pt-6 text-sm text-white/40">
+            © {new Date().getFullYear()} Drunk Coffee Roasters. All rights
+            reserved.
           </div>
         </div>
       </footer>
