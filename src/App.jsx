@@ -1,5 +1,5 @@
 import { ShoppingCart, Instagram } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const FALLBACK_BEANS = [
   {
@@ -265,7 +265,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
         className="block w-full text-left"
         aria-label={`Open details for ${bean.name}`}
       >
-        <div className="relative aspect-4/3 overflow-hidden bg-white/5">
+        <div className="relative aspect-[4/3] overflow-hidden bg-white/5">
           {cardImage ? (
             <img
               src={cardImage}
@@ -274,7 +274,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
               loading="lazy"
             />
           ) : (
-            <div className="flex h-full items-center justify-center bg-linear-to-br from-white/5 to-white/2 text-sm text-white/35">
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-white/5 to-white/2 text-sm text-white/35">
               No image yet
             </div>
           )}
@@ -297,7 +297,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
             ) : null}
           </div>
 
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-black/40 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent" />
         </div>
       </button>
 
@@ -369,7 +369,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
 function SkeletonCard() {
   return (
     <div className="overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.035]">
-      <div className="aspect-4/3 animate-pulse bg-white/5" />
+      <div className="aspect-[4/3] animate-pulse bg-white/5" />
       <div className="space-y-4 p-6">
         <div className="h-3 w-20 animate-pulse rounded bg-white/10" />
         <div className="h-7 w-40 animate-pulse rounded bg-white/10" />
@@ -454,6 +454,9 @@ export default function DrunkCoffeeRoastersStorefront() {
   const [cartOpen, setCartOpen] = useState(false);
   const [toast, setToast] = useState("");
 
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -484,17 +487,76 @@ export default function DrunkCoffeeRoastersStorefront() {
     };
   }, []);
 
+  const filteredBeans = useMemo(() => {
+    if (activeFilter === "All") return beans;
+    return beans.filter((bean) => bean.category === activeFilter);
+  }, [activeFilter, beans]);
+
+  const filterCounts = useMemo(() => {
+    return {
+      All: beans.length,
+      Filter: beans.filter((bean) => bean.category === "Filter").length,
+      Espresso: beans.filter((bean) => bean.category === "Espresso").length,
+    };
+  }, [beans]);
+
+  const selectedBeanIndex = useMemo(() => {
+    if (!selectedBean) return -1;
+    return filteredBeans.findIndex((bean) => bean.id === selectedBean.id);
+  }, [filteredBeans, selectedBean]);
+
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartTotal = cart.reduce(
+    (sum, item) => sum + Number(item.price || 0) * item.quantity,
+    0
+  );
+
+  function openNextBean() {
+    if (!filteredBeans.length || selectedBeanIndex === -1) return;
+    const nextIndex = (selectedBeanIndex + 1) % filteredBeans.length;
+    setSelectedBean(filteredBeans[nextIndex]);
+  }
+
+  function openPrevBean() {
+    if (!filteredBeans.length || selectedBeanIndex === -1) return;
+    const prevIndex =
+      (selectedBeanIndex - 1 + filteredBeans.length) % filteredBeans.length;
+    setSelectedBean(filteredBeans[prevIndex]);
+  }
+
+  function handleTouchStart(event) {
+    touchStartX.current = event.changedTouches[0].clientX;
+  }
+
+  function handleTouchEnd(event) {
+    touchEndX.current = event.changedTouches[0].clientX;
+    const deltaX = touchEndX.current - touchStartX.current;
+
+    if (Math.abs(deltaX) < 50) return;
+
+    if (deltaX < 0) {
+      openNextBean();
+    } else {
+      openPrevBean();
+    }
+  }
+
   useEffect(() => {
     function onKeyDown(event) {
       if (event.key === "Escape") {
         setSelectedBean(null);
         setCartOpen(false);
       }
+
+      if (selectedBean) {
+        if (event.key === "ArrowRight") openNextBean();
+        if (event.key === "ArrowLeft") openPrevBean();
+      }
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [selectedBean, filteredBeans, selectedBeanIndex]);
 
   useEffect(() => {
     const shouldLock = cartOpen || Boolean(selectedBean);
@@ -509,25 +571,6 @@ export default function DrunkCoffeeRoastersStorefront() {
     const timer = setTimeout(() => setToast(""), 1800);
     return () => clearTimeout(timer);
   }, [toast]);
-
-  const filteredBeans = useMemo(() => {
-    if (activeFilter === "All") return beans;
-    return beans.filter((bean) => bean.category === activeFilter);
-  }, [activeFilter, beans]);
-
-  const filterCounts = useMemo(() => {
-    return {
-      All: beans.length,
-      Filter: beans.filter((bean) => bean.category === "Filter").length,
-      Espresso: beans.filter((bean) => bean.category === "Espresso").length,
-    };
-  }, [beans]);
-
-  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTotal = cart.reduce(
-    (sum, item) => sum + Number(item.price || 0) * item.quantity,
-    0
-  );
 
   function addToCart(bean) {
     setCart((current) => {
@@ -552,6 +595,7 @@ export default function DrunkCoffeeRoastersStorefront() {
         },
       ];
     });
+
     setCartOpen(true);
     setToast(`${bean.name} added to cart`);
   }
@@ -626,8 +670,8 @@ Thank you.`
     : "";
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white">
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-neutral-950/85 backdrop-blur-xl">
+    <div className="min-h-screen bg-black text-white">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <a href="#top" className="flex items-center">
             <img
@@ -747,11 +791,9 @@ Thank you.`
                 <span className="font-body rounded-full border border-white/10 bg-white/5 px-4 py-2">
                   Filter
                 </span>
-
                 <span className="font-body rounded-full border border-white/10 bg-white/5 px-4 py-2">
                   Espresso
                 </span>
-
                 <span className="font-body rounded-full border border-white/10 bg-white/5 px-4 py-2">
                   Wholesale Supply
                 </span>
@@ -766,7 +808,7 @@ Thank you.`
                   alt="Drunk Coffee Roasters roasting coffee"
                   className="h-[420px] w-full object-cover md:h-[620px]"
                 />
-                <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/25 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
                 <div className="absolute bottom-0 left-0 p-6 md:p-8">
                   <p className="font-body text-xs uppercase tracking-[0.22em] text-white/80">
                     Drunk Coffee Roasters
@@ -1022,29 +1064,51 @@ Thank you.`
       </main>
 
       {selectedBean ? (
-        <div className="fixed inset-0 z-60 flex items-end justify-center bg-black/70 p-4 md:items-center">
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 p-4 md:items-center">
           <button
             type="button"
             className="absolute inset-0"
             aria-label="Close product details"
             onClick={() => setSelectedBean(null)}
           />
-          <div className="relative max-h-[90vh] w-full max-w-5xl overflow-auto rounded-[32px] border border-white/10 bg-neutral-950 shadow-2xl shadow-black/50">
+          <div
+            className="relative max-h-[88vh] w-full max-w-5xl overflow-auto rounded-[30px] border border-white/10 bg-neutral-950 shadow-2xl shadow-black/50"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             <div className="grid items-start lg:grid-cols-[0.9fr_1.1fr]">
-              <div className="bg-white/5 p-4 md:p-5">
-                <div className="mx-auto w-full max-w-[440px] overflow-hidden rounded-[28px] bg-white/5">
+              <div className="relative bg-white/5 p-3 md:p-5">
+                <div className="mx-auto w-full max-w-[440px] overflow-hidden rounded-[24px] bg-white/5">
                   {detailImage ? (
                     <img
                       src={detailImage}
                       alt={selectedBean.name}
-                      className="h-auto max-h-[420px] w-full object-contain"
+                      className="h-[300px] w-full object-cover sm:h-[360px] md:h-auto md:max-h-[420px] md:object-contain"
                     />
                   ) : (
-                    <div className="flex h-[320px] items-center justify-center bg-linear-to-br from-white/5 to-white/2 text-sm text-white/35">
+                    <div className="flex h-[300px] items-center justify-center bg-gradient-to-br from-white/5 to-white/2 text-sm text-white/35 sm:h-[360px] md:h-[320px]">
                       No image yet
                     </div>
                   )}
                 </div>
+
+                <button
+                  type="button"
+                  onClick={openPrevBean}
+                  className="absolute left-5 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/45 px-3 py-2 text-sm text-white/80 backdrop-blur transition hover:bg-black/65"
+                  aria-label="Previous coffee"
+                >
+                  ←
+                </button>
+
+                <button
+                  type="button"
+                  onClick={openNextBean}
+                  className="absolute right-5 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/45 px-3 py-2 text-sm text-white/80 backdrop-blur transition hover:bg-black/65"
+                  aria-label="Next coffee"
+                >
+                  →
+                </button>
               </div>
 
               <div className="p-6 md:p-8">
@@ -1060,13 +1124,16 @@ Thank you.`
                       {selectedBean.origin || "Origin TBC"}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedBean(null)}
-                    className="font-body rounded-full border border-white/10 px-3 py-1 text-sm text-white/70 transition hover:bg-white/5"
-                  >
-                    Close
-                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedBean(null)}
+                      className="font-body rounded-full border border-white/10 px-4 py-1.5 text-sm text-white/70 transition hover:bg-white/5"
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
 
                 <div className="mt-6 flex flex-wrap gap-2">
@@ -1079,6 +1146,10 @@ Thank you.`
                     </span>
                   ))}
                 </div>
+
+                <p className="font-body mt-3 text-xs text-white/38">
+                  Swipe to browse
+                </p>
 
                 <p className="font-body mt-6 text-base leading-8 text-white/68">
                   {selectedBean.description || "Description coming soon."}
@@ -1111,18 +1182,19 @@ Thank you.`
                   </div>
                 </div>
 
-                <div className="mt-8 flex items-end justify-between gap-4">
+                <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="font-body text-sm text-white/40">Price</p>
                     <p className="font-body mt-2 text-3xl font-semibold">
                       RM {selectedBean.price}
                     </p>
                   </div>
-                  <div className="flex flex-wrap justify-end gap-3">
+
+                  <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-end">
                     <button
                       type="button"
                       onClick={() => addToCart(selectedBean)}
-                      className="font-body rounded-2xl border border-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/5"
+                      className="font-body w-full rounded-2xl border border-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/5 sm:w-auto"
                     >
                       Add to cart
                     </button>
@@ -1130,7 +1202,7 @@ Thank you.`
                       href={buildSingleOrderUrl(selectedBean)}
                       target="_blank"
                       rel="noreferrer"
-                      className="font-body rounded-2xl bg-white px-5 py-3 text-sm font-medium text-neutral-950 transition hover:opacity-90"
+                      className="font-body w-full rounded-2xl bg-white px-5 py-3 text-center text-sm font-medium text-neutral-950 transition hover:opacity-90 sm:w-auto"
                     >
                       Order on WhatsApp
                     </a>
@@ -1143,7 +1215,7 @@ Thank you.`
       ) : null}
 
       {cartOpen ? (
-        <div className="fixed inset-0 z-70 flex justify-end bg-black/60">
+        <div className="fixed inset-0 z-[70] flex justify-end bg-black/60">
           <button
             type="button"
             onClick={() => setCartOpen(false)}
@@ -1273,7 +1345,7 @@ Thank you.`
       ) : null}
 
       {toast ? (
-        <div className="font-body fixed bottom-6 left-1/2 z-80 -translate-x-1/2 rounded-2xl border border-white/10 bg-neutral-900 px-5 py-2 text-sm text-white shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+        <div className="font-body fixed bottom-6 left-1/2 z-[80] -translate-x-1/2 rounded-2xl border border-white/10 bg-neutral-900 px-5 py-2 text-sm text-white shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
           {toast}
         </div>
       ) : null}

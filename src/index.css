@@ -5,3 +5,7 @@ body,
   min-height: 100%;
   font-family: "Montserrat", sans-serif;
 }
+
+body {
+  margin: 0;
+}
