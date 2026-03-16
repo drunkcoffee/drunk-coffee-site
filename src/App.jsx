@@ -544,19 +544,6 @@ export default function DrunkCoffeeRoastersStorefront() {
     return beans.filter((bean) => bean.category === activeFilter);
   }, [activeFilter, beans]);
 
-  const featured = useMemo(
-    () => beans.filter((bean) => bean.featured).slice(0, 3),
-    [beans]
-  );
-
-  const bestSeller = useMemo(() => {
-    return (
-      beans.find((bean) => bean.badge === "Best Seller") ||
-      beans.find((bean) => bean.featured) ||
-      beans[0]
-    );
-  }, [beans]);
-
   const filterCounts = useMemo(() => {
     return {
       All: beans.length,
@@ -729,28 +716,22 @@ Thank you.`
 
           <nav className="hidden items-center gap-6 md:flex">
             <a
-              href="#featured"
-              className="font-body text-sm text-white/80 transition hover:text-white"
-            >
-              Featured
-            </a>
-            <a
               href="#beans"
               className="font-body text-sm text-white/80 transition hover:text-white"
             >
               Shop
             </a>
             <a
-              href="#story"
-              className="font-body text-sm text-white/80 transition hover:text-white"
-            >
-              Story
-            </a>
-            <a
               href="#wholesale"
               className="font-body text-sm text-white/80 transition hover:text-white"
             >
               Wholesale
+            </a>
+            <a
+              href="#story"
+              className="font-body text-sm text-white/80 transition hover:text-white"
+            >
+              Story
             </a>
             <a
               href="#about"
@@ -885,138 +866,16 @@ Thank you.`
           light
         />
 
-        <EditorialFeature
-          eyebrow="Roasted Coffee"
-          title="Freshly roasted beans with sweetness, texture, and character."
-          text="Each coffee is selected and roasted to bring out structure, drinkability, and a profile worth returning to."
-          imageSrc="/editorial-roasted-beans.jpg"
-          imageAlt="Freshly roasted coffee beans"
-          reverse
-        />
-
-        <section id="story">
-          <EditorialFeature
-            eyebrow="Our Story"
-            title="Drunk Coffee Roasters in real moments, real spaces, and real service."
-            text="Built through coffee events, brewing sessions, and everyday interactions, the brand continues to grow through genuine connection and consistent cups."
-            imageSrc="/editorial-drunk-coffee-roasters.jpg"
-            imageAlt="Drunk Coffee Roasters team at event booth"
-            light
-          />
-        </section>
-
-        {featured.length > 0 ? (
-          <section
-            id="featured"
-            className="mx-auto max-w-7xl px-5 py-14 md:px-6 md:py-18"
-          >
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="font-body text-sm uppercase tracking-[0.22em] text-white/42">
-                  Featured coffees
-                </p>
-                <h2 className="font-display mt-2 text-2xl font-semibold md:text-3xl">
-                  Start with these picks
-                </h2>
-              </div>
-
-              <p className="font-body max-w-xl text-sm leading-7 text-white/62">
-                A shorter starting point for customers who want the most
-                approachable coffees first.
-              </p>
-            </div>
-
-            <div className="mt-6 grid gap-5 md:grid-cols-3">
-              {featured.map((bean) => (
-                <CoffeeCard
-                  key={bean.id}
-                  bean={bean}
-                  onOpen={setSelectedBean}
-                  onAddToCart={addToCart}
-                />
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {bestSeller ? (
-          <section className="border-t border-white/10 bg-[#f5efe4] text-neutral-950">
-            <div className="mx-auto max-w-7xl px-5 py-16 md:px-6 md:py-20">
-              <div className="grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-center">
-                <div>
-                  <p className="font-body text-sm uppercase tracking-[0.22em] text-neutral-500">
-                    Best Seller
-                  </p>
-                  <h2 className="font-display mt-3 text-4xl font-semibold leading-[1.02] md:text-6xl">
-                    {bestSeller.name}
-                  </h2>
-                  <p className="font-body mt-6 text-base leading-8 text-neutral-700">
-                    {bestSeller.description}
-                  </p>
-
-                  <div className="mt-6 flex flex-wrap gap-2">
-                    {safeArray(bestSeller.notes).slice(0, 3).map((note) => (
-                      <span
-                        key={note}
-                        className="font-body rounded-full border border-black/10 bg-black/5 px-3 py-1.5 text-[11px] uppercase tracking-[0.08em] text-neutral-700"
-                      >
-                        {note}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="mt-8 flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedBean(bestSeller)}
-                      className="font-body rounded-2xl bg-neutral-950 px-6 py-3 text-sm font-medium text-white transition hover:opacity-90"
-                    >
-                      View details
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => addToCart(bestSeller)}
-                      className="font-body rounded-2xl border border-neutral-950/10 px-6 py-3 text-sm font-medium text-neutral-950 transition hover:bg-black/5"
-                    >
-                      Add to cart
-                    </button>
-                  </div>
-                </div>
-
-                <div className="overflow-hidden rounded-[32px] border border-black/5 bg-black/5 shadow-2xl shadow-black/10">
-                  {bestSeller.image ? (
-                    <img
-                      src={appendImageParams(bestSeller.image, {
-                        w: 1200,
-                        h: 900,
-                        fit: "fill",
-                        fm: "webp",
-                        q: 84,
-                      })}
-                      alt={bestSeller.name}
-                      className="h-[420px] w-full object-cover md:h-[620px]"
-                    />
-                  ) : (
-                    <div className="flex h-[420px] items-center justify-center bg-neutral-200/50 text-sm text-neutral-500 md:h-[620px]">
-                      Add Contentful image for {bestSeller.name}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </section>
-        ) : null}
-
         <section
           id="beans"
-          className="mx-auto max-w-7xl px-5 py-12 md:px-6 md:py-16"
+          className="mx-auto max-w-7xl px-5 py-14 md:px-6 md:py-18"
         >
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="font-body text-sm uppercase tracking-[0.22em] text-white/42">
+              <p className="font-body text-[20px] uppercase tracking-[0.18em] text-white/58 md:text-[20px]">
                 Coffee menu
               </p>
-              <h2 className="font-display mt-2 text-3xl font-semibold md:text-4xl">
+              <h2 className="font-display mt-3 text-[42px] leading-[0.98] font-semibold md:text-[56px]">
                 Shop by brew style
               </h2>
             </div>
@@ -1184,6 +1043,17 @@ Thank you.`
               </div>
             </div>
           </div>
+        </section>
+
+        <section id="story">
+          <EditorialFeature
+            eyebrow="Our Story"
+            title="Drunk Coffee Roasters in real moments, real spaces, and real service."
+            text="Built through coffee events, brewing sessions, and everyday interactions, the brand continues to grow through genuine connection and consistent cups."
+            imageSrc="/editorial-drunk-coffee-roasters.jpg"
+            imageAlt="Drunk Coffee Roasters team at event booth"
+            light
+          />
         </section>
 
         <section id="about" className="border-t border-white/10">
@@ -1555,9 +1425,6 @@ Thank you.`
               <p className="mb-3 font-display text-lg text-white">Explore</p>
 
               <div className="flex flex-col gap-2 text-sm text-white/65">
-                <a href="#featured" className="font-body hover:text-white">
-                  Featured
-                </a>
                 <a href="#beans" className="font-body hover:text-white">
                   Shop Coffee
                 </a>
