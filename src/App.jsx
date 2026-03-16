@@ -279,14 +279,14 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
     : "";
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.035] shadow-[0_20px_50px_rgba(0,0,0,0.35)] transition duration-300 hover:-translate-y-2 hover:border-white/20 hover:bg-white/[0.06] hover:shadow-[0_40px_90px_rgba(0,0,0,0.6)]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.035] shadow-[0_20px_50px_rgba(0,0,0,0.35)] transition duration-300 hover:-translate-y-2 hover:border-white/20 hover:bg-white/6 hover:shadow-[0_40px_90px_rgba(0,0,0,0.6)]">
       <button
         type="button"
         onClick={() => onOpen(bean)}
         className="block w-full text-left"
         aria-label={`Open details for ${bean.name}`}
       >
-        <div className="relative aspect-[4/3] overflow-hidden bg-white/5">
+        <div className="relative aspect-4/3 overflow-hidden bg-white/5">
           {cardImage ? (
             <img
               src={cardImage}
@@ -295,7 +295,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
               loading="lazy"
             />
           ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-white/5 to-white/[0.02] text-sm text-white/35">
+            <div className="flex h-full items-center justify-center bg-linear-to-br from-white/5 to-white/2 text-sm text-white/35">
               No image yet
             </div>
           )}
@@ -318,7 +318,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
             ) : null}
           </div>
 
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-black/40 to-transparent" />
         </div>
       </button>
 
@@ -333,12 +333,12 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
             </h3>
           </div>
 
-          <span className="font-body shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-sm text-white/70">
+          <span className="font-body shrink-0 rounded-full border border-white/10 bg-white/4 px-3 py-1 text-sm text-white/70">
             {bean.size}
           </span>
         </div>
 
-        <p className="font-body mt-4 min-h-[56px] text-sm leading-7 text-white/72">
+        <p className="font-body mt-4 min-h-14 text-sm leading-7 text-white/72">
           {bean.origin || "Origin TBC"}
         </p>
 
@@ -346,14 +346,14 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
           {notes.map((note) => (
             <span
               key={note}
-              className="font-body rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-white/70"
+              className="font-body rounded-xl border border-white/10 bg-white/4 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-white/70"
             >
               {note}
             </span>
           ))}
         </div>
 
-        <div className="mt-4 min-h-[24px]">
+        <div className="mt-4 min-h-6">
           {bean.bestFor ? (
             <p className="font-body text-sm text-white/60">
               Best for: <span className="text-white/82">{bean.bestFor}</span>
@@ -398,7 +398,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
 function SkeletonCard() {
   return (
     <div className="overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.035]">
-      <div className="aspect-[4/3] animate-pulse bg-white/5" />
+      <div className="aspect-4/3 animate-pulse bg-white/5" />
       <div className="space-y-4 p-6">
         <div className="h-3 w-20 animate-pulse rounded bg-white/10" />
         <div className="h-7 w-40 animate-pulse rounded bg-white/10" />
@@ -414,6 +414,62 @@ function SkeletonCard() {
         </div>
       </div>
     </div>
+  );
+}
+
+function EditorialFeature({
+  eyebrow,
+  title,
+  text,
+  imageSrc,
+  imageAlt,
+  reverse = false,
+  light = false,
+}) {
+  return (
+    <section
+      className={`border-t ${
+        light
+          ? "border-black/10 bg-[#f5efe4] text-neutral-950"
+          : "border-white/10 bg-neutral-950 text-white"
+      }`}
+    >
+      <div className="mx-auto max-w-7xl px-5 py-16 md:px-6 md:py-20">
+        <div
+          className={`grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center ${
+            reverse ? "lg:[&>*:first-child]:order-2" : ""
+          }`}
+        >
+          <div className="overflow-hidden rounded-[32px] border border-black/5 bg-black/5 shadow-2xl shadow-black/10">
+            <img
+              src={imageSrc}
+              alt={imageAlt}
+              className="h-[420px] w-full object-cover md:h-[620px]"
+            />
+          </div>
+
+          <div className="max-w-xl">
+            <p
+              className={`font-body text-sm uppercase tracking-[0.22em] ${
+                light ? "text-neutral-500" : "text-white/42"
+              }`}
+            >
+              {eyebrow}
+            </p>
+            <h2 className="font-display mt-3 text-4xl font-semibold leading-[1.02] md:text-6xl">
+              {title}
+            </h2>
+            <p
+              className={`font-body mt-6 text-base leading-8 ${
+                light ? "text-neutral-700" : "text-white/72"
+              }`}
+            >
+              {text}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -492,6 +548,14 @@ export default function DrunkCoffeeRoastersStorefront() {
     () => beans.filter((bean) => bean.featured).slice(0, 3),
     [beans]
   );
+
+  const bestSeller = useMemo(() => {
+    return (
+      beans.find((bean) => bean.badge === "Best Seller") ||
+      beans.find((bean) => bean.featured) ||
+      beans[0]
+    );
+  }, [beans]);
 
   const filterCounts = useMemo(() => {
     return {
@@ -665,19 +729,29 @@ Thank you.`
 
           <nav className="hidden items-center gap-6 md:flex">
             <a
+              href="#featured"
+              className="font-body text-sm text-white/80 transition hover:text-white"
+            >
+              Featured
+            </a>
+            <a
               href="#beans"
               className="font-body text-sm text-white/80 transition hover:text-white"
             >
               Shop
             </a>
-
+            <a
+              href="#story"
+              className="font-body text-sm text-white/80 transition hover:text-white"
+            >
+              Story
+            </a>
             <a
               href="#wholesale"
               className="font-body text-sm text-white/80 transition hover:text-white"
             >
               Wholesale
             </a>
-
             <a
               href="#about"
               className="font-body text-sm text-white/80 transition hover:text-white"
@@ -735,7 +809,7 @@ Thank you.`
         <section className="relative mx-auto max-w-7xl px-5 py-14 md:px-6 md:py-24">
           <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
             <div>
-              <p className="font-body inline-flex rounded-full border border-white/12 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-white/75">
+              <p className="font-body inline-flex rounded-full border border-white/12 bg-white/4 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-white/75">
                 Johor Specialty Coffee Roaster
               </p>
 
@@ -766,15 +840,15 @@ Thank you.`
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3 text-sm text-white/70">
-                <span className="font-body rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
+                <span className="font-body rounded-full border border-white/10 bg-white/5 px-4 py-2">
                   Filter
                 </span>
 
-                <span className="font-body rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
+                <span className="font-body rounded-full border border-white/10 bg-white/5 px-4 py-2">
                   Espresso
                 </span>
 
-                <span className="font-body rounded-full border border-white/10 bg-white/[0.05] px-4 py-2">
+                <span className="font-body rounded-full border border-white/10 bg-white/5 px-4 py-2">
                   Wholesale Supply
                 </span>
               </div>
@@ -788,7 +862,7 @@ Thank you.`
                   alt="Drunk Coffee Roasters roasting coffee"
                   className="h-[420px] w-full object-cover md:h-[620px]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/25 to-transparent" />
                 <div className="absolute bottom-0 left-0 p-6 md:p-8">
                   <p className="font-body text-xs uppercase tracking-[0.22em] text-white/80">
                     Drunk Coffee Roasters
@@ -802,8 +876,40 @@ Thank you.`
           </div>
         </section>
 
+        <EditorialFeature
+          eyebrow="Brewing Ritual"
+          title="Coffee brewed with clarity, warmth, and intention."
+          text="From pour-over routines to everyday cups, we roast coffees that feel expressive, approachable, and easy to enjoy."
+          imageSrc="/editorial-brewing.jpg"
+          imageAlt="Pour over coffee brewing"
+          light
+        />
+
+        <EditorialFeature
+          eyebrow="Roasted Coffee"
+          title="Freshly roasted beans with sweetness, texture, and character."
+          text="Each coffee is selected and roasted to bring out structure, drinkability, and a profile worth returning to."
+          imageSrc="/editorial-roasted-beans.jpg"
+          imageAlt="Freshly roasted coffee beans"
+          reverse
+        />
+
+        <section id="story">
+          <EditorialFeature
+            eyebrow="Our Story"
+            title="Drunk Coffee Roasters in real moments, real spaces, and real service."
+            text="Built through coffee events, brewing sessions, and everyday interactions, the brand continues to grow through genuine connection and consistent cups."
+            imageSrc="/editorial-drunk-coffee-roasters.jpg"
+            imageAlt="Drunk Coffee Roasters team at event booth"
+            light
+          />
+        </section>
+
         {featured.length > 0 ? (
-          <section className="mx-auto max-w-7xl px-5 pb-8 md:px-6 md:pb-10">
+          <section
+            id="featured"
+            className="mx-auto max-w-7xl px-5 py-14 md:px-6 md:py-18"
+          >
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="font-body text-sm uppercase tracking-[0.22em] text-white/42">
@@ -829,6 +935,74 @@ Thank you.`
                   onAddToCart={addToCart}
                 />
               ))}
+            </div>
+          </section>
+        ) : null}
+
+        {bestSeller ? (
+          <section className="border-t border-white/10 bg-[#f5efe4] text-neutral-950">
+            <div className="mx-auto max-w-7xl px-5 py-16 md:px-6 md:py-20">
+              <div className="grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-center">
+                <div>
+                  <p className="font-body text-sm uppercase tracking-[0.22em] text-neutral-500">
+                    Best Seller
+                  </p>
+                  <h2 className="font-display mt-3 text-4xl font-semibold leading-[1.02] md:text-6xl">
+                    {bestSeller.name}
+                  </h2>
+                  <p className="font-body mt-6 text-base leading-8 text-neutral-700">
+                    {bestSeller.description}
+                  </p>
+
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {safeArray(bestSeller.notes).slice(0, 3).map((note) => (
+                      <span
+                        key={note}
+                        className="font-body rounded-full border border-black/10 bg-black/5 px-3 py-1.5 text-[11px] uppercase tracking-[0.08em] text-neutral-700"
+                      >
+                        {note}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="mt-8 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedBean(bestSeller)}
+                      className="font-body rounded-2xl bg-neutral-950 px-6 py-3 text-sm font-medium text-white transition hover:opacity-90"
+                    >
+                      View details
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => addToCart(bestSeller)}
+                      className="font-body rounded-2xl border border-neutral-950/10 px-6 py-3 text-sm font-medium text-neutral-950 transition hover:bg-black/5"
+                    >
+                      Add to cart
+                    </button>
+                  </div>
+                </div>
+
+                <div className="overflow-hidden rounded-[32px] border border-black/5 bg-black/5 shadow-2xl shadow-black/10">
+                  {bestSeller.image ? (
+                    <img
+                      src={appendImageParams(bestSeller.image, {
+                        w: 1200,
+                        h: 900,
+                        fit: "fill",
+                        fm: "webp",
+                        q: 84,
+                      })}
+                      alt={bestSeller.name}
+                      className="h-[420px] w-full object-cover md:h-[620px]"
+                    />
+                  ) : (
+                    <div className="flex h-[420px] items-center justify-center bg-neutral-200/50 text-sm text-neutral-500 md:h-[620px]">
+                      Add Contentful image for {bestSeller.name}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </section>
         ) : null}
@@ -888,7 +1062,7 @@ Thank you.`
               ))}
             </div>
           ) : filteredBeans.length === 0 ? (
-            <div className="mt-8 rounded-[28px] border border-white/10 bg-white/[0.04] p-10 text-center">
+            <div className="mt-8 rounded-[28px] border border-white/10 bg-white/4 p-10 text-center">
               <p className="font-display text-lg font-semibold">No beans found</p>
               <p className="font-body mt-3 text-sm leading-7 text-white/60">
                 Try another filter, or publish more coffee entries in Contentful.
@@ -906,7 +1080,7 @@ Thank you.`
                 return (
                   <section key={collectionKey} className="space-y-6">
                     <div
-                      className={`rounded-[32px] border border-white/10 bg-gradient-to-br p-6 md:p-8 ${collectionAccentClasses(
+                      className={`rounded-[32px] border border-white/10 bg-linear-to-br p-6 md:p-8 ${collectionAccentClasses(
                         collectionKey
                       )}`}
                     >
@@ -949,7 +1123,7 @@ Thank you.`
         <section id="wholesale" className="border-t border-white/10">
           <div className="mx-auto max-w-7xl px-5 py-16 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-              <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-7">
+              <div className="rounded-[28px] border border-white/10 bg-white/4 p-7">
                 <p className="font-body text-sm uppercase tracking-[0.22em] text-white/42">
                   Wholesale
                 </p>
@@ -987,20 +1161,20 @@ Thank you.`
               </div>
 
               <div className="grid gap-6">
-                <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
+                <div className="rounded-[28px] border border-white/10 bg-white/4 p-6">
                   <p className="font-display text-lg font-semibold">Suitable for</p>
                   <p className="font-body mt-3 text-sm leading-7 text-white/65">
                     Cafés · Offices · Retail shelves · Event coffee supply
                   </p>
                 </div>
-                <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
+                <div className="rounded-[28px] border border-white/10 bg-white/4 p-6">
                   <p className="font-display text-lg font-semibold">Roast styles</p>
                   <p className="font-body mt-3 text-sm leading-7 text-white/65">
                     Espresso blends, seasonal filters, and flexible coffee
                     selections for different needs.
                   </p>
                 </div>
-                <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
+                <div className="rounded-[28px] border border-white/10 bg-white/4 p-6">
                   <p className="font-display text-lg font-semibold">Ordering</p>
                   <p className="font-body mt-3 text-sm leading-7 text-white/65">
                     Start with WhatsApp for faster discussion on availability,
@@ -1015,7 +1189,7 @@ Thank you.`
         <section id="about" className="border-t border-white/10">
           <div className="mx-auto max-w-7xl px-5 py-16 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-              <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-7">
+              <div className="rounded-[28px] border border-white/10 bg-white/4 p-7">
                 <p className="font-body text-sm uppercase tracking-[0.22em] text-white/42">
                   About
                 </p>
@@ -1040,7 +1214,7 @@ Thank you.`
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2">
-                <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
+                <div className="rounded-[28px] border border-white/10 bg-white/4 p-6">
                   <p className="font-display text-lg font-semibold">
                     Simple ordering
                   </p>
@@ -1050,7 +1224,7 @@ Thank you.`
                   </p>
                 </div>
 
-                <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
+                <div className="rounded-[28px] border border-white/10 bg-white/4 p-6">
                   <p className="font-display text-lg font-semibold">
                     Small-batch roasting
                   </p>
@@ -1060,7 +1234,7 @@ Thank you.`
                   </p>
                 </div>
 
-                <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 sm:col-span-2">
+                <div className="rounded-[28px] border border-white/10 bg-white/4 p-6 sm:col-span-2">
                   <p className="font-display text-lg font-semibold">
                     Find the brand
                   </p>
@@ -1093,7 +1267,7 @@ Thank you.`
       </main>
 
       {selectedBean ? (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 p-4 md:items-center">
+        <div className="fixed inset-0 z-60 flex items-end justify-center bg-black/70 p-4 md:items-center">
           <button
             type="button"
             className="absolute inset-0"
@@ -1111,7 +1285,7 @@ Thank you.`
                       className="h-auto max-h-[420px] w-full object-contain"
                     />
                   ) : (
-                    <div className="flex h-[320px] items-center justify-center bg-gradient-to-br from-white/5 to-white/[0.02] text-sm text-white/35">
+                    <div className="flex h-[320px] items-center justify-center bg-linear-to-br from-white/5 to-white/2 text-sm text-white/35">
                       No image yet
                     </div>
                   )}
@@ -1144,7 +1318,7 @@ Thank you.`
                   {safeArray(selectedBean.notes).map((note) => (
                     <span
                       key={note}
-                      className="font-body rounded-xl border border-white/10 bg-white/[0.05] px-3 py-1.5 text-[12px] font-medium uppercase tracking-[0.08em] text-white/75"
+                      className="font-body rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-[12px] font-medium uppercase tracking-[0.08em] text-white/75"
                     >
                       {note}
                     </span>
@@ -1228,7 +1402,7 @@ Thank you.`
       ) : null}
 
       {cartOpen ? (
-        <div className="fixed inset-0 z-[70] flex justify-end bg-black/60">
+        <div className="fixed inset-0 z-70 flex justify-end bg-black/60">
           <button
             type="button"
             onClick={() => setCartOpen(false)}
@@ -1254,7 +1428,7 @@ Thank you.`
 
             <div className="flex-1 overflow-auto px-5 py-5">
               {cart.length === 0 ? (
-                <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 text-center">
+                <div className="rounded-[28px] border border-white/10 bg-white/4 p-6 text-center">
                   <p className="font-display text-lg font-semibold">Cart is empty</p>
                   <p className="font-body mt-3 text-sm leading-7 text-white/60">
                     Add a few coffees, then send one combined order through
@@ -1273,7 +1447,7 @@ Thank you.`
                   {cart.map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4"
+                      className="rounded-[24px] border border-white/10 bg-white/4 p-4"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -1358,7 +1532,7 @@ Thank you.`
       ) : null}
 
       {toast ? (
-        <div className="font-body fixed bottom-6 left-1/2 z-[80] -translate-x-1/2 rounded-2xl border border-white/10 bg-neutral-900 px-5 py-2 text-sm text-white shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+        <div className="font-body fixed bottom-6 left-1/2 z-80 -translate-x-1/2 rounded-2xl border border-white/10 bg-neutral-900 px-5 py-2 text-sm text-white shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
           {toast}
         </div>
       ) : null}
@@ -1381,14 +1555,18 @@ Thank you.`
               <p className="mb-3 font-display text-lg text-white">Explore</p>
 
               <div className="flex flex-col gap-2 text-sm text-white/65">
+                <a href="#featured" className="font-body hover:text-white">
+                  Featured
+                </a>
                 <a href="#beans" className="font-body hover:text-white">
                   Shop Coffee
                 </a>
-
+                <a href="#story" className="font-body hover:text-white">
+                  Story
+                </a>
                 <a href="#wholesale" className="font-body hover:text-white">
                   Wholesale
                 </a>
-
                 <a href="#about" className="font-body hover:text-white">
                   About
                 </a>

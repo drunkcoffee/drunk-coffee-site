@@ -1,10 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import App from "./App.jsx";
+import "./App.css";
 import "./index.css";
-import DrunkCoffeeRoastersStorefront from "./App.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <DrunkCoffeeRoastersStorefront />
-  </React.StrictMode>,
+    <App />
+  </React.StrictMode>
 );
