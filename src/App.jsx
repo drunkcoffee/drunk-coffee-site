@@ -71,15 +71,6 @@ const FALLBACK_BEANS = [
 ];
 
 const FILTERS = ["All", "Filter", "Espresso"];
-const COLLECTION_ORDER = [
-  "Seasonal Highlight",
-  "Clean Filter",
-  "Everyday Filter",
-  "Funky Process",
-  "Experimental Fruit",
-  "Espresso Lovers",
-  "Coffee Selection",
-];
 
 const WHATSAPP_NUMBER = "601127060012";
 const INSTAGRAM_URL = "https://instagram.com/drunkcoffeeroasters";
@@ -242,18 +233,6 @@ Thank you.`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
-function collectionAccentClasses(name) {
-  const map = {
-    "Seasonal Highlight": "from-amber-200/15 to-rose-200/10",
-    "Clean Filter": "from-sky-200/12 to-white/5",
-    "Everyday Filter": "from-emerald-200/12 to-white/5",
-    "Funky Process": "from-fuchsia-200/12 to-violet-200/10",
-    "Experimental Fruit": "from-orange-200/12 to-pink-200/10",
-    "Espresso Lovers": "from-amber-900/18 to-stone-200/5",
-  };
-  return map[name] || "from-white/[0.04] to-white/[0.02]";
-}
-
 function badgeClasses(badge) {
   const map = {
     New: "bg-emerald-400/15 text-emerald-200 border-emerald-300/20",
@@ -325,7 +304,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
       <div className="flex flex-1 flex-col p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="font-body text-[11px] uppercase tracking-[0.24em] text-white/45">
+            <p className="font-body text-[12px] uppercase tracking-[0.22em] text-white/55">
               {bean.category}
             </p>
             <h3 className="font-display mt-2 text-2xl leading-tight font-semibold text-white md:text-[30px]">
@@ -353,15 +332,7 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
           ))}
         </div>
 
-        <div className="mt-4 min-h-6">
-          {bean.bestFor ? (
-            <p className="font-body text-sm text-white/60">
-              Best for: <span className="text-white/82">{bean.bestFor}</span>
-            </p>
-          ) : null}
-        </div>
-
-        <div className="mt-auto pt-6">
+        <div className="mt-auto pt-5">
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="font-body text-xs uppercase tracking-[0.18em] text-white/38">
@@ -551,54 +522,6 @@ export default function DrunkCoffeeRoastersStorefront() {
       Espresso: beans.filter((bean) => bean.category === "Espresso").length,
     };
   }, [beans]);
-
-  const collectionMeta = {
-    "Seasonal Highlight": {
-      title: "Seasonal Highlight",
-      subtitle: "Limited coffees and seasonal releases worth starting with.",
-    },
-    "Clean Filter": {
-      title: "Clean Filter",
-      subtitle: "Elegant, structured cups with classic specialty clarity.",
-    },
-    "Everyday Filter": {
-      title: "Everyday Filter",
-      subtitle: "Expressive daily drinkers that stay easy to enjoy.",
-    },
-    "Funky Process": {
-      title: "Funky Process",
-      subtitle: "Fermentation-forward coffees with extra character and fruit.",
-    },
-    "Experimental Fruit": {
-      title: "Experimental Fruit",
-      subtitle:
-        "Fruit-driven coffees with modern processing and louder profiles.",
-    },
-    "Espresso Lovers": {
-      title: "Espresso Lovers",
-      subtitle:
-        "Comforting coffees for espresso, milk drinks, and daily use.",
-    },
-  };
-
-  const beansByCollection = useMemo(() => {
-    return filteredBeans.reduce((acc, bean) => {
-      const key = bean.collection || "Coffee Selection";
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(bean);
-      return acc;
-    }, {});
-  }, [filteredBeans]);
-
-  const orderedCollections = useMemo(() => {
-    return Object.keys(beansByCollection).sort((a, b) => {
-      const aIndex = COLLECTION_ORDER.indexOf(a);
-      const bIndex = COLLECTION_ORDER.indexOf(b);
-      const safeA = aIndex === -1 ? 999 : aIndex;
-      const safeB = bIndex === -1 ? 999 : bIndex;
-      return safeA - safeB;
-    });
-  }, [beansByCollection]);
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotal = cart.reduce(
@@ -872,7 +795,7 @@ Thank you.`
         >
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="font-body text-[20px] uppercase tracking-[0.18em] text-white/58 md:text-[20px]">
+              <p className="font-body text-[18px] uppercase tracking-[0.18em] text-white/58 md:text-[20px]">
                 Coffee menu
               </p>
               <h2 className="font-display mt-3 text-[42px] leading-[0.98] font-semibold md:text-[56px]">
@@ -928,53 +851,15 @@ Thank you.`
               </p>
             </div>
           ) : (
-            <div className="mt-10 space-y-12">
-              {orderedCollections.map((collectionKey) => {
-                const collectionBeans = beansByCollection[collectionKey] || [];
-                const meta = collectionMeta[collectionKey] || {
-                  title: collectionKey,
-                  subtitle: "Coffee selection",
-                };
-
-                return (
-                  <section key={collectionKey} className="space-y-6">
-                    <div
-                      className={`rounded-[32px] border border-white/10 bg-linear-to-br p-6 md:p-8 ${collectionAccentClasses(
-                        collectionKey
-                      )}`}
-                    >
-                      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                        <div>
-                          <p className="font-body text-sm uppercase tracking-[0.22em] text-white/45">
-                            Collection
-                          </p>
-                          <h3 className="font-display mt-2 text-2xl font-semibold md:text-3xl">
-                            {meta.title}
-                          </h3>
-                          <p className="font-body mt-2 max-w-2xl text-sm leading-7 text-white/65">
-                            {meta.subtitle}
-                          </p>
-                        </div>
-                        <p className="font-body text-sm text-white/38">
-                          {collectionBeans.length} coffee
-                          {collectionBeans.length > 1 ? "s" : ""}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                      {collectionBeans.map((bean) => (
-                        <CoffeeCard
-                          key={bean.id}
-                          bean={bean}
-                          onOpen={setSelectedBean}
-                          onAddToCart={addToCart}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                );
-              })}
+            <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {filteredBeans.map((bean) => (
+                <CoffeeCard
+                  key={bean.id}
+                  bean={bean}
+                  onOpen={setSelectedBean}
+                  onAddToCart={addToCart}
+                />
+              ))}
             </div>
           )}
         </section>
@@ -1166,7 +1051,7 @@ Thank you.`
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="font-body text-xs uppercase tracking-[0.2em] text-white/45">
-                      {selectedBean.collection || selectedBean.category}
+                      {selectedBean.category}
                     </p>
                     <h3 className="font-display mt-2 text-3xl font-semibold leading-tight md:text-4xl">
                       {selectedBean.name}
@@ -1222,20 +1107,6 @@ Thank you.`
                     <p className="font-body text-sm text-white/40">Size</p>
                     <p className="font-body mt-2 text-white/85">
                       {selectedBean.size || "—"}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 p-4">
-                    <p className="font-body text-sm text-white/40">Best for</p>
-                    <p className="font-body mt-2 text-white/85">
-                      {selectedBean.bestFor || "—"}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 p-4">
-                    <p className="font-body text-sm text-white/40">Wholesale</p>
-                    <p className="font-body mt-2 text-white/85">
-                      {selectedBean.wholesaleAvailable
-                        ? "Available"
-                        : "Retail only"}
                     </p>
                   </div>
                 </div>
