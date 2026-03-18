@@ -2,8 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://drunkcoffeeroasters.com/</loc>
-    <lastmod>2026-03-17</lastmod>
-    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://drunkcoffeeroasters.com/coffee-beans</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://drunkcoffeeroasters.com/beans/spring-bloom-blend</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://drunkcoffeeroasters.com/beans/lan-chang</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://drunkcoffeeroasters.com/beans/south-blend</loc>
+    <priority>0.8</priority>
   </url>
 </urlset>
