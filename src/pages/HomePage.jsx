@@ -1389,30 +1389,36 @@ export default function DrunkCoffeeRoastersStorefront() {
             <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
               <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
 
-                <FadeSection className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2 overflow-hidden rounded-[26px] border border-white/10 bg-white/[0.03]">
+                {/* ── Editorial photo layout ── */}
+                <FadeSection className="flex gap-3">
+                  {/* Left column — tall anchor image */}
+                  <div className="flex-[1.08] overflow-hidden rounded-[26px] border border-white/10 bg-white/[0.03]">
                     <img
                       src="/editorial-drunk-coffee-roasters.jpg"
                       alt="Drunk Coffee Roasters team"
-                      className="h-[240px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:h-[320px]"
+                      className="h-full min-h-[380px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:min-h-[480px] lg:min-h-[560px]"
                       loading="lazy"
                     />
                   </div>
-                  <div className="overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.03]">
-                    <img
-                      src="/editorial-brewing.jpg"
-                      alt="Coffee being brewed"
-                      className="h-[160px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:h-[200px]"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.03]">
-                    <img
-                      src="/editorial-roasted-beans.jpg"
-                      alt="Freshly roasted coffee beans"
-                      className="h-[160px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:h-[200px]"
-                      loading="lazy"
-                    />
+
+                  {/* Right column — two images staggered vertically */}
+                  <div className="flex flex-[0.92] flex-col gap-3 pt-10 sm:pt-14">
+                    <div className="overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.03]">
+                      <img
+                        src="/editorial-brewing.jpg"
+                        alt="Coffee being brewed"
+                        className="h-[180px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:h-[220px]"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.03]">
+                      <img
+                        src="/editorial-roasted-beans.jpg"
+                        alt="Freshly roasted coffee beans"
+                        className="h-[180px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:h-[220px]"
+                        loading="lazy"
+                      />
+                    </div>
                   </div>
                 </FadeSection>
 
