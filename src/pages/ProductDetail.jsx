@@ -1,0 +1,591 @@
+import { ArrowLeft, ChevronLeft, ChevronRight, Instagram, ShoppingCart } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import Seo from "../components/Seo";
+import {
+  APP_BG,
+  DARK_BUTTON,
+  EYEBROW,
+  INSTAGRAM_URL,
+  LIGHT_BUTTON,
+  LIGHT_BUTTON_STYLE,
+  PANEL,
+  SOFT_PANEL,
+  appendImageParams,
+  buildCartWhatsAppUrl,
+  buildGeneralWhatsAppUrl,
+  buildSingleOrderUrl,
+  cx,
+  safeArray,
+  useBeans,
+  usePersistentCart,
+} from "../lib/coffeeStore";
+
+function ImagePlaceholder({ className = "" }) {
+  return (
+    <div
+      className={cx(
+        "flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-white/[0.04] to-transparent",
+        className,
+      )}
+    >
+      <div className="h-10 w-10 rounded-full border border-white/10" />
+      <span className="font-body text-[10px] uppercase tracking-[0.16em] text-white/22">
+        Photo coming soon
+      </span>
+    </div>
+  );
+}
+
+function InfoBox({ label, value }) {
+  if (!value) return null;
+  return (
+    <div className="rounded-[18px] border border-white/10 bg-white/[0.035] p-4">
+      <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">
+        {label}
+      </p>
+      <p className="font-body mt-2 text-sm leading-6 text-white/80">{value}</p>
+    </div>
+  );
+}
+
+function CartDrawer({
+  cartOpen,
+  setCartOpen,
+  cart,
+  cartCount,
+  cartTotal,
+  decreaseCartItem,
+  increaseCartItem,
+  removeCartItem,
+  clearCart,
+}) {
+  if (!cartOpen) return null;
+
+  const cartWhatsAppUrl = buildCartWhatsAppUrl(cart);
+
+  return (
+    <div className="fixed inset-0 z-[70] flex justify-end bg-black/70">
+      <button type="button" onClick={() => setCartOpen(false)} className="flex-1" aria-label="Close cart" />
+      <div className="flex h-full w-full max-w-xs flex-col border-l border-white/10 bg-[#121210] shadow-[0_35px_120px_rgba(0,0,0,0.56)] sm:max-w-sm md:max-w-md">
+        <div className="border-b border-white/8 px-4 py-4 md:px-5">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-display text-[20px] font-semibold tracking-[-0.02em] text-white">Your cart</p>
+              <p className="font-body mt-1 text-xs uppercase tracking-[0.14em] text-white/34">
+                {cartCount} item{cartCount !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCartOpen(false)}
+              className="font-body rounded-full border border-white/10 px-4 py-2 text-xs text-white/58 transition hover:bg-white/[0.05] hover:text-white"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-auto px-4 py-4 md:px-5">
+          {cart.length === 0 ? (
+            <div className={cx("p-5 text-center", SOFT_PANEL)}>
+              <p className="font-display text-base font-semibold text-white">Cart is empty</p>
+              <p className="font-body mt-2 text-sm leading-7 text-white/50">
+                Add a few coffees, then send one combined order through WhatsApp.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {cart.map((item) => (
+                <div key={item.id} className={cx("p-4", SOFT_PANEL)}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-display text-[17px] font-semibold tracking-[-0.02em] text-white">{item.name}</p>
+                      <p className="font-body mt-1 text-xs uppercase tracking-[0.12em] text-white/36">
+                        {item.category} · {item.size}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeCartItem(item.id)}
+                      className="font-body text-xs text-white/36 transition hover:text-white/78"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between border-t border-white/8 pt-4">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => decreaseCartItem(item.id)}
+                        className="font-body flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/74 transition hover:bg-white/[0.05] active:scale-[0.98]"
+                      >
+                        −
+                      </button>
+                      <span className="font-body min-w-6 text-center text-sm font-medium text-white">{item.quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => increaseCartItem(item.id)}
+                        className="font-body flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/74 transition hover:bg-white/[0.05] active:scale-[0.98]"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <p className="font-body text-sm font-semibold text-white">RM {Number(item.price || 0) * item.quantity}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="border-t border-white/8 px-4 py-4 md:px-5">
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <div>
+              <p className="font-body text-[10px] uppercase tracking-[0.16em] text-white/34">Total</p>
+              <p className="font-display mt-1 text-[28px] font-semibold tracking-[-0.03em] text-white">RM {cartTotal}</p>
+            </div>
+            {cart.length > 0 ? (
+              <button
+                type="button"
+                onClick={clearCart}
+                className="font-body text-xs uppercase tracking-[0.12em] text-white/36 transition hover:text-white/74"
+              >
+                Clear cart
+              </button>
+            ) : null}
+          </div>
+
+          <div className="flex flex-col gap-2.5">
+            <a href={cartWhatsAppUrl} target="_blank" rel="noreferrer" className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
+              Send order on WhatsApp
+            </a>
+            <button type="button" onClick={() => setCartOpen(false)} className={DARK_BUTTON}>
+              Continue browsing
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CoffeeMiniCard({ item }) {
+  const image = item.image
+    ? appendImageParams(item.image, { w: 900, h: 900, fit: "pad", fm: "webp", q: 84 })
+    : "";
+
+  return (
+    <Link key={item.id} to={`/coffee/${item.slug}`} className={cx("group overflow-hidden", SOFT_PANEL)}>
+      <div className="aspect-square overflow-hidden bg-[#11110f]">
+        {image ? (
+          <div className="flex h-full w-full items-center justify-center p-5">
+            <img src={image} alt={item.name} className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.02]" />
+          </div>
+        ) : (
+          <ImagePlaceholder className="aspect-square" />
+        )}
+      </div>
+      <div className="p-5">
+        <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">{item.category}</p>
+        <h3 className="font-display mt-2 text-[22px] font-semibold text-white">{item.name}</h3>
+        {item.tagline ? (
+          <p className="font-body mt-2 text-sm leading-7 text-white/54">{item.tagline}</p>
+        ) : null}
+        <p className="font-body mt-4 text-sm font-semibold text-white">RM {item.price}</p>
+      </div>
+    </Link>
+  );
+}
+
+export default function ProductDetail() {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const { beans, loading, error } = useBeans();
+  const {
+    cart,
+    cartCount,
+    cartTotal,
+    addToCart,
+    decreaseCartItem,
+    increaseCartItem,
+    removeCartItem,
+    clearCart,
+  } = usePersistentCart();
+  const [cartOpen, setCartOpen] = useState(false);
+  const [toast, setToast] = useState("");
+
+  const bean = useMemo(() => beans.find((item) => item.slug === slug), [beans, slug]);
+  const currentIndex = useMemo(() => beans.findIndex((item) => item.slug === slug), [beans, slug]);
+
+  const previousBean = currentIndex > 0 ? beans[currentIndex - 1] : null;
+  const nextBean = currentIndex >= 0 && currentIndex < beans.length - 1 ? beans[currentIndex + 1] : null;
+
+  const relatedBeans = useMemo(() => {
+    if (!bean) return [];
+    return beans
+      .filter((item) => item.slug !== bean.slug && item.category === bean.category)
+      .slice(0, 3);
+  }, [beans, bean]);
+
+  const monteblancoBeans = useMemo(() => {
+    return beans.filter((item) =>
+      [item.name, item.origin, item.collection]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes("monteblanco")),
+    );
+  }, [beans]);
+
+  const isMonteblancoBean = useMemo(() => {
+    if (!bean) return false;
+    return [bean.name, bean.origin, bean.collection]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes("monteblanco"));
+  }, [bean]);
+
+  const monteblancoBundleUrl = useMemo(() => {
+    const picks = monteblancoBeans.slice(0, 3);
+    const lines = picks.length
+      ? picks.map((item, index) => `${index + 1}. ${item.name} (${item.size})`).join("\n")
+      : "1. Monteblanco Series Bundle";
+    const message = `Hi Drunk Coffee Roasters,\n\nI would like to order the Monteblanco Series bundle:\n\n${lines}\n\nPlease confirm availability and roasting lead time.\nThank you.`;
+    return `https://wa.me/601127060012?text=${encodeURIComponent(message)}`;
+  }, [monteblancoBeans]);
+
+  useEffect(() => {
+    document.body.style.overflow = cartOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [cartOpen]);
+
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timeout = setTimeout(() => setToast(""), 1800);
+    return () => clearTimeout(timeout);
+  }, [toast]);
+
+  function handleAddToCart() {
+    if (!bean) return;
+    addToCart(bean);
+    setCartOpen(true);
+    setToast(`${bean.name} added to cart`);
+  }
+
+  const detailImage = bean?.image
+    ? appendImageParams(bean.image, { w: 1800, h: 1800, fit: "pad", fm: "webp", q: 86 })
+    : "";
+
+  const detailFlavorImage = bean?.flavorImage
+    ? appendImageParams(bean.flavorImage, { w: 1600, h: 1600, fit: "pad", fm: "webp", q: 86 })
+    : "";
+
+  if (!loading && !bean) {
+    return (
+      <div className={cx("min-h-screen", APP_BG)}>
+        <div className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-6 text-center">
+          <p className={EYEBROW}>Not found</p>
+          <h1 className="font-display mt-4 text-[40px] font-semibold tracking-[-0.04em] text-white">Coffee not found</h1>
+          <p className="font-body mt-4 max-w-md text-sm leading-7 text-white/54">
+            This coffee may have been unpublished or the slug has changed.
+          </p>
+          <Link to="/" className={cx(LIGHT_BUTTON, "mt-8")} style={LIGHT_BUTTON_STYLE}>
+            Back to home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Seo
+        title={bean ? `${bean.name} | Drunk Coffee Roasters` : "Coffee Detail"}
+        description={bean?.description || "Specialty coffee from Drunk Coffee Roasters."}
+        url={bean ? `/coffee/${bean.slug}` : "/"}
+      />
+
+      <div className={cx("min-h-screen", APP_BG)}>
+        <div className="pointer-events-none fixed inset-0 opacity-90">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.04),transparent_26%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent_18%,transparent_82%,rgba(255,255,255,0.02))]" />
+        </div>
+
+        <header className="sticky top-0 z-50 border-b border-white/8 bg-[#0d0d0b]/88 backdrop-blur-xl">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6 md:py-4">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.025] text-white/76 transition hover:border-white/18 hover:bg-white/[0.05] hover:text-white"
+                aria-label="Go back"
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <Link to="/" className="flex items-center">
+                <img src="/logo.png" alt="Drunk Coffee Roasters" className="h-14 object-contain md:h-[70px]" />
+              </Link>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <a
+                href={buildGeneralWhatsAppUrl()}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="WhatsApp"
+                className="hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.025] transition hover:border-white/18 hover:bg-white/[0.05] md:flex"
+              >
+                <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="WhatsApp" className="h-[18px] w-[18px] opacity-75 transition hover:opacity-100" />
+              </a>
+              <a
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Instagram"
+                className="hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.025] text-white/76 transition hover:border-white/18 hover:bg-white/[0.05] hover:text-white md:flex"
+              >
+                <Instagram size={18} />
+              </a>
+              <button
+                type="button"
+                onClick={() => setCartOpen(true)}
+                className="relative flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.025] text-white/76 transition hover:border-white/18 hover:bg-white/[0.05] hover:text-white"
+                aria-label="Open cart"
+              >
+                <ShoppingCart size={19} />
+                {cartCount > 0 ? (
+                  <span className="font-body absolute right-0.5 top-0.5 min-w-[17px] rounded-full bg-[#efe8db] px-1 text-center text-[9px] font-bold leading-4" style={LIGHT_BUTTON_STYLE}>
+                    {cartCount}
+                  </span>
+                ) : null}
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main className="relative z-[1] mx-auto max-w-7xl px-4 py-10 pb-28 md:px-6 md:py-14 md:pb-16">
+          {error ? (
+            <div className="mb-6 rounded-[22px] border border-amber-200/15 bg-amber-200/8 p-4 text-sm text-amber-100">
+              {error}
+            </div>
+          ) : null}
+
+          {loading ? (
+            <div className={cx("grid gap-6 lg:grid-cols-[0.95fr_1.05fr]", PANEL, "p-6 md:p-8")}>
+              <div className="aspect-square animate-pulse rounded-[22px] bg-white/[0.05]" />
+              <div className="space-y-4">
+                <div className="h-4 w-24 animate-pulse rounded bg-white/10" />
+                <div className="h-10 w-72 animate-pulse rounded bg-white/10" />
+                <div className="h-5 w-80 animate-pulse rounded bg-white/10" />
+                <div className="h-28 w-full animate-pulse rounded bg-white/10" />
+              </div>
+            </div>
+          ) : bean ? (
+            <>
+              <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+                <section className={cx("overflow-hidden p-5 md:p-7", PANEL)}>
+                  <div className="relative overflow-hidden rounded-[24px] bg-[#11110f]">
+                    {detailImage ? (
+                      <div className="flex aspect-square w-full items-center justify-center p-6 md:p-10">
+                        <img src={detailImage} alt={bean.name} className="h-full w-full object-contain" />
+                      </div>
+                    ) : (
+                      <ImagePlaceholder className="aspect-square" />
+                    )}
+                  </div>
+                </section>
+
+                <section className={cx("p-6 md:p-8", PANEL)}>
+                  {bean.collection ? <p className={EYEBROW}>{bean.collection}</p> : null}
+                  <p className="font-body mt-2 text-[10px] uppercase tracking-[0.18em] text-white/42">{bean.category}</p>
+                  <h1 className="font-display mt-3 text-[36px] font-semibold leading-[0.94] tracking-[-0.04em] text-white md:text-[54px]">
+                    {bean.name}
+                  </h1>
+                  {bean.tagline ? (
+                    <p className="font-body mt-4 max-w-2xl text-base leading-8 text-white/68 md:text-[18px]">
+                      {bean.tagline}
+                    </p>
+                  ) : null}
+
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {safeArray(bean.notes).map((note) => (
+                      <span
+                        key={note}
+                        className="font-body rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.08em] text-white/68"
+                      >
+                        {note}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 grid grid-cols-2 gap-2.5 md:gap-3">
+                    <InfoBox label="Origin" value={bean.origin} />
+                    <InfoBox label="Roast" value={bean.roast} />
+                    <InfoBox label="Process" value={bean.process} />
+                    <InfoBox label="Variety" value={bean.variety} />
+                    <InfoBox label="Best For" value={bean.bestFor} />
+                    <InfoBox label="Size" value={bean.size} />
+                  </div>
+
+                  <div className="mt-7 flex flex-col gap-4 border-t border-white/8 pt-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <p className="font-body text-[10px] uppercase tracking-[0.16em] text-white/34">Price</p>
+                      <p className="font-body mt-1 text-[28px] font-semibold tracking-[-0.02em] text-white">RM {bean.price}</p>
+                    </div>
+
+                    <div className="hidden flex-wrap gap-2.5 sm:flex sm:justify-end">
+                      <button type="button" onClick={handleAddToCart} className={DARK_BUTTON}>
+                        Add to cart
+                      </button>
+                      <a href={buildSingleOrderUrl(bean)} target="_blank" rel="noreferrer" className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
+                        Order on WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <div className="mt-6 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+                <section className={cx("p-6 md:p-8", PANEL)}>
+                  <p className={EYEBROW}>Description</p>
+                  <p className="font-body mt-4 max-w-3xl text-sm leading-8 text-white/60 md:text-[15px]">
+                    {bean.description || "Description coming soon."}
+                  </p>
+                </section>
+
+                {detailFlavorImage ? (
+                  <section className={cx("overflow-hidden p-6 md:p-8", PANEL)}>
+                    <p className={EYEBROW}>Tastes like</p>
+                    <div className="mt-4 overflow-hidden rounded-[22px] border border-white/10 bg-[#11110f]">
+                      <img src={detailFlavorImage} alt={`${bean.name} flavour visual`} className="aspect-square w-full object-cover" />
+                    </div>
+                  </section>
+                ) : null}
+              </div>
+
+              {bean.brewguide ? (
+                <section className={cx("mt-6 p-6 md:p-8", PANEL)}>
+                  <p className={EYEBROW}>Brew Guide</p>
+                  <p className="font-body mt-4 whitespace-pre-line text-sm leading-8 text-white/74 md:text-[15px]">
+                    {bean.brewguide}
+                  </p>
+                </section>
+              ) : null}
+
+              {isMonteblancoBean && monteblancoBeans.length >= 2 ? (
+                <section className={cx("mt-6 p-6 md:p-8", PANEL)}>
+                  <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+                    <div>
+                      <p className={EYEBROW}>Monteblanco Series</p>
+                      <h2 className="font-display mt-3 text-[28px] font-semibold leading-[0.96] tracking-[-0.03em] text-white md:text-[38px]">
+                        Explore the full set
+                      </h2>
+                      <p className="font-body mt-4 max-w-2xl text-sm leading-8 text-white/58 md:text-[15px]">
+                        Fruit-forward fermentation with different expressions across the same producer line. A better way to compare mango, apple, and floral profiles side by side.
+                      </p>
+                    </div>
+                    <a
+                      href={monteblancoBundleUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={LIGHT_BUTTON}
+                      style={LIGHT_BUTTON_STYLE}
+                    >
+                      Order the bundle
+                    </a>
+                  </div>
+
+                  <div className="mt-6 grid gap-4 md:grid-cols-3">
+                    {monteblancoBeans.slice(0, 3).map((item) => (
+                      <CoffeeMiniCard key={item.id} item={item} />
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              {(previousBean || nextBean) ? (
+                <section className="mt-6 grid gap-4 md:grid-cols-2">
+                  {previousBean ? (
+                    <Link to={`/coffee/${previousBean.slug}`} className={cx("group flex items-center justify-between p-5 md:p-6", SOFT_PANEL)}>
+                      <div>
+                        <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Previous coffee</p>
+                        <p className="font-display mt-2 text-[20px] font-semibold text-white group-hover:text-[#efe8db]">{previousBean.name}</p>
+                      </div>
+                      <ChevronLeft className="text-white/42 transition group-hover:text-white" />
+                    </Link>
+                  ) : <div />}
+
+                  {nextBean ? (
+                    <Link to={`/coffee/${nextBean.slug}`} className={cx("group flex items-center justify-between p-5 md:p-6", SOFT_PANEL)}>
+                      <div>
+                        <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Next coffee</p>
+                        <p className="font-display mt-2 text-[20px] font-semibold text-white group-hover:text-[#efe8db]">{nextBean.name}</p>
+                      </div>
+                      <ChevronRight className="text-white/42 transition group-hover:text-white" />
+                    </Link>
+                  ) : null}
+                </section>
+              ) : null}
+
+              {relatedBeans.length > 0 ? (
+                <section className="mt-6">
+                  <p className={EYEBROW}>You may also like</p>
+                  <div className="mt-4 grid gap-4 md:grid-cols-3">
+                    {relatedBeans.map((item) => (
+                      <CoffeeMiniCard key={item.id} item={item} />
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+            </>
+          ) : null}
+        </main>
+
+        {bean ? (
+          <div className="fixed inset-x-0 bottom-0 z-[55] border-t border-white/10 bg-[#0d0d0b]/95 p-3 backdrop-blur-xl sm:hidden">
+            <div className="mx-auto flex max-w-7xl items-center gap-3">
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/[0.04] text-white/78 transition hover:bg-white/[0.08]"
+                aria-label="Add to cart"
+              >
+                <ShoppingCart size={18} />
+              </button>
+
+              <a
+                href={buildSingleOrderUrl(bean)}
+                target="_blank"
+                rel="noreferrer"
+                className="flex min-w-0 flex-1 items-center justify-between rounded-full bg-[#efe8db] px-5 py-3.5 text-sm font-semibold"
+                style={LIGHT_BUTTON_STYLE}
+              >
+                <span className="truncate">Order on WhatsApp</span>
+                <span className="ml-4 shrink-0">RM {bean.price}</span>
+              </a>
+            </div>
+          </div>
+        ) : null}
+
+        <CartDrawer
+          cartOpen={cartOpen}
+          setCartOpen={setCartOpen}
+          cart={cart}
+          cartCount={cartCount}
+          cartTotal={cartTotal}
+          decreaseCartItem={decreaseCartItem}
+          increaseCartItem={increaseCartItem}
+          removeCartItem={removeCartItem}
+          clearCart={clearCart}
+        />
+
+        {toast ? (
+          <div className="pointer-events-none fixed bottom-24 left-1/2 z-[80] -translate-x-1/2 rounded-full border border-white/12 bg-[#efe8db] px-4 py-2 text-sm font-medium shadow-[0_20px_60px_rgba(0,0,0,0.35)] sm:bottom-5" style={LIGHT_BUTTON_STYLE}>
+            {toast}
+          </div>
+        ) : null}
+      </div>
+    </>
+  );
+}

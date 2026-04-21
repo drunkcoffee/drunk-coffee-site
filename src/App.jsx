@@ -1,14 +1,12 @@
-import { Routes, Route } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
-import CoffeeBeansPage from "./pages/CoffeeBeansPage";
-import BeanDetailPage from "./pages/BeanDetailPage";
+import ProductDetail from "./pages/ProductDetail";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/coffee-beans" element={<CoffeeBeansPage />} />
-      <Route path="/beans/:slug" element={<BeanDetailPage />} />
+      <Route path="/coffee/:slug" element={<ProductDetail />} />
     </Routes>
   );
 }
