@@ -21,20 +21,22 @@ const FALLBACK_BEANS = [
     price: 49,
     size: "200g",
     notes: ["Floral", "Citrus", "Silky Body"],
+    tagline: "Floral, silky, and easy to love.",
     description:
       "A clean and expressive blend that feels festive, floral, and easy to enjoy.",
     roast: "Light",
     origin: "Ethiopia Hambella Guji Goro · China Yunnan Lan Chang",
     process: "Washed + Anaerobic Natural Blend",
     variety: "",
-    brewguide: "",
+    brewguide: `15g coffee\n240g water\n2:30 - 2:45\nMedium grind\n92-93°C`,
     featured: true,
     badge: "Seasonal",
-    bestFor: "Filter",
+    bestFor: "Clean filter · daily brew",
     wholesaleAvailable: true,
     sortOrder: 1,
     active: true,
     image: "",
+    flavorImage: "",
   },
   {
     id: "lan-chang",
@@ -45,20 +47,22 @@ const FALLBACK_BEANS = [
     price: 59,
     size: "200g",
     notes: ["Red Wine", "Raisin", "Wine Chocolate"],
+    tagline: "Winey fruit with a deeper, expressive finish.",
     description:
       "A bold anaerobic natural from Baoshan, Yunnan. Expect red wine aromatics, raisin sweetness, and a smooth wine-chocolate finish.",
     roast: "Medium Light",
     origin: "China Yunnan",
     process: "Anaerobic Natural",
     variety: "",
-    brewguide: "",
+    brewguide: `15g coffee\n240g water\n2:30 - 2:45\nMedium grind\n92-93°C`,
     featured: true,
     badge: "Limited",
-    bestFor: "Filter",
+    bestFor: "Fruity filter · adventurous cup",
     wholesaleAvailable: true,
     sortOrder: 2,
     active: true,
     image: "",
+    flavorImage: "",
   },
   {
     id: "south-blend",
@@ -69,20 +73,22 @@ const FALLBACK_BEANS = [
     price: 49,
     size: "200g",
     notes: ["Mix Nut", "Chocolate", "Cherry"],
+    tagline: "Comforting chocolate sweetness for daily espresso.",
     description:
       "Comforting espresso blend built for daily milk drinks and approachable black coffee.",
     roast: "Medium",
     origin: "Brazil Fazendal Pinhal · Colombia Supremo",
     process: "Washed + Natural Blend",
     variety: "",
-    brewguide: "",
+    brewguide: `18g in\n36-40g out\n28-32 seconds\n92-93°C`,
     featured: false,
     badge: "Best Seller",
-    bestFor: "Espresso / Milk",
+    bestFor: "Espresso · milk drinks · daily use",
     wholesaleAvailable: true,
     sortOrder: 3,
     active: true,
     image: "",
+    flavorImage: "",
   },
 ];
 
@@ -221,6 +227,49 @@ function useInView(options = {}) {
 }
 
 // ---------------------------------------------------------------------------
+// Bean helpers
+// ---------------------------------------------------------------------------
+function inferTagline({ name = "", slug = "", category = "", bestFor = "" }) {
+  const key = `${slug} ${name}`.toLowerCase();
+
+  if (key.includes("mango")) return "Bold, tropical, and juicy.";
+  if (key.includes("apple")) return "Clean, crisp, and structured.";
+  if (key.includes("orange blossom")) return "Floral, light, and elegant.";
+  if (key.includes("spring bloom")) return "Floral, silky, and easy to love.";
+  if (key.includes("lan chang")) return "Winey fruit with a deeper, expressive finish.";
+  if (key.includes("south blend"))
+    return "Comforting chocolate sweetness for daily espresso.";
+
+  if (bestFor) return `Built for ${bestFor.toLowerCase()}.`;
+  if (category === "Espresso") return "Built for balanced shots and milk drinks.";
+  return "Roasted for clarity, sweetness, and an easy daily cup.";
+}
+
+function normalizeAudience(value, category = "") {
+  if (value) return value;
+  return category === "Espresso"
+    ? "Espresso · milk drinks"
+    : "Filter brewing · daily cup";
+}
+
+function buildBundleOrderUrl(bundleBeans, title = "Coffee Set") {
+  if (!bundleBeans?.length) return `https://wa.me/${WHATSAPP_NUMBER}`;
+
+  const message = `Hi Drunk Coffee Roasters,
+
+I would like to order the ${title}:
+
+${bundleBeans
+    .map((bean, index) => `${index + 1}. ${bean.name} (${bean.size})`)
+    .join("\n")}
+
+Please share availability and roasting lead time.
+Thank you.`;
+
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+// ---------------------------------------------------------------------------
 // Contentful helpers
 // ---------------------------------------------------------------------------
 function mapContentfulEntries(data) {
@@ -235,7 +284,11 @@ function mapContentfulEntries(data) {
   return items.map((item) => {
     const fields = item.fields || {};
     const imageId = fields.image?.sys?.id;
+    const flavorImageId = fields.flavorImage?.sys?.id || fields.flavourImage?.sys?.id;
     const asset = imageId ? assetMap[imageId] : null;
+    const flavorAsset = flavorImageId ? assetMap[flavorImageId] : null;
+    const notes = safeArray(fields.notes || fields.tastingNotes);
+    const bestFor = normalizeAudience(fields.bestfor || fields.bestFor || "", fields.category || "Filter");
 
     return {
       id: item.sys.id,
@@ -245,7 +298,13 @@ function mapContentfulEntries(data) {
       collection: fields.collection || "",
       price: Number(fields.price || 0),
       size: fields.size || "200g",
-      notes: safeArray(fields.notes || fields.tastingNotes),
+      notes,
+      tagline: fields.tagline || inferTagline({
+        name: fields.name || "",
+        slug: fields.slug || item.sys.id,
+        category: fields.category || "Filter",
+        bestFor,
+      }),
       description: fields.description || "",
       roast: fields.roast || "",
       origin: fields.origin || "",
@@ -254,11 +313,12 @@ function mapContentfulEntries(data) {
       brewguide: fields.brewguide || "",
       featured: Boolean(fields.featured),
       badge: fields.badge || "",
-      bestFor: fields.bestfor || fields.bestFor || "",
+      bestFor,
       wholesaleAvailable: Boolean(fields.wholesaleAvailable),
       sortOrder: Number(fields.sortOrder || 999),
       active: fields.active !== false,
       image: normalizeContentfulImage(asset),
+      flavorImage: normalizeContentfulImage(flavorAsset),
     };
   });
 }
@@ -316,7 +376,7 @@ async function fetchBeansFromContentful() {
 function buildSingleOrderUrl(bean) {
   const message = `Hi Drunk Coffee Roasters,
 
-I would like to order:
+I would like to order fresh roast coffee:
 
 ${bean.name} (${bean.size})
 Category: ${bean.category}
@@ -470,7 +530,13 @@ function FeaturedCard({ bean, onOpen, onAddToCart }) {
       </div>
 
       <div className="flex flex-1 flex-col p-4">
-        <div className="flex flex-wrap gap-1.5">
+        {bean.tagline ? (
+          <p className="font-body text-sm leading-6 text-white/66">
+            {bean.tagline}
+          </p>
+        ) : null}
+
+        <div className="mt-3 flex flex-wrap gap-1.5">
           {notes.map((note) => (
             <span
               key={note}
@@ -480,6 +546,10 @@ function FeaturedCard({ bean, onOpen, onAddToCart }) {
             </span>
           ))}
         </div>
+
+        <p className="font-body mt-3 text-[11px] uppercase tracking-[0.12em] text-white/34">
+          {bean.bestFor}
+        </p>
 
         <div className="mt-4 flex items-center justify-between border-t border-white/8 pt-4">
           <p className="font-body text-sm font-semibold text-white">
@@ -598,6 +668,12 @@ function CoffeeCard({ bean, onOpen, onAddToCart, animationDelay = 0 }) {
           {bean.origin || "Origin TBC"}
         </p>
 
+        {bean.tagline ? (
+          <p className="font-body mt-3 text-sm leading-7 text-white/68">
+            {bean.tagline}
+          </p>
+        ) : null}
+
         <div className="mt-4 flex flex-wrap gap-2">
           {notes.map((note) => (
             <span
@@ -608,6 +684,10 @@ function CoffeeCard({ bean, onOpen, onAddToCart, animationDelay = 0 }) {
             </span>
           ))}
         </div>
+
+        <p className="font-body mt-3 text-[11px] uppercase tracking-[0.12em] text-white/34">
+          {bean.bestFor}
+        </p>
 
         <div className="mt-auto pt-6">
           <div className="flex items-center justify-between gap-3 border-t border-white/8 pt-4">
@@ -722,6 +802,19 @@ export default function DrunkCoffeeRoastersStorefront() {
     () => beans.filter((b) => b.featured),
     [beans],
   );
+
+  const spotlightBeans = useMemo(() => {
+    const preferred = beans.filter((bean) => {
+      const key = `${bean.slug || ""} ${bean.name || ""}`.toLowerCase();
+      return (
+        key.includes("mango") ||
+        key.includes("apple") ||
+        key.includes("orange blossom")
+      );
+    });
+
+    return preferred.slice(0, 3);
+  }, [beans]);
 
   const filteredBeans = useMemo(() => {
     if (activeFilter === "All") return beans;
@@ -878,7 +971,7 @@ export default function DrunkCoffeeRoastersStorefront() {
 
   // ----- WhatsApp URLs -----
   const openGeneralWhatsApp = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    "Hi Drunk Coffee Roasters, I would like to browse your coffee menu.",
+    "Hi Drunk Coffee Roasters, I would like to order fresh roast coffee.",
   )}`;
 
   const wholesaleWhatsAppUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
@@ -898,10 +991,25 @@ export default function DrunkCoffeeRoastersStorefront() {
       : "Hi Drunk Coffee Roasters, I would like to place an order.",
   )}`;
 
+  const spotlightBundleUrl = buildBundleOrderUrl(
+    spotlightBeans,
+    spotlightBeans.length ? "Monteblanco Series" : "Featured Set",
+  );
+
   const detailImage = selectedBean?.image
     ? appendImageParams(selectedBean.image, {
         w: 1800,
         h: 1800,
+        fit: "pad",
+        fm: "webp",
+        q: 86,
+      })
+    : "";
+
+  const detailFlavorImage = selectedBean?.flavorImage
+    ? appendImageParams(selectedBean.flavorImage, {
+        w: 1600,
+        h: 1600,
         fit: "pad",
         fm: "webp",
         q: 86,
@@ -1116,22 +1224,27 @@ export default function DrunkCoffeeRoastersStorefront() {
                 </p>
 
                 <h1 className="font-display mt-5 max-w-[10ch] text-[50px] font-semibold leading-[0.88] tracking-[-0.05em] text-white sm:text-[64px] md:text-[84px] xl:text-[96px]">
-                  Quiet luxury,
+                  Specialty coffee,
                   <br />
-                  roasted daily.
+                  made easy to enjoy.
                 </h1>
 
                 <p className="font-body mt-6 max-w-md text-sm leading-7 text-white/56 md:text-[15px] md:leading-8">
-                  Small-batch coffee from Johor for espresso, filter, and everyday
-                  cups with more clarity, balance, and identity.
+                  Clean, balanced, expressive coffees — roasted in small batches
+                  for espresso, filter, and everyday brewing.
                 </p>
 
                 <div className="mt-8 flex flex-wrap items-center gap-3.5">
                   <a href="#shop" className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
                     Shop Coffee
                   </a>
-                  <a href="#wholesale" className={DARK_BUTTON}>
-                    Wholesale
+                  <a
+                    href={openGeneralWhatsApp}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={DARK_BUTTON}
+                  >
+                    Order via WhatsApp
                   </a>
                 </div>
 
@@ -1146,7 +1259,7 @@ export default function DrunkCoffeeRoastersStorefront() {
                   </div>
                   <div>
                     <p className="font-body text-[10px] uppercase tracking-[0.16em] text-white/30">
-                      Best for
+                      Designed for
                     </p>
                     <p className="font-body mt-1 text-sm text-white/72">
                       Home brewers · cafés · gifts
@@ -1164,9 +1277,9 @@ export default function DrunkCoffeeRoastersStorefront() {
                 <div className="mx-auto max-w-7xl px-4 md:px-6">
                   <div className="mb-6 flex items-end justify-between gap-4">
                     <div>
-                      <p className={EYEBROW}>Staff Picks</p>
+                      <p className={EYEBROW}>Featured coffees</p>
                       <h2 className="font-display mt-2 text-[22px] font-semibold leading-[0.96] tracking-[-0.03em] text-white md:text-[28px]">
-                        Currently on rotation
+                        Roasting now
                       </h2>
                     </div>
                     <a
@@ -1193,14 +1306,64 @@ export default function DrunkCoffeeRoastersStorefront() {
             </section>
           ) : null}
 
+          {!loading && spotlightBeans.length > 0 ? (
+            <section className="border-b border-white/8">
+              <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-16">
+                <FadeSection>
+                  <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+                    <div>
+                      <p className={EYEBROW}>Series highlight</p>
+                      <h2 className="font-display mt-3 text-[30px] font-semibold leading-[0.94] tracking-[-0.03em] text-white md:text-[44px]">
+                        Monteblanco Series
+                      </h2>
+                      <p className="font-body mt-4 max-w-xl text-sm leading-7 text-white/54 md:text-[15px]">
+                        Fruit-forward coffees with clean structure and expressive fermentation. Try the full set or explore each profile one by one.
+                      </p>
+                    </div>
+
+                    <div className={cx("p-5 md:p-6", SOFT_PANEL)}>
+                      <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">
+                        Included profiles
+                      </p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {spotlightBeans.map((bean) => (
+                          <span
+                            key={bean.id}
+                            className="font-body rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.08em] text-white/68"
+                          >
+                            {bean.name}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="mt-5 flex flex-wrap gap-3">
+                        <a
+                          href={spotlightBundleUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={LIGHT_BUTTON}
+                          style={LIGHT_BUTTON_STYLE}
+                        >
+                          Order the set
+                        </a>
+                        <a href="#shop" className={DARK_BUTTON}>
+                          Explore all coffees
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </FadeSection>
+              </div>
+            </section>
+          ) : null}
+
           {/* Shop */}
           <section id="shop" className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-18">
             <FadeSection>
               <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
                 <SectionHeading
                   eyebrow="Coffee Menu"
-                  title="Shop by brew style"
-                  description="Every coffee we roast is available to order directly. Pick your style, check the notes, and send through WhatsApp."
+                  title="Choose by brew style"
+                  description="Coffee roasted for easier brewing, clearer flavour, and a more confident daily cup. Pick your style and order directly through WhatsApp."
                 />
                 <div className="font-body text-sm text-white/40 md:text-right">
                   Showing{" "}
@@ -1283,7 +1446,7 @@ export default function DrunkCoffeeRoastersStorefront() {
                 <SectionHeading
                   eyebrow="Simple process"
                   title="How to order"
-                  description="No accounts, no checkout forms. Browse, pick, and send one message."
+                  description="Browse the menu, build your cart, and send one clean order through WhatsApp."
                 />
               </FadeSection>
 
@@ -1425,15 +1588,15 @@ export default function DrunkCoffeeRoastersStorefront() {
                 <FadeSection delay={120} className="lg:pt-2">
                   <p className={EYEBROW}>Our Story</p>
                   <h2 className="font-display mt-4 text-[32px] font-semibold leading-[0.94] tracking-[-0.035em] text-white md:text-[50px]">
-                    Built from obsession,
+                    Roasted to make
                     <br />
-                    repetition, and taste.
+                    coffee easier to enjoy.
                   </h2>
                   <p className="font-body mt-5 max-w-xl text-sm leading-8 text-white/54 md:text-[15px]">
-                    Drunk Coffee Roasters grew through real brewing routines, coffee
-                    events, and a constant pursuit of better cups. Based in Johor, we
-                    roast in small batches with a stronger focus on clarity, balance,
-                    and a cup that feels considered.
+                    Drunk Coffee Roasters grew through real brewing routines, events,
+                    and a constant pursuit of better cups. Based in Johor, we roast in
+                    small batches with a stronger focus on clarity, balance, and
+                    coffees that feel easy to return to.
                   </p>
 
                   <div className="mt-7 grid gap-3 sm:grid-cols-2">
@@ -1463,7 +1626,7 @@ export default function DrunkCoffeeRoastersStorefront() {
                       className={LIGHT_BUTTON}
                       style={LIGHT_BUTTON_STYLE}
                     >
-                      Order on WhatsApp
+                      Order fresh roast
                     </a>
                     <a
                       href={INSTAGRAM_URL}
@@ -1486,14 +1649,14 @@ export default function DrunkCoffeeRoastersStorefront() {
                 <FadeSection className={cx("p-6 md:p-8", PANEL)}>
                   <p className={EYEBROW}>About</p>
                   <h2 className="font-display mt-4 text-[28px] font-semibold leading-[0.94] tracking-[-0.03em] text-white md:text-[42px]">
-                    Easier to choose.
+                    Clean flavour.
                     <br />
-                    Harder to forget.
+                    Clear choices.
                   </h2>
                   <p className="font-body mt-5 max-w-xl text-sm leading-8 text-white/54 md:text-[15px]">
-                    Coffee roasted with balance, clarity, and a stronger sense of
-                    identity — for home brewers, cafés, and everyday drinkers who want
-                    something better.
+                    We keep the menu focused so choosing coffee feels easier — whether
+                    you want a clean everyday brew, a fruit-forward filter, or a more
+                    comfortable espresso profile.
                   </p>
                 </FadeSection>
 
@@ -1645,6 +1808,11 @@ export default function DrunkCoffeeRoastersStorefront() {
                     <h3 className="font-display mt-1.5 text-[24px] font-semibold leading-[1.02] tracking-[-0.03em] text-white md:text-[34px]">
                       {selectedBean.name}
                     </h3>
+                    {selectedBean.tagline ? (
+                      <p className="font-body mt-3 max-w-xl text-sm leading-7 text-white/62 md:text-[15px]">
+                        {selectedBean.tagline}
+                      </p>
+                    ) : null}
                   </div>
                   <button
                     type="button"
@@ -1665,6 +1833,22 @@ export default function DrunkCoffeeRoastersStorefront() {
                     </span>
                   ))}
                 </div>
+
+                {detailFlavorImage ? (
+                  <div className="mt-5 overflow-hidden rounded-[20px] border border-white/10 bg-white/[0.03]">
+                    <div className="border-b border-white/8 px-4 py-3 md:px-5">
+                      <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">
+                        Tastes like
+                      </p>
+                    </div>
+                    <img
+                      src={detailFlavorImage}
+                      alt={`${selectedBean.name} flavour visual`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                ) : null}
 
                 <p className="font-body mt-5 max-w-2xl text-sm leading-8 text-white/58 md:text-[15px]">
                   {selectedBean.description || "Description coming soon."}
@@ -1886,7 +2070,7 @@ export default function DrunkCoffeeRoastersStorefront() {
                   Drunk Coffee Roasters
                 </p>
                 <p className="font-body mt-2.5 text-sm leading-7 text-white/45">
-                  Specialty coffee roasted in Johor, Malaysia.
+                  Specialty coffee roasted in Johor, Malaysia — made easier to enjoy.
                 </p>
               </div>
 
