@@ -273,6 +273,14 @@ export default function ProductDetail() {
     setToast(`${bean.name} added to cart`);
   }
 
+  function handleAddMonteblancoBundle() {
+    const picks = monteblancoBeans.slice(0, 3);
+    if (!picks.length) return;
+    picks.forEach((item) => addToCart(item));
+    setCartOpen(true);
+    setToast("Monteblanco bundle added to cart");
+  }
+
   const detailImage = bean?.image
     ? appendImageParams(bean.image, { w: 1800, h: 1800, fit: "pad", fm: "webp", q: 86 })
     : "";
@@ -485,15 +493,24 @@ export default function ProductDetail() {
                         Fruit-forward fermentation with different expressions across the same producer line. A better way to compare mango, apple, and floral profiles side by side.
                       </p>
                     </div>
-                    <a
-                      href={monteblancoBundleUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={LIGHT_BUTTON}
-                      style={LIGHT_BUTTON_STYLE}
-                    >
-                      Order the bundle
-                    </a>
+                    <div className="flex flex-wrap gap-2.5">
+                      <button
+                        type="button"
+                        onClick={handleAddMonteblancoBundle}
+                        className={DARK_BUTTON}
+                      >
+                        Add bundle to cart
+                      </button>
+                      <a
+                        href={monteblancoBundleUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={LIGHT_BUTTON}
+                        style={LIGHT_BUTTON_STYLE}
+                      >
+                        Order the bundle
+                      </a>
+                    </div>
                   </div>
 
                   <div className="mt-6 grid gap-4 md:grid-cols-3">
