@@ -1,6 +1,8 @@
 import { ArrowLeft, Instagram } from "lucide-react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Seo from "../components/Seo";
+import { trackWhatsappClick } from "../lib/analytics";
 import {
   APP_BG,
   DARK_BUTTON,
@@ -91,7 +93,7 @@ export default function WholesalePage() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href={wholesaleWhatsAppUrl} target="_blank" rel="noreferrer" className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
+              <a href={wholesaleWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("wholesale_page", "hero")} className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
                 Enquire on WhatsApp
               </a>
               <Link to="/" className={DARK_BUTTON}>
@@ -138,7 +140,7 @@ export default function WholesalePage() {
                 <InfoCard title="Direct communication" body="Fast WhatsApp communication without unnecessary back-and-forth." />
               </div>
 
-              <a href={wholesaleWhatsAppUrl} target="_blank" rel="noreferrer" className={cx(LIGHT_BUTTON, "mt-6")} style={LIGHT_BUTTON_STYLE}>
+              <a href={wholesaleWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("wholesale_page", "final_cta")} className={cx(LIGHT_BUTTON, "mt-6")} style={LIGHT_BUTTON_STYLE}>
                 Start wholesale enquiry
               </a>
             </div>

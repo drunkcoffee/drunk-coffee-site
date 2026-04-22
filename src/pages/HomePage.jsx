@@ -11,6 +11,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Seo from "../components/Seo";
+import { trackAddToCart, trackWhatsappClick } from "../lib/analytics";
 import {
   APP_BG,
   DARK_BUTTON,
@@ -439,6 +440,7 @@ export default function HomePage() {
   }
 
   function handleAddToCart(bean) {
+    trackAddToCart(bean, "home");
     addToCart(bean);
     setCartOpen(true);
     setToast(`${bean.name} added to cart`);
@@ -521,6 +523,7 @@ export default function HomePage() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="WhatsApp"
+                onClick={() => trackWhatsappClick("home_header", "general")}
                 className="hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.025] transition hover:border-white/18 hover:bg-white/[0.05] md:flex"
               >
                 <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="WhatsApp" className="h-[18px] w-[18px] opacity-75 transition hover:opacity-100" />
@@ -590,14 +593,14 @@ export default function HomePage() {
               </nav>
 
               <div className="mt-auto flex flex-col gap-3 border-t border-white/8 pt-6">
-                <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" className={cx(LIGHT_BUTTON, "w-full justify-center")} style={LIGHT_BUTTON_STYLE}>
+                <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_mobile_menu", "general")} className={cx(LIGHT_BUTTON, "w-full justify-center")} style={LIGHT_BUTTON_STYLE}>
                   Order on WhatsApp
                 </a>
                 <div className="flex justify-center gap-4">
                   <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 transition hover:text-white" aria-label="Instagram">
                     <Instagram size={17} />
                   </a>
-                  <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 transition hover:bg-white/[0.05]" aria-label="WhatsApp">
+                  <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_mobile_menu_icon", "general")} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 transition hover:bg-white/[0.05]" aria-label="WhatsApp">
                     <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="WhatsApp" className="h-4 w-4 opacity-60" />
                   </a>
                 </div>
@@ -709,7 +712,7 @@ export default function HomePage() {
                         <button type="button" onClick={handleAddBundle} className={DARK_BUTTON}>
                           Add bundle to cart
                         </button>
-                        <a href={monteblancoBundleUrl} target="_blank" rel="noreferrer" className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
+                        <a href={monteblancoBundleUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_series_bundle", "monteblanco")} className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
                           Order the bundle
                         </a>
                       </div>
@@ -991,7 +994,7 @@ export default function HomePage() {
                     <Link to="/wholesale" className={DARK_BUTTON}>
                       View wholesale page
                     </Link>
-                    <a href={wholesaleWhatsAppUrl} target="_blank" rel="noreferrer" className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
+                    <a href={wholesaleWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_wholesale", "wholesale")} className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
                       Enquire on WhatsApp
                     </a>
                     <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className={DARK_BUTTON}>
@@ -1032,7 +1035,7 @@ export default function HomePage() {
                     Drunk Coffee Roasters is built around daily brewing, careful roasting, and coffees with clarity, balance, and character. The site now reflects that better — less menu sheet, more actual brand storefront.
                   </p>
                   <div className="mt-7 flex flex-wrap gap-3">
-                    <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
+                    <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_story", "general")} className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
                       Order fresh roast
                     </a>
                     <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className={DARK_BUTTON}>
@@ -1060,7 +1063,7 @@ export default function HomePage() {
                         <span className="w-24 text-[10px] uppercase tracking-[0.18em] text-white/30">小红书</span>
                         <span>{XHS_LABEL}</span>
                       </div>
-                      <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-white/56 transition hover:text-white">
+                      <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_find_us", "general")} className="flex items-center gap-3 text-white/56 transition hover:text-white">
                         <span className="w-24 text-[10px] uppercase tracking-[0.18em] text-white/30">WhatsApp</span>
                         <span>+601127060012 ↗</span>
                       </a>
@@ -1129,7 +1132,7 @@ export default function HomePage() {
                       <ArrowRight className="text-white/34" size={18} />
                     </a>
 
-                    <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" className={cx("flex items-center justify-between p-4 transition hover:bg-white/[0.05]", SOFT_PANEL)}>
+                    <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_footer", "general")} className={cx("flex items-center justify-between p-4 transition hover:bg-white/[0.05]", SOFT_PANEL)}>
                       <div>
                         <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">WhatsApp</p>
                         <p className="font-body mt-2 text-sm text-white/74">+601127060012</p>

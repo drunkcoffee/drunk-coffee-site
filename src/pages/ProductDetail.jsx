@@ -8,6 +8,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Seo from "../components/Seo";
+import { trackAddToCart, trackProductView, trackWhatsappClick } from "../lib/analytics";
 import {
   APP_BG,
   DARK_BUTTON,
@@ -425,6 +426,12 @@ export default function ProductDetail() {
     : "Specialty coffee from Drunk Coffee Roasters.";
 
   useEffect(() => {
+    if (bean) {
+      trackProductView(bean);
+    }
+  }, [bean]);
+
+  useEffect(() => {
     document.body.style.overflow = cartOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
@@ -439,6 +446,7 @@ export default function ProductDetail() {
 
   function handleAddToCart(targetBean = bean) {
     if (!targetBean) return;
+    trackAddToCart(targetBean, "product_detail");
     addToCart(targetBean);
     setCartOpen(true);
     setToast(`${targetBean.name} added to cart`);
@@ -539,6 +547,7 @@ export default function ProductDetail() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="WhatsApp"
+                onClick={() => trackWhatsappClick("product_detail_header", bean?.slug || "")}
                 className="hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.025] transition hover:border-white/18 hover:bg-white/[0.05] md:flex"
               >
                 <img
@@ -665,6 +674,7 @@ export default function ProductDetail() {
                         href={buildSingleOrderUrl(bean)}
                         target="_blank"
                         rel="noreferrer"
+                        onClick={() => trackWhatsappClick("product_detail_order", bean.slug)}
                         className={LIGHT_BUTTON}
                         style={LIGHT_BUTTON_STYLE}
                       >
@@ -742,6 +752,7 @@ export default function ProductDetail() {
                         href={monteblancoBundleUrl}
                         target="_blank"
                         rel="noreferrer"
+                        onClick={() => trackWhatsappClick("product_detail_bundle", "monteblanco")}
                         className={LIGHT_BUTTON}
                         style={LIGHT_BUTTON_STYLE}
                       >
@@ -844,6 +855,7 @@ export default function ProductDetail() {
                 href={buildSingleOrderUrl(bean)}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => trackWhatsappClick("product_detail_sticky_bar", bean.slug)}
                 className="flex min-w-0 flex-1 items-center justify-between rounded-full bg-[#efe8db] px-5 py-3.5 text-sm font-semibold"
                 style={LIGHT_BUTTON_STYLE}
               >

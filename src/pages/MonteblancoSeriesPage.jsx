@@ -2,6 +2,7 @@ import { ArrowLeft, Instagram, ShoppingCart } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Seo from "../components/Seo";
+import { trackAddToCart, trackSeriesView, trackWhatsappClick } from "../lib/analytics";
 import {
   APP_BG,
   DARK_BUTTON,
@@ -262,6 +263,10 @@ export default function MonteblancoSeriesPage() {
   );
 
   useEffect(() => {
+    trackSeriesView("monteblanco");
+  }, []);
+
+  useEffect(() => {
     document.body.style.overflow = cartOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
@@ -275,6 +280,7 @@ export default function MonteblancoSeriesPage() {
   }, [toast]);
 
   function handleAddToCart(bean) {
+    trackAddToCart(bean, "series_page");
     addToCart(bean);
     setCartOpen(true);
     setToast(`${bean.name} added to cart`);
@@ -332,6 +338,7 @@ export default function MonteblancoSeriesPage() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="WhatsApp"
+                onClick={() => trackWhatsappClick("series_page_header", "monteblanco")}
                 className="hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.025] transition hover:border-white/18 hover:bg-white/[0.05] md:flex"
               >
                 <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="WhatsApp" className="h-[18px] w-[18px] opacity-75 transition hover:opacity-100" />
@@ -382,7 +389,7 @@ export default function MonteblancoSeriesPage() {
               <button type="button" onClick={handleAddBundle} className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
                 Add full bundle to cart
               </button>
-              <a href={bundleUrl} target="_blank" rel="noreferrer" className={DARK_BUTTON}>
+              <a href={bundleUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("series_page_bundle", "monteblanco")} className={DARK_BUTTON}>
                 Order the bundle
               </a>
             </div>
