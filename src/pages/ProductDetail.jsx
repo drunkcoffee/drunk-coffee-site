@@ -699,6 +699,9 @@ export default function ProductDetail() {
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2.5">
+                      <Link to="/series/monteblanco" className={DARK_BUTTON}>
+                        View full series
+                      </Link>
                       <button
                         type="button"
                         onClick={handleAddMonteblancoBundle}

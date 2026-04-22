@@ -110,34 +110,6 @@ function SectionHeading({ eyebrow, title, description, action }) {
   );
 }
 
-function ReviewCard({ handle, meta, quote, initials, delay = 0 }) {
-  return (
-    <FadeSection delay={delay}>
-      <div className={cx("h-full p-6 md:p-7", PANEL)}>
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-sm font-semibold text-white/78">
-              {initials}
-            </div>
-            <div>
-              <p className="font-body text-sm text-white/74">{handle}</p>
-              <p className="font-body mt-1 text-xs text-white/40">{meta}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1 text-[#efe8db]">
-            <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-          </div>
-        </div>
-
-        <p className="font-body mt-5 text-base leading-8 text-white/78">
-          {quote}
-        </p>
-      </div>
-    </FadeSection>
-  );
-}
-
-
 function CartDrawer({
   cartOpen,
   setCartOpen,
@@ -479,12 +451,6 @@ export default function HomePage() {
     setToast("Monteblanco bundle added to cart");
   }
 
-  function handleQuickFilter(filter) {
-    setActiveFilter(filter);
-    const el = document.getElementById("shop");
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
   return (
     <>
       <Seo
@@ -506,9 +472,9 @@ export default function HomePage() {
             </a>
 
             <nav className="hidden items-center gap-7 md:flex">
-              <a href="#series" className="font-body text-[13px] tracking-[0.08em] text-white/62 transition hover:text-white">
+              <Link to="/series/monteblanco" className="font-body text-[13px] tracking-[0.08em] text-white/62 transition hover:text-white">
                 Series
-              </a>
+              </Link>
               {NAV_LINKS.map(([label, href]) => (
                 <a
                   key={label}
@@ -589,13 +555,13 @@ export default function HomePage() {
               </div>
 
               <nav className="mt-10 flex flex-col gap-1">
-                <a
-                  href="#series"
+                <Link
+                  to="/series/monteblanco"
                   onClick={() => setMobileNavOpen(false)}
                   className="font-body rounded-[14px] px-4 py-3.5 text-[15px] tracking-[0.04em] text-white/70 transition hover:bg-white/[0.05] hover:text-white"
                 >
                   Series
-                </a>
+                </Link>
                 {NAV_LINKS.map(([label, href]) => (
                   <a
                     key={label}
@@ -656,32 +622,9 @@ export default function HomePage() {
                       <a href="#shop" className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
                         Shop coffees
                       </a>
-                      <a href="#series" className={DARK_BUTTON}>
+                      <Link to="/series/monteblanco" className={DARK_BUTTON}>
                         Explore series
-                      </a>
-                    </div>
-
-                    <div className="mt-5 flex flex-wrap gap-2.5">
-                      <button
-                        type="button"
-                        onClick={() => handleQuickFilter("Filter")}
-                        className="font-body rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-2 text-[12px] tracking-[0.04em] text-white/68 transition hover:border-white/22 hover:bg-white/[0.07] hover:text-white"
-                      >
-                        Filter favourites
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleQuickFilter("Espresso")}
-                        className="font-body rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-2 text-[12px] tracking-[0.04em] text-white/68 transition hover:border-white/22 hover:bg-white/[0.07] hover:text-white"
-                      >
-                        Espresso picks
-                      </button>
-                      <a
-                        href="#wholesale"
-                        className="font-body rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-2 text-[12px] tracking-[0.04em] text-white/68 transition hover:border-white/22 hover:bg-white/[0.07] hover:text-white"
-                      >
-                        Wholesale enquiry
-                      </a>
+                      </Link>
                     </div>
 
                     <div className="mt-10 grid max-w-3xl gap-3 sm:grid-cols-3">
@@ -745,6 +688,9 @@ export default function HomePage() {
                   action={
                     bundleBeans.length ? (
                       <div className="flex flex-wrap gap-2.5">
+                        <Link to="/series/monteblanco" className={DARK_BUTTON}>
+                          View full series
+                        </Link>
                         <button type="button" onClick={handleAddBundle} className={DARK_BUTTON}>
                           Add bundle to cart
                         </button>
@@ -950,27 +896,65 @@ export default function HomePage() {
               </FadeSection>
 
               <div className="mt-8 grid gap-4 md:grid-cols-3">
-                <ReviewCard
-                  delay={0}
-                  initials="CM"
-                  handle="@coffeewithmei"
-                  meta="Fresh roast · repeat order"
-                  quote="“The beans were really fragrant and tasted super fresh. I really liked them.”"
-                />
-                <ReviewCard
-                  delay={90}
-                  initials="JD"
-                  handle="@joeydrinkscoffee"
-                  meta="Giftable · approachable"
-                  quote="“Perfect as a gift. My friend really loved it.”"
-                />
-                <ReviewCard
-                  delay={180}
-                  initials="LW"
-                  handle="@linaroundtheworld"
-                  meta="Souvenir · easy to share"
-                  quote="“Amazing as a souvenir to bring back to China.”"
-                />
+                <FadeSection>
+                  <div className={cx("h-full p-6 md:p-7", PANEL)}>
+                    <div className="flex items-center gap-1 text-[#efe8db]">
+                      <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                    </div>
+                    <p className="font-body mt-5 text-base leading-8 text-white/78">
+                      “The beans were really fragrant and tasted super fresh. I really liked them.”
+                    </p>
+                    <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4">
+                      <div>
+                        <p className="font-body text-sm text-white/72">@coffeewithmei</p>
+                        <p className="font-body mt-1 text-xs text-white/44">Fresh roast · repeat order</p>
+                      </div>
+                      <span className="font-body rounded-full border border-white/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] text-white/42">
+                        Customer note
+                      </span>
+                    </div>
+                  </div>
+                </FadeSection>
+
+                <FadeSection delay={90}>
+                  <div className={cx("h-full p-6 md:p-7", PANEL)}>
+                    <div className="flex items-center gap-1 text-[#efe8db]">
+                      <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                    </div>
+                    <p className="font-body mt-5 text-base leading-8 text-white/78">
+                      “Perfect as a gift. My friend really loved it.”
+                    </p>
+                    <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4">
+                      <div>
+                        <p className="font-body text-sm text-white/72">@joeydrinkscoffee</p>
+                        <p className="font-body mt-1 text-xs text-white/44">Giftable · approachable</p>
+                      </div>
+                      <span className="font-body rounded-full border border-white/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] text-white/42">
+                        Customer note
+                      </span>
+                    </div>
+                  </div>
+                </FadeSection>
+
+                <FadeSection delay={180}>
+                  <div className={cx("h-full p-6 md:p-7", PANEL)}>
+                    <div className="flex items-center gap-1 text-[#efe8db]">
+                      <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                    </div>
+                    <p className="font-body mt-5 text-base leading-8 text-white/78">
+                      “Amazing as a souvenir to bring back to China.”
+                    </p>
+                    <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4">
+                      <div>
+                        <p className="font-body text-sm text-white/72">@linaroundtheworld</p>
+                        <p className="font-body mt-1 text-xs text-white/44">Souvenir · easy to share</p>
+                      </div>
+                      <span className="font-body rounded-full border border-white/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] text-white/42">
+                        Customer note
+                      </span>
+                    </div>
+                  </div>
+                </FadeSection>
               </div>
             </div>
           </section>
@@ -989,6 +973,9 @@ export default function HomePage() {
                     Small-batch roasting with cleaner house blends, more expressive seasonal filters, and a storefront flow that makes wholesale enquiries easier to convert.
                   </p>
                   <div className="mt-8 flex flex-wrap items-center gap-3.5">
+                    <Link to="/wholesale" className={DARK_BUTTON}>
+                      View wholesale page
+                    </Link>
                     <a href={wholesaleWhatsAppUrl} target="_blank" rel="noreferrer" className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
                       Enquire on WhatsApp
                     </a>
@@ -1145,52 +1132,19 @@ export default function HomePage() {
                       <p className="font-body mt-2 text-sm text-white/74">Johor, Malaysia</p>
                     </div>
 
-                    <a href={wholesaleWhatsAppUrl} target="_blank" rel="noreferrer" className={cx("flex items-center justify-between p-4 transition hover:bg-white/[0.05]", SOFT_PANEL)}>
+                    <Link to="/wholesale" className={cx("flex items-center justify-between p-4 transition hover:bg-white/[0.05]", SOFT_PANEL)}>
                       <div>
-                        <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Wholesale enquiry</p>
+                        <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Wholesale</p>
                         <p className="font-body mt-2 text-sm text-white/74">For café supply and retail partnership</p>
                       </div>
                       <ArrowRight className="text-white/34" size={18} />
-                    </a>
+                    </Link>
                   </div>
-
-                  <p className="font-body mt-6 text-xs tracking-[0.04em] text-white/28">
-                    © Drunk Coffee Roasters · Johor, Malaysia
-                  </p>
                 </FadeSection>
               </div>
             </div>
           </section>
         </main>
-
-        <div className="fixed inset-x-0 bottom-0 z-[55] border-t border-white/10 bg-[#0d0d0b]/95 p-3 backdrop-blur-xl sm:hidden">
-          <div className="mx-auto flex max-w-7xl items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setCartOpen(true)}
-              className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/[0.04] text-white/78 transition hover:bg-white/[0.08]"
-              aria-label="Open cart"
-            >
-              <ShoppingCart size={18} />
-              {cartCount > 0 ? (
-                <span className="font-body absolute -right-1 -top-1 min-w-[18px] rounded-full bg-[#efe8db] px-1 text-center text-[9px] font-bold leading-5" style={LIGHT_BUTTON_STYLE}>
-                  {cartCount}
-                </span>
-              ) : null}
-            </button>
-
-            <a
-              href={generalWhatsAppUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex min-w-0 flex-1 items-center justify-between rounded-full bg-[#efe8db] px-5 py-3.5 text-sm font-semibold"
-              style={LIGHT_BUTTON_STYLE}
-            >
-              <span className="truncate">Order via WhatsApp</span>
-              <span className="ml-4 shrink-0">Fresh roast</span>
-            </a>
-          </div>
-        </div>
 
         <CartDrawer
           cartOpen={cartOpen}
