@@ -419,6 +419,11 @@ export default function ProductDetail() {
 
   const brewGuideLines = formatBrewGuide(bean?.brewguide);
 
+  const notesForSeo = safeArray(bean?.notes).join(", ");
+  const productDescription = bean
+    ? `Shop ${bean.name} from Drunk Coffee Roasters. ${bean.tagline ? `${bean.tagline}. ` : ""}${notesForSeo ? `Notes: ${notesForSeo}. ` : ""}Freshly roasted in Malaysia for ${bean.category || "coffee"} brewing.`
+    : "Specialty coffee from Drunk Coffee Roasters.";
+
   useEffect(() => {
     document.body.style.overflow = cartOpen ? "hidden" : "";
     return () => {
@@ -474,8 +479,32 @@ export default function ProductDetail() {
     <>
       <Seo
         title={bean ? `${bean.name} | Drunk Coffee Roasters` : "Coffee Detail"}
-        description={bean?.description || "Specialty coffee from Drunk Coffee Roasters."}
+        description={productDescription}
         url={bean ? `/coffee/${bean.slug}` : "/"}
+        jsonLd={
+          bean
+            ? {
+                "@context": "https://schema.org",
+                "@type": "Product",
+                name: bean.name,
+                description: productDescription,
+                brand: {
+                  "@type": "Brand",
+                  name: "Drunk Coffee Roasters",
+                },
+                category: bean.category,
+                url: `https://drunkcoffeeroasters.com/coffee/${bean.slug}`,
+                image: detailImage || undefined,
+                offers: {
+                  "@type": "Offer",
+                  priceCurrency: "MYR",
+                  price: String(bean.price),
+                  availability: "https://schema.org/InStock",
+                  url: `https://drunkcoffeeroasters.com/coffee/${bean.slug}`,
+                },
+              }
+            : null
+        }
       />
 
       <div className={cx("min-h-screen", APP_BG)}>

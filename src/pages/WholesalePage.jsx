@@ -31,8 +31,19 @@ export default function WholesalePage() {
     <>
       <Seo
         title="Wholesale Coffee Supply Malaysia | Drunk Coffee Roasters"
-        description="Wholesale coffee supply for cafés, offices, events and retail partners. Small-batch roasted in Johor, Malaysia."
+        description="Wholesale coffee supply for cafés, offices, events, and retail partners in Malaysia. Enquire with Drunk Coffee Roasters for espresso blends and seasonal filter coffees."
         url="/wholesale"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          name: "Wholesale Coffee Supply",
+          provider: {
+            "@type": "Organization",
+            name: "Drunk Coffee Roasters"
+          },
+          areaServed: "Malaysia",
+          serviceType: "Wholesale coffee supply"
+        }}
       />
 
       <div className={cx("min-h-screen", APP_BG)}>

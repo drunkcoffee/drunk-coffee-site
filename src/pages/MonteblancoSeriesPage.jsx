@@ -292,8 +292,16 @@ export default function MonteblancoSeriesPage() {
     <>
       <Seo
         title="Monteblanco Series | Drunk Coffee Roasters"
-        description="Explore the Monteblanco Series — fruit-forward coffees built for comparison, gifting, and easy repeat ordering."
+        description="Explore the Monteblanco Series by Drunk Coffee Roasters — fruit-forward coffees with expressive flavour profiles, available as single bags or bundle sets in Malaysia."
         url="/series/monteblanco"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "Monteblanco Series",
+          url: "https://drunkcoffeeroasters.com/series/monteblanco",
+          description:
+            "Fruit-forward coffees from the Monteblanco Series by Drunk Coffee Roasters."
+        }}
       />
 
       <div className={cx("min-h-screen", APP_BG)}>

@@ -454,9 +454,24 @@ export default function HomePage() {
   return (
     <>
       <Seo
-        title="Specialty Coffee Roaster in Malaysia"
-        description="Small-batch specialty coffee roasted in Johor, Malaysia for filter, espresso, and wholesale supply."
+        title="Drunk Coffee Roasters | Specialty Coffee Roaster in Malaysia"
+        description="Small-batch specialty coffee roasted in Johor, Malaysia. Shop filter and espresso coffees, explore the Monteblanco Series, and order fresh roast via WhatsApp."
         url="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Drunk Coffee Roasters",
+          url: "https://drunkcoffeeroasters.com",
+          sameAs: [
+            "https://instagram.com/drunkcoffeeroasters"
+          ],
+          contactPoint: {
+            "@type": "ContactPoint",
+            telephone: "+60-11-2706-0012",
+            contactType: "customer service",
+            areaServed: "MY"
+          }
+        }}
       />
 
       <div className={cx("min-h-screen", APP_BG)}>
