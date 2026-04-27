@@ -97,7 +97,8 @@ function SectionHeading({ eyebrow, title, description, action }) {
     <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
       <div className="max-w-2xl">
         <p className={EYEBROW}>{eyebrow}</p>
-        <h2 className="font-display mt-3 text-[30px] font-semibold leading-[0.94] tracking-[-0.03em] text-white md:text-[46px]">
+        {/* Slightly smaller on mobile to avoid crowding */}
+        <h2 className="font-display mt-3 text-[28px] font-semibold leading-[0.94] tracking-[-0.03em] text-white sm:text-[30px] md:text-[46px]">
           {title}
         </h2>
         {description ? (
@@ -128,8 +129,11 @@ function CartDrawer({
 
   return (
     <div className="fixed inset-0 z-[70] flex justify-end bg-black/70">
+      {/* Backdrop tap-to-close */}
       <button type="button" onClick={() => setCartOpen(false)} className="flex-1" aria-label="Close cart" />
+
       <div className="flex h-full w-full max-w-xs flex-col border-l border-white/10 bg-[#121210] shadow-[0_35px_120px_rgba(0,0,0,0.56)] sm:max-w-sm md:max-w-md">
+        {/* Header */}
         <div className="border-b border-white/8 px-4 py-4 md:px-5">
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -140,16 +144,19 @@ function CartDrawer({
                 {cartCount} item{cartCount !== 1 ? "s" : ""}
               </p>
             </div>
+            {/* Close — 44px icon button instead of tiny text link */}
             <button
               type="button"
               onClick={() => setCartOpen(false)}
-              className="font-body rounded-full border border-white/10 px-4 py-2 text-xs text-white/58 transition hover:bg-white/[0.05] hover:text-white"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-white/58 transition hover:bg-white/[0.05] hover:text-white"
+              aria-label="Close cart"
             >
-              Close
+              <X size={18} />
             </button>
           </div>
         </div>
 
+        {/* Items */}
         <div className="flex-1 overflow-auto px-4 py-4 md:px-5">
           {cart.length === 0 ? (
             <div className={cx("p-5 text-center", SOFT_PANEL)}>
@@ -163,7 +170,7 @@ function CartDrawer({
               {cart.map((item) => (
                 <div key={item.id} className={cx("p-4", SOFT_PANEL)}>
                   <div className="flex items-start justify-between gap-3">
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <p className="font-display text-[17px] font-semibold tracking-[-0.02em] text-white">
                         {item.name}
                       </p>
@@ -171,31 +178,37 @@ function CartDrawer({
                         {item.category} · {item.size}
                       </p>
                     </div>
+                    {/* Remove — 44px icon button, was a tiny text link */}
                     <button
                       type="button"
                       onClick={() => removeCartItem(item.id)}
-                      className="font-body text-xs text-white/36 transition hover:text-white/78"
+                      className="-mr-1 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white/36 transition hover:bg-white/[0.06] hover:text-white/78"
+                      aria-label={`Remove ${item.name}`}
                     >
-                      Remove
+                      <X size={15} />
                     </button>
                   </div>
 
                   <div className="mt-4 flex items-center justify-between border-t border-white/8 pt-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      {/* Quantity − : bumped from h-9 w-9 (36px) to h-11 w-11 (44px) */}
                       <button
                         type="button"
                         onClick={() => decreaseCartItem(item.id)}
-                        className="font-body flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/74 transition hover:bg-white/[0.05] active:scale-[0.98]"
+                        className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-white/74 transition hover:bg-white/[0.05] active:scale-[0.96]"
+                        aria-label="Decrease quantity"
                       >
                         −
                       </button>
-                      <span className="font-body min-w-6 text-center text-sm font-medium text-white">
+                      <span className="font-body min-w-8 text-center text-sm font-medium text-white">
                         {item.quantity}
                       </span>
+                      {/* Quantity + : bumped from h-9 w-9 (36px) to h-11 w-11 (44px) */}
                       <button
                         type="button"
                         onClick={() => increaseCartItem(item.id)}
-                        className="font-body flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/74 transition hover:bg-white/[0.05] active:scale-[0.98]"
+                        className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-white/74 transition hover:bg-white/[0.05] active:scale-[0.96]"
+                        aria-label="Increase quantity"
                       >
                         +
                       </button>
@@ -210,21 +223,24 @@ function CartDrawer({
           )}
         </div>
 
-        <div className="border-t border-white/8 px-4 py-4 md:px-5">
+        {/* Footer — env(safe-area-inset-bottom) so buttons clear the iOS home bar */}
+        <div
+          className="border-t border-white/8 px-4 pt-4 md:px-5"
+          style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+        >
           <div className="mb-4 flex items-end justify-between gap-3">
             <div>
-              <p className="font-body text-[10px] uppercase tracking-[0.16em] text-white/34">
-                Total
-              </p>
+              <p className="font-body text-[10px] uppercase tracking-[0.16em] text-white/34">Total</p>
               <p className="font-display mt-1 text-[28px] font-semibold tracking-[-0.03em] text-white">
                 RM {cartTotal}
               </p>
             </div>
             {cart.length > 0 ? (
+              /* Clear cart — expanded tap area via negative margins */
               <button
                 type="button"
                 onClick={clearCart}
-                className="font-body text-xs uppercase tracking-[0.12em] text-white/36 transition hover:text-white/74"
+                className="-mb-1 -mr-2 px-3 py-3 text-xs uppercase tracking-[0.12em] text-white/36 transition hover:text-white/74"
               >
                 Clear cart
               </button>
@@ -232,7 +248,13 @@ function CartDrawer({
           </div>
 
           <div className="flex flex-col gap-2.5">
-            <a href={cartWhatsAppUrl} target="_blank" rel="noreferrer" className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
+            <a
+              href={cartWhatsAppUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={LIGHT_BUTTON}
+              style={LIGHT_BUTTON_STYLE}
+            >
               Send order on WhatsApp
             </a>
             <button type="button" onClick={() => setCartOpen(false)} className={DARK_BUTTON}>
@@ -259,7 +281,11 @@ function SeriesMiniCard({ bean, onOpen }) {
       <div className="aspect-square overflow-hidden bg-[#11110f]">
         {image ? (
           <div className="flex h-full w-full items-center justify-center p-5">
-            <img src={image} alt={bean.name} className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.03]" />
+            <img
+              src={image}
+              alt={bean.name}
+              className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.03]"
+            />
           </div>
         ) : (
           <ImagePlaceholder className="aspect-square" />
@@ -289,12 +315,15 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
         <div className="relative aspect-[5/4] overflow-hidden bg-[#11110f]">
           {image ? (
             <div className="flex h-full w-full items-center justify-center p-5 sm:p-6">
-              <img src={image} alt={bean.name} className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.02]" />
+              <img
+                src={image}
+                alt={bean.name}
+                className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.02]"
+              />
             </div>
           ) : (
             <ImagePlaceholder className="h-full" />
           )}
-
           <div className="absolute left-4 top-4 flex flex-wrap gap-1.5">
             {bean.badge ? (
               <span
@@ -338,16 +367,30 @@ function CoffeeCard({ bean, onOpen, onAddToCart }) {
           Best for · {bean.bestFor || bean.category}
         </p>
 
-        <div className="mt-auto flex items-end justify-between gap-3 border-t border-white/8 pt-5">
-          <div>
-            <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Price</p>
-            <p className="font-display mt-2 text-[24px] font-semibold tracking-[-0.03em] text-white">RM {bean.price}</p>
+        <div className="mt-auto border-t border-white/8 pt-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Price</p>
+              <p className="font-display mt-2 text-[24px] font-semibold tracking-[-0.03em] text-white">
+                RM {bean.price}
+              </p>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2.5">
-            <button type="button" onClick={() => onOpen(bean.slug)} className={DARK_BUTTON}>
+          {/* Buttons: full-width stacked on mobile, inline on sm+ */}
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-2.5">
+            <button
+              type="button"
+              onClick={() => onOpen(bean.slug)}
+              className={cx(DARK_BUTTON, "w-full justify-center sm:w-auto")}
+            >
               View details
             </button>
-            <button type="button" onClick={() => onAddToCart(bean)} className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
+            <button
+              type="button"
+              onClick={() => onAddToCart(bean)}
+              className={cx(LIGHT_BUTTON, "w-full justify-center sm:w-auto")}
+              style={LIGHT_BUTTON_STYLE}
+            >
               Add to cart
             </button>
           </div>
@@ -464,15 +507,13 @@ export default function HomePage() {
           "@type": "Organization",
           name: "Drunk Coffee Roasters",
           url: "https://drunkcoffeeroasters.com",
-          sameAs: [
-            "https://instagram.com/drunkcoffeeroasters"
-          ],
+          sameAs: ["https://instagram.com/drunkcoffeeroasters"],
           contactPoint: {
             "@type": "ContactPoint",
             telephone: "+60-11-2706-0012",
             contactType: "customer service",
-            areaServed: "MY"
-          }
+            areaServed: "MY",
+          },
         }}
       />
 
@@ -482,14 +523,22 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent_18%,transparent_82%,rgba(255,255,255,0.02))]" />
         </div>
 
+        {/* ── HEADER ── */}
         <header className="sticky top-0 z-50 border-b border-white/8 bg-[#0d0d0b]/88 backdrop-blur-xl">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6 md:py-4">
             <a href="#top" className="flex items-center">
-              <img src="/logo.png" alt="Drunk Coffee Roasters" className="h-14 object-contain transition duration-300 hover:scale-[1.01] md:h-[70px]" />
+              <img
+                src="/logo.png"
+                alt="Drunk Coffee Roasters"
+                className="h-14 object-contain transition duration-300 hover:scale-[1.01] md:h-[70px]"
+              />
             </a>
 
             <nav className="hidden items-center gap-7 md:flex">
-              <Link to="/series/monteblanco" className="font-body text-[13px] tracking-[0.08em] text-white/62 transition hover:text-white">
+              <Link
+                to="/series/monteblanco"
+                className="font-body text-[13px] tracking-[0.08em] text-white/62 transition hover:text-white"
+              >
                 Series
               </Link>
               {NAV_LINKS.map(([label, href]) => (
@@ -503,7 +552,7 @@ export default function HomePage() {
               ))}
             </nav>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setCartOpen(true)}
@@ -512,7 +561,10 @@ export default function HomePage() {
               >
                 <ShoppingCart size={19} />
                 {cartCount > 0 ? (
-                  <span className="font-body absolute right-0.5 top-0.5 min-w-[17px] rounded-full bg-[#efe8db] px-1 text-center text-[9px] font-bold leading-4" style={LIGHT_BUTTON_STYLE}>
+                  <span
+                    className="font-body absolute right-0.5 top-0.5 min-w-[17px] rounded-full bg-[#efe8db] px-1 text-center text-[9px] font-bold leading-4"
+                    style={LIGHT_BUTTON_STYLE}
+                  >
                     {cartCount}
                   </span>
                 ) : null}
@@ -526,7 +578,11 @@ export default function HomePage() {
                 onClick={() => trackWhatsappClick("home_header", "general")}
                 className="hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.025] transition hover:border-white/18 hover:bg-white/[0.05] md:flex"
               >
-                <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="WhatsApp" className="h-[18px] w-[18px] opacity-75 transition hover:opacity-100" />
+                <img
+                  src="https://cdn.simpleicons.org/whatsapp/ffffff"
+                  alt="WhatsApp"
+                  className="h-[18px] w-[18px] opacity-75 transition hover:opacity-100"
+                />
               </a>
 
               <a
@@ -551,6 +607,7 @@ export default function HomePage() {
           </div>
         </header>
 
+        {/* ── MOBILE NAV ── */}
         {mobileNavOpen ? (
           <div className="fixed inset-0 z-[90] flex">
             <button
@@ -565,7 +622,7 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={() => setMobileNavOpen(false)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/58 transition hover:bg-white/[0.05] hover:text-white"
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-white/58 transition hover:bg-white/[0.05] hover:text-white"
                   aria-label="Close menu"
                 >
                   <X size={18} />
@@ -576,7 +633,7 @@ export default function HomePage() {
                 <Link
                   to="/series/monteblanco"
                   onClick={() => setMobileNavOpen(false)}
-                  className="font-body rounded-[14px] px-4 py-3.5 text-[15px] tracking-[0.04em] text-white/70 transition hover:bg-white/[0.05] hover:text-white"
+                  className="font-body rounded-[14px] px-4 py-4 text-[15px] tracking-[0.04em] text-white/70 transition hover:bg-white/[0.05] hover:text-white"
                 >
                   Series
                 </Link>
@@ -585,23 +642,51 @@ export default function HomePage() {
                     key={label}
                     href={href}
                     onClick={() => setMobileNavOpen(false)}
-                    className="font-body rounded-[14px] px-4 py-3.5 text-[15px] tracking-[0.04em] text-white/70 transition hover:bg-white/[0.05] hover:text-white"
+                    className="font-body rounded-[14px] px-4 py-4 text-[15px] tracking-[0.04em] text-white/70 transition hover:bg-white/[0.05] hover:text-white"
                   >
                     {label}
                   </a>
                 ))}
               </nav>
 
-              <div className="mt-auto flex flex-col gap-3 border-t border-white/8 pt-6">
-                <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_mobile_menu", "general")} className={cx(LIGHT_BUTTON, "w-full justify-center")} style={LIGHT_BUTTON_STYLE}>
+              {/* Safe-area bottom padding for iPhone home bar */}
+              <div
+                className="mt-auto flex flex-col gap-3 border-t border-white/8 pt-6"
+                style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+              >
+                <a
+                  href={generalWhatsAppUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => trackWhatsappClick("home_mobile_menu", "general")}
+                  className={cx(LIGHT_BUTTON, "w-full justify-center")}
+                  style={LIGHT_BUTTON_STYLE}
+                >
                   Order on WhatsApp
                 </a>
                 <div className="flex justify-center gap-4">
-                  <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 transition hover:text-white" aria-label="Instagram">
+                  <a
+                    href={INSTAGRAM_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-white/60 transition hover:text-white"
+                    aria-label="Instagram"
+                  >
                     <Instagram size={17} />
                   </a>
-                  <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_mobile_menu_icon", "general")} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 transition hover:bg-white/[0.05]" aria-label="WhatsApp">
-                    <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="WhatsApp" className="h-4 w-4 opacity-60" />
+                  <a
+                    href={generalWhatsAppUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => trackWhatsappClick("home_mobile_menu_icon", "general")}
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 transition hover:bg-white/[0.05]"
+                    aria-label="WhatsApp"
+                  >
+                    <img
+                      src="https://cdn.simpleicons.org/whatsapp/ffffff"
+                      alt="WhatsApp"
+                      className="h-4 w-4 opacity-60"
+                    />
                   </a>
                 </div>
               </div>
@@ -610,6 +695,7 @@ export default function HomePage() {
         ) : null}
 
         <main id="top" className="relative z-[1]">
+          {/* ── HERO ── */}
           <section className="relative overflow-hidden border-b border-white/8">
             <div className="absolute inset-0">
               <img
@@ -622,30 +708,39 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.82),transparent_38%,rgba(0,0,0,0.22))]" />
             </div>
 
-            <div className="relative mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
+            <div className="relative mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-20">
               <div className="max-w-4xl">
                 <FadeSection>
                   <div>
                     <p className={EYEBROW}>Johor · Specialty Coffee Roaster</p>
-                    <h1 className="font-display mt-5 text-[48px] font-semibold leading-[0.88] tracking-[-0.05em] text-white sm:text-[64px] md:max-w-[11ch] md:text-[88px]">
+                    {/* h1: 38px on smallest phones → 56px at sm → 88px at md */}
+                    <h1 className="font-display mt-5 text-[38px] font-semibold leading-[0.88] tracking-[-0.05em] text-white sm:text-[56px] md:max-w-[11ch] md:text-[88px]">
                       Coffee with clarity.
                       <br />
                       Roasted with intent.
                     </h1>
-                    <p className="font-body mt-6 max-w-2xl text-sm leading-8 text-white/62 md:text-[16px]">
+                    <p className="font-body mt-5 max-w-2xl text-sm leading-8 text-white/62 md:text-[16px]">
                       Small-batch roasting from Johor, with coffees chosen for balance, character, and everyday brewing.
                     </p>
 
-                    <div className="mt-8 flex flex-wrap gap-3.5">
-                      <a href="#shop" className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
+                    {/* Hero CTAs — full-width on mobile, inline on sm+ */}
+                    <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-3.5">
+                      <a
+                        href="#shop"
+                        className={cx(LIGHT_BUTTON, "w-full justify-center sm:w-auto")}
+                        style={LIGHT_BUTTON_STYLE}
+                      >
                         Shop coffees
                       </a>
-                      <Link to="/series/monteblanco" className={DARK_BUTTON}>
+                      <Link
+                        to="/series/monteblanco"
+                        className={cx(DARK_BUTTON, "w-full justify-center sm:w-auto")}
+                      >
                         Explore series
                       </Link>
                     </div>
 
-                    <div className="mt-10 grid max-w-3xl gap-3 sm:grid-cols-3">
+                    <div className="mt-8 grid max-w-3xl gap-3 sm:grid-cols-3">
                       <div className={cx("p-4", SOFT_PANEL)}>
                         <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Roast style</p>
                         <p className="font-body mt-2 text-sm leading-7 text-white/74">Clean · balanced · expressive</p>
@@ -665,6 +760,7 @@ export default function HomePage() {
             </div>
           </section>
 
+          {/* ── INFO STRIPS ── */}
           <section className="border-b border-white/8">
             <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8">
               <div className="grid gap-3 md:grid-cols-3">
@@ -696,8 +792,9 @@ export default function HomePage() {
             </div>
           </section>
 
+          {/* ── SERIES ── */}
           <section id="series" className="border-b border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-18">
+            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
               <FadeSection>
                 <SectionHeading
                   eyebrow="Series focus"
@@ -705,14 +802,21 @@ export default function HomePage() {
                   description="A focused look at fruit-forward profiles from Monteblanco — built for comparison, exploration, and easy repeat ordering."
                   action={
                     bundleBeans.length ? (
-                      <div className="flex flex-wrap gap-2.5">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-2.5">
                         <Link to="/series/monteblanco" className={DARK_BUTTON}>
                           View full series
                         </Link>
                         <button type="button" onClick={handleAddBundle} className={DARK_BUTTON}>
                           Add bundle to cart
                         </button>
-                        <a href={monteblancoBundleUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_series_bundle", "monteblanco")} className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
+                        <a
+                          href={monteblancoBundleUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={() => trackWhatsappClick("home_series_bundle", "monteblanco")}
+                          className={LIGHT_BUTTON}
+                          style={LIGHT_BUTTON_STYLE}
+                        >
                           Order the bundle
                         </a>
                       </div>
@@ -739,8 +843,9 @@ export default function HomePage() {
             </div>
           </section>
 
+          {/* ── FEATURE CARDS ── */}
           <section className="border-b border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-18">
+            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
               <div className="grid gap-4 md:grid-cols-3">
                 <FadeSection>
                   <div className={cx("h-full p-6 md:p-7", PANEL)}>
@@ -753,7 +858,6 @@ export default function HomePage() {
                     </p>
                   </div>
                 </FadeSection>
-
                 <FadeSection delay={90}>
                   <div className={cx("h-full p-6 md:p-7", PANEL)}>
                     <Package className="text-white/34" size={20} />
@@ -765,7 +869,6 @@ export default function HomePage() {
                     </p>
                   </div>
                 </FadeSection>
-
                 <FadeSection delay={180}>
                   <div className={cx("h-full p-6 md:p-7", PANEL)}>
                     <ArrowRight className="text-white/34" size={20} />
@@ -781,8 +884,9 @@ export default function HomePage() {
             </div>
           </section>
 
+          {/* ── EDITORIAL ── */}
           <section className="border-b border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-18">
+            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
               <FadeSection>
                 <SectionHeading
                   eyebrow="Proof of work"
@@ -797,7 +901,7 @@ export default function HomePage() {
                     <img
                       src="/editorial-drunk-coffee-roasters.jpg"
                       alt="Drunk Coffee Roasters at work"
-                      className="h-full min-h-[340px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:min-h-[440px] lg:min-h-[560px]"
+                      className="h-full min-h-[280px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:min-h-[440px] lg:min-h-[560px]"
                       loading="lazy"
                     />
                   </div>
@@ -809,23 +913,21 @@ export default function HomePage() {
                       <img
                         src="/editorial-brewing.jpg"
                         alt="Brewing coffee"
-                        className="h-[220px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:h-[260px]"
+                        className="h-[200px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:h-[260px]"
                         loading="lazy"
                       />
                     </div>
                   </FadeSection>
-
                   <FadeSection delay={180}>
                     <div className="overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03]">
                       <img
                         src="/editorial-roasted-beans.jpg"
                         alt="Freshly roasted coffee beans"
-                        className="h-[220px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:h-[260px]"
+                        className="h-[200px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:h-[260px]"
                         loading="lazy"
                       />
                     </div>
                   </FadeSection>
-
                   <FadeSection delay={270}>
                     <div className={cx("p-6 md:p-7", PANEL)}>
                       <Sparkles className="text-white/34" size={20} />
@@ -842,7 +944,8 @@ export default function HomePage() {
             </div>
           </section>
 
-          <section id="shop" className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-18">
+          {/* ── SHOP ── */}
+          <section id="shop" className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
             <FadeSection>
               <SectionHeading
                 eyebrow="Coffee menu"
@@ -850,12 +953,15 @@ export default function HomePage() {
                 description="Choose by how people actually buy: filter, espresso, or all. Product pages carry the rest."
                 action={
                   <div className="font-body text-sm text-white/42">
-                    Showing <span className="text-white/74">{filteredBeans.length}</span> coffee{filteredBeans.length !== 1 ? "s" : ""}
+                    Showing{" "}
+                    <span className="text-white/74">{filteredBeans.length}</span>{" "}
+                    coffee{filteredBeans.length !== 1 ? "s" : ""}
                   </div>
                 }
               />
             </FadeSection>
 
+            {/* Sticky filter bar */}
             <div className="sticky top-[72px] z-20 -mx-4 mt-7 border-b border-white/5 bg-[#0d0d0b]/92 px-4 pb-3 pt-2 backdrop-blur-md md:mx-0 md:px-0">
               <div className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden">
                 {FILTERS.map((filter) => {
@@ -866,7 +972,7 @@ export default function HomePage() {
                       type="button"
                       onClick={() => setActiveFilter(filter)}
                       className={cx(
-                        "font-body shrink-0 rounded-full border px-4 py-2.5 text-[13px] tracking-[0.04em] transition duration-200 active:scale-[0.98]",
+                        "font-body shrink-0 rounded-full border px-4 py-3 text-[13px] tracking-[0.04em] transition duration-200 active:scale-[0.97]",
                         isActive
                           ? "border-[#efe8db] bg-[#efe8db] font-semibold"
                           : "border-white/12 bg-white/[0.02] text-white/52 hover:border-white/22 hover:bg-white/[0.04] hover:text-white",
@@ -903,8 +1009,9 @@ export default function HomePage() {
             )}
           </section>
 
+          {/* ── REVIEWS ── */}
           <section className="border-t border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-18">
+            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
               <FadeSection>
                 <SectionHeading
                   eyebrow="Reviews"
@@ -920,7 +1027,7 @@ export default function HomePage() {
                       <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                     </div>
                     <p className="font-body mt-5 text-base leading-8 text-white/78">
-                      “The beans were really fragrant and tasted super fresh. I really liked them.”
+                      "The beans were really fragrant and tasted super fresh. I really liked them."
                     </p>
                     <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4">
                       <div>
@@ -933,14 +1040,13 @@ export default function HomePage() {
                     </div>
                   </div>
                 </FadeSection>
-
                 <FadeSection delay={90}>
                   <div className={cx("h-full p-6 md:p-7", PANEL)}>
                     <div className="flex items-center gap-1 text-[#efe8db]">
                       <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                     </div>
                     <p className="font-body mt-5 text-base leading-8 text-white/78">
-                      “Perfect as a gift. My friend really loved it.”
+                      "Perfect as a gift. My friend really loved it."
                     </p>
                     <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4">
                       <div>
@@ -953,14 +1059,13 @@ export default function HomePage() {
                     </div>
                   </div>
                 </FadeSection>
-
                 <FadeSection delay={180}>
                   <div className={cx("h-full p-6 md:p-7", PANEL)}>
                     <div className="flex items-center gap-1 text-[#efe8db]">
                       <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                     </div>
                     <p className="font-body mt-5 text-base leading-8 text-white/78">
-                      “Amazing as a souvenir to bring back to China.”
+                      "Amazing as a souvenir to bring back to China."
                     </p>
                     <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4">
                       <div>
@@ -977,12 +1082,13 @@ export default function HomePage() {
             </div>
           </section>
 
+          {/* ── WHOLESALE ── */}
           <section id="wholesale" className="border-t border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-18">
+            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
               <div className="grid gap-5 lg:grid-cols-[1.06fr_0.94fr]">
                 <FadeSection className={cx("p-6 md:p-8", PANEL)}>
                   <p className={EYEBROW}>Wholesale</p>
-                  <h2 className="font-display mt-4 text-[30px] font-semibold leading-[0.94] tracking-[-0.03em] text-white md:text-[44px]">
+                  <h2 className="font-display mt-4 text-[28px] font-semibold leading-[0.94] tracking-[-0.03em] text-white sm:text-[30px] md:text-[44px]">
                     Supply for cafés,
                     <br />
                     offices, and partners.
@@ -990,14 +1096,26 @@ export default function HomePage() {
                   <p className="font-body mt-5 max-w-xl text-sm leading-8 text-white/54 md:text-[15px]">
                     Small-batch roasting with cleaner house blends, more expressive seasonal filters, and a storefront flow that makes wholesale enquiries easier to convert.
                   </p>
-                  <div className="mt-8 flex flex-wrap items-center gap-3.5">
-                    <Link to="/wholesale" className={DARK_BUTTON}>
+                  <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3.5">
+                    <Link to="/wholesale" className={cx(DARK_BUTTON, "w-full justify-center sm:w-auto")}>
                       View wholesale page
                     </Link>
-                    <a href={wholesaleWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_wholesale", "wholesale")} className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
+                    <a
+                      href={wholesaleWhatsAppUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => trackWhatsappClick("home_wholesale", "wholesale")}
+                      className={cx(LIGHT_BUTTON, "w-full justify-center sm:w-auto")}
+                      style={LIGHT_BUTTON_STYLE}
+                    >
                       Enquire on WhatsApp
                     </a>
-                    <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className={DARK_BUTTON}>
+                    <a
+                      href={INSTAGRAM_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={cx(DARK_BUTTON, "w-full justify-center sm:w-auto")}
+                    >
                       Instagram ↗
                     </a>
                   </div>
@@ -1021,12 +1139,13 @@ export default function HomePage() {
             </div>
           </section>
 
+          {/* ── STORY ── */}
           <section id="story" className="border-t border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-18">
+            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
               <div className="grid gap-4 md:grid-cols-[1.05fr_0.95fr]">
                 <FadeSection className={cx("p-6 md:p-8", PANEL)}>
                   <p className={EYEBROW}>Story</p>
-                  <h2 className="font-display mt-4 text-[30px] font-semibold leading-[0.94] tracking-[-0.03em] text-white md:text-[44px]">
+                  <h2 className="font-display mt-4 text-[28px] font-semibold leading-[0.94] tracking-[-0.03em] text-white sm:text-[30px] md:text-[44px]">
                     Coffee made to be enjoyed,
                     <br />
                     not overcomplicated.
@@ -1034,11 +1153,23 @@ export default function HomePage() {
                   <p className="font-body mt-5 max-w-xl text-sm leading-8 text-white/56 md:text-[15px]">
                     Drunk Coffee Roasters is built around daily brewing, careful roasting, and coffees with clarity, balance, and character. The site now reflects that better — less menu sheet, more actual brand storefront.
                   </p>
-                  <div className="mt-7 flex flex-wrap gap-3">
-                    <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_story", "general")} className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
+                  <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-3">
+                    <a
+                      href={generalWhatsAppUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => trackWhatsappClick("home_story", "general")}
+                      className={cx(LIGHT_BUTTON, "w-full justify-center sm:w-auto")}
+                      style={LIGHT_BUTTON_STYLE}
+                    >
                       Order fresh roast
                     </a>
-                    <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className={DARK_BUTTON}>
+                    <a
+                      href={INSTAGRAM_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={cx(DARK_BUTTON, "w-full justify-center sm:w-auto")}
+                    >
                       Follow Instagram
                     </a>
                   </div>
@@ -1054,21 +1185,33 @@ export default function HomePage() {
 
                   <FadeSection delay={180} className={cx("p-5 sm:col-span-2", SOFT_PANEL)}>
                     <p className="font-display text-[18px] font-semibold text-white">Find us</p>
-                    <div className="mt-4 space-y-3 text-sm">
-                      <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-white/56 transition hover:text-white">
-                        <span className="w-24 text-[10px] uppercase tracking-[0.18em] text-white/30">Instagram</span>
+                    <div className="mt-4 space-y-1">
+                      {/* min-h-[44px] on all rows so they're easy to tap */}
+                      <a
+                        href={INSTAGRAM_URL}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex min-h-[44px] items-center gap-3 text-sm text-white/56 transition hover:text-white"
+                      >
+                        <span className="w-24 shrink-0 text-[10px] uppercase tracking-[0.18em] text-white/30">Instagram</span>
                         <span>@drunkcoffeeroasters ↗</span>
                       </a>
-                      <div className="flex items-center gap-3 text-white/56">
-                        <span className="w-24 text-[10px] uppercase tracking-[0.18em] text-white/30">小红书</span>
+                      <div className="flex min-h-[44px] items-center gap-3 text-sm text-white/56">
+                        <span className="w-24 shrink-0 text-[10px] uppercase tracking-[0.18em] text-white/30">小红书</span>
                         <span>{XHS_LABEL}</span>
                       </div>
-                      <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_find_us", "general")} className="flex items-center gap-3 text-white/56 transition hover:text-white">
-                        <span className="w-24 text-[10px] uppercase tracking-[0.18em] text-white/30">WhatsApp</span>
+                      <a
+                        href={generalWhatsAppUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => trackWhatsappClick("home_find_us", "general")}
+                        className="flex min-h-[44px] items-center gap-3 text-sm text-white/56 transition hover:text-white"
+                      >
+                        <span className="w-24 shrink-0 text-[10px] uppercase tracking-[0.18em] text-white/30">WhatsApp</span>
                         <span>+601127060012 ↗</span>
                       </a>
-                      <div className="flex items-center gap-3 text-white/56">
-                        <span className="w-24 text-[10px] uppercase tracking-[0.18em] text-white/30">Location</span>
+                      <div className="flex min-h-[44px] items-center gap-3 text-sm text-white/56">
+                        <span className="w-24 shrink-0 text-[10px] uppercase tracking-[0.18em] text-white/30">Location</span>
                         <span>Johor, Malaysia</span>
                       </div>
                     </div>
@@ -1077,15 +1220,16 @@ export default function HomePage() {
               </div>
             </div>
           </section>
+
+          {/* ── FAQ + FOOTER ── */}
           <section className="border-t border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-18">
+            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
               <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
                 <FadeSection className={cx("p-6 md:p-8", PANEL)}>
                   <p className={EYEBROW}>FAQ</p>
-                  <h2 className="font-display mt-4 text-[30px] font-semibold leading-[0.94] tracking-[-0.03em] text-white md:text-[44px]">
+                  <h2 className="font-display mt-4 text-[28px] font-semibold leading-[0.94] tracking-[-0.03em] text-white sm:text-[30px] md:text-[44px]">
                     A few useful things to know
                   </h2>
-
                   <div className="mt-6 space-y-4">
                     <div className={cx("p-4", SOFT_PANEL)}>
                       <p className="font-display text-[18px] font-semibold text-white">How do I place an order?</p>
@@ -1093,21 +1237,18 @@ export default function HomePage() {
                         Add your coffees to cart and send the order through WhatsApp. We will confirm availability and roasting lead time there.
                       </p>
                     </div>
-
                     <div className={cx("p-4", SOFT_PANEL)}>
                       <p className="font-display text-[18px] font-semibold text-white">When will my coffee be shipped?</p>
                       <p className="font-body mt-2 text-sm leading-7 text-white/58">
                         Most orders are packed and shipped within 1–3 working days, depending on roast schedule and order volume.
                       </p>
                     </div>
-
                     <div className={cx("p-4", SOFT_PANEL)}>
                       <p className="font-display text-[18px] font-semibold text-white">Are these coffees for filter or espresso?</p>
                       <p className="font-body mt-2 text-sm leading-7 text-white/58">
                         Each coffee is marked by brew style and best use, so you can choose more easily without guessing.
                       </p>
                     </div>
-
                     <div className={cx("p-4", SOFT_PANEL)}>
                       <p className="font-display text-[18px] font-semibold text-white">Do you offer wholesale?</p>
                       <p className="font-body mt-2 text-sm leading-7 text-white/58">
@@ -1119,43 +1260,52 @@ export default function HomePage() {
 
                 <FadeSection delay={100} className={cx("p-6 md:p-8", PANEL)}>
                   <p className={EYEBROW}>Footer</p>
-                  <h2 className="font-display mt-4 text-[30px] font-semibold leading-[0.94] tracking-[-0.03em] text-white md:text-[44px]">
+                  <h2 className="font-display mt-4 text-[28px] font-semibold leading-[0.94] tracking-[-0.03em] text-white sm:text-[30px] md:text-[44px]">
                     Stay connected
                   </h2>
-
                   <div className="mt-6 space-y-4">
-                    <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className={cx("flex items-center justify-between p-4 transition hover:bg-white/[0.05]", SOFT_PANEL)}>
+                    <a
+                      href={INSTAGRAM_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={cx("flex min-h-[56px] items-center justify-between p-4 transition hover:bg-white/[0.05]", SOFT_PANEL)}
+                    >
                       <div>
                         <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Instagram</p>
-                        <p className="font-body mt-2 text-sm text-white/74">@drunkcoffeeroasters</p>
+                        <p className="font-body mt-1 text-sm text-white/74">@drunkcoffeeroasters</p>
                       </div>
-                      <ArrowRight className="text-white/34" size={18} />
+                      <ArrowRight className="shrink-0 text-white/34" size={18} />
                     </a>
-
-                    <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_footer", "general")} className={cx("flex items-center justify-between p-4 transition hover:bg-white/[0.05]", SOFT_PANEL)}>
+                    <a
+                      href={generalWhatsAppUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => trackWhatsappClick("home_footer", "general")}
+                      className={cx("flex min-h-[56px] items-center justify-between p-4 transition hover:bg-white/[0.05]", SOFT_PANEL)}
+                    >
                       <div>
                         <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">WhatsApp</p>
-                        <p className="font-body mt-2 text-sm text-white/74">+601127060012</p>
+                        <p className="font-body mt-1 text-sm text-white/74">+601127060012</p>
                       </div>
-                      <ArrowRight className="text-white/34" size={18} />
+                      <ArrowRight className="shrink-0 text-white/34" size={18} />
                     </a>
-
                     <div className={cx("p-4", SOFT_PANEL)}>
                       <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">小红书</p>
                       <p className="font-body mt-2 text-sm text-white/74">{XHS_LABEL}</p>
                     </div>
-
                     <div className={cx("p-4", SOFT_PANEL)}>
                       <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Location</p>
                       <p className="font-body mt-2 text-sm text-white/74">Johor, Malaysia</p>
                     </div>
-
-                    <Link to="/wholesale" className={cx("flex items-center justify-between p-4 transition hover:bg-white/[0.05]", SOFT_PANEL)}>
+                    <Link
+                      to="/wholesale"
+                      className={cx("flex min-h-[56px] items-center justify-between p-4 transition hover:bg-white/[0.05]", SOFT_PANEL)}
+                    >
                       <div>
                         <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Wholesale</p>
-                        <p className="font-body mt-2 text-sm text-white/74">For café supply and retail partnership</p>
+                        <p className="font-body mt-1 text-sm text-white/74">For café supply and retail partnership</p>
                       </div>
-                      <ArrowRight className="text-white/34" size={18} />
+                      <ArrowRight className="shrink-0 text-white/34" size={18} />
                     </Link>
                   </div>
                 </FadeSection>
@@ -1176,8 +1326,15 @@ export default function HomePage() {
           clearCart={clearCart}
         />
 
+        {/* Toast — safe-area aware so it clears the iOS home bar */}
         {toast ? (
-          <div className="pointer-events-none fixed bottom-24 left-1/2 z-[80] -translate-x-1/2 rounded-full border border-white/12 bg-[#efe8db] px-4 py-2 text-sm font-medium shadow-[0_20px_60px_rgba(0,0,0,0.35)] sm:bottom-5" style={LIGHT_BUTTON_STYLE}>
+          <div
+            className="pointer-events-none fixed left-1/2 z-[80] -translate-x-1/2 rounded-full border border-white/12 bg-[#efe8db] px-4 py-2 text-sm font-medium shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+            style={{
+              ...LIGHT_BUTTON_STYLE,
+              bottom: "max(5rem, calc(1.25rem + env(safe-area-inset-bottom)))",
+            }}
+          >
             {toast}
           </div>
         ) : null}
