@@ -1,28 +1,12 @@
-import {
-  ArrowRight,
-  Coffee,
-  Instagram,
-  Menu,
-  Package,
-  ShoppingCart,
-  Sparkles,
-  X,
-} from "lucide-react";
+import { ChevronDown, Instagram, Menu, ShoppingCart, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Seo from "../components/Seo";
 import { trackAddToCart, trackWhatsappClick } from "../lib/analytics";
 import {
-  APP_BG,
-  DARK_BUTTON,
-  EYEBROW,
   FILTERS,
   INSTAGRAM_URL,
-  LIGHT_BUTTON,
-  LIGHT_BUTTON_STYLE,
   NAV_LINKS,
-  PANEL,
-  SOFT_PANEL,
   XHS_LABEL,
   appendImageParams,
   badgeClasses,
@@ -36,840 +20,812 @@ import {
   usePersistentCart,
 } from "../lib/coffeeStore";
 
-// ─── Intersection-based fade ─────────────────────────────────────────────────
-function useInView(options = {}) {
+// ─── Tokens ──────────────────────────────────────────────────────────────────
+const AMBER    = "#c8922a";
+const AMBER_HI = "#d9a23a";
+const DARK     = "#0e0c09";
+const MID      = "#151210";
+const PANEL    = "#1c1814";
+
+const P = "inline-flex items-center gap-2 rounded-full bg-[#c8922a] px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-[#0e0c09] transition duration-150 hover:bg-[#d9a23a] active:scale-[0.97]";
+const G = "inline-flex items-center gap-2 rounded-full border border-white/12 px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-white/60 transition duration-150 hover:border-white/24 hover:text-white active:scale-[0.97]";
+
+// ─── IG posts — add more entries as you post ─────────────────────────────────
+// To add a post: copy an entry, update src (filename in /public/ig/) and url (IG post link)
+const IG_POSTS = [
+  { src: "/ig/ig-1.jpg", alt: "Drunk Coffee Roasters", url: "https://www.instagram.com/p/DUHs7jOEojf/" },
+  { src: "/ig/ig-2.jpg", alt: "Drunk Coffee Roasters", url: "https://www.instagram.com/p/DUHs7jOEojf/" },
+];
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
+function useInView(threshold = 0.08) {
   const ref = useRef(null);
-  const [inView, setInView] = useState(false);
+  const [v, setV] = useState(false);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return undefined;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setInView(true); observer.disconnect(); } },
-      { threshold: 0.12, ...options },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [options]);
-  return [ref, inView];
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setV(true); io.disconnect(); } }, { threshold });
+    io.observe(el); return () => io.disconnect();
+  }, [threshold]);
+  return [ref, v];
 }
 
-function FadeSection({ children, className = "", delay = 0 }) {
-  const [ref, inView] = useInView();
+function Fade({ children, delay = 0, className = "", y = 18 }) {
+  const [ref, v] = useInView();
   return (
-    <div
-      ref={ref}
-      style={{ transitionDelay: inView ? `${delay}ms` : "0ms" }}
-      className={cx(
-        "transition-all duration-700",
-        inView ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0",
-        className,
-      )}
-    >
+    <div ref={ref} style={{ transitionDelay: v ? `${delay}ms` : "0ms", transform: v ? "none" : `translateY(${y}px)` }}
+      className={cx("transition-all duration-700 ease-out", v ? "opacity-100" : "opacity-0", className)}>
       {children}
     </div>
   );
 }
 
-// ─── Mobile horizontal swipe row + desktop grid ───────────────────────────────
-// Usage: wrap card lists with this. On mobile → snap scroll. On md+ → grid.
-function SwipeRow({ items, renderItem, mobileItemWidth = "w-[82vw]", desktopCols = "md:grid-cols-3", className = "" }) {
+// Eyebrow label
+function Eyebrow({ children }) {
   return (
-    <>
-      {/* ── Mobile: horizontal snap scroll ── */}
-      <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 [&::-webkit-scrollbar]:hidden md:hidden">
-        {items.map((item, i) => (
-          <div key={item.id ?? i} className={cx("snap-start shrink-0", mobileItemWidth)}>
-            {renderItem(item, i)}
-          </div>
-        ))}
-      </div>
-      {/* ── Desktop: regular grid ── */}
-      <div className={cx("hidden gap-4 md:grid", desktopCols, className)}>
-        {items.map((item, i) => (
-          <FadeSection key={item.id ?? i} delay={i * 70}>
-            {renderItem(item, i)}
-          </FadeSection>
-        ))}
-      </div>
-    </>
-  );
-}
-
-// ─── Dot indicator for swipe rows ────────────────────────────────────────────
-function SwipeDots({ count, current }) {
-  return (
-    <div className="mt-2 flex justify-center gap-1.5 md:hidden">
-      {Array.from({ length: count }).map((_, i) => (
-        <span
-          key={i}
-          className={cx(
-            "block h-1 rounded-full transition-all duration-300",
-            i === current ? "w-5 bg-white/60" : "w-1.5 bg-white/20",
-          )}
-        />
-      ))}
+    <div className="flex items-center gap-2.5 mb-3">
+      <span className="h-px w-5 bg-[#c8922a]/50" />
+      <span className="text-[10px] uppercase tracking-[0.28em] text-[#c8922a]/70">{children}</span>
     </div>
   );
 }
 
-// ─── Swipe row with dot tracking ─────────────────────────────────────────────
-function SwipeRowTracked({ items, renderItem, mobileItemWidth = "w-[82vw]", desktopCols = "md:grid-cols-3" }) {
-  const scrollRef = useRef(null);
-  const [current, setCurrent] = useState(0);
-
-  function onScroll() {
-    const el = scrollRef.current;
-    if (!el) return;
-    const itemW = el.firstElementChild?.offsetWidth ?? 1;
-    setCurrent(Math.round(el.scrollLeft / (itemW + 12))); // 12 = gap-3
-  }
-
+// Grain overlay
+function Grain() {
   return (
-    <>
-      {/* Mobile scroll */}
-      <div
-        ref={scrollRef}
-        onScroll={onScroll}
-        className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-3 [&::-webkit-scrollbar]:hidden md:hidden"
-      >
-        {items.map((item, i) => (
-          <div key={item.id ?? i} className={cx("snap-start shrink-0", mobileItemWidth)}>
-            {renderItem(item, i)}
-          </div>
-        ))}
-      </div>
-      <SwipeDots count={items.length} current={current} />
-
-      {/* Desktop grid */}
-      <div className={cx("hidden gap-4 md:grid", desktopCols)}>
-        {items.map((item, i) => (
-          <FadeSection key={item.id ?? i} delay={i * 70}>
-            {renderItem(item, i)}
-          </FadeSection>
-        ))}
-      </div>
-    </>
+    <div aria-hidden className="pointer-events-none fixed inset-0 z-[200] opacity-[0.022]"
+      style={{ backgroundImage:"url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")", backgroundSize:"160px 160px" }}
+    />
   );
 }
 
-function ImagePlaceholder({ className = "" }) {
+// Scroll progress bar
+function ScrollProgress() {
+  const [pct, setPct] = useState(0);
+  useEffect(() => {
+    const fn = () => {
+      const el = document.documentElement;
+      setPct((el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100);
+    };
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
   return (
-    <div className={cx("flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-white/[0.05] to-transparent", className)}>
-      <Coffee size={30} className="text-white/18" strokeWidth={1.2} />
-      <span className="font-body text-[10px] uppercase tracking-[0.18em] text-white/22">Photo coming soon</span>
+    <div className="fixed left-0 top-0 z-[100] h-[2px] w-full bg-transparent">
+      <div className="h-full bg-[#c8922a] transition-none" style={{ width: `${pct}%` }} />
     </div>
   );
 }
 
-function SectionHeading({ eyebrow, title, description, action }) {
+// ─── Cart Drawer ──────────────────────────────────────────────────────────────
+function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onIncrease, onRemove, onClear }) {
+  const url = buildCartWhatsAppUrl(cart);
+  if (!open) return null;
   return (
-    <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-      <div className="max-w-2xl">
-        <p className={EYEBROW}>{eyebrow}</p>
-        <h2 className="font-display mt-3 text-[28px] font-semibold leading-[0.94] tracking-[-0.03em] text-white sm:text-[30px] md:text-[46px]">
-          {title}
-        </h2>
-        {description ? (
-          <p className="font-body mt-4 max-w-xl text-sm leading-7 text-white/54 md:text-[15px]">{description}</p>
-        ) : null}
-      </div>
-      {action ? <div className="shrink-0">{action}</div> : null}
-    </div>
-  );
-}
-
-// ─── Cart drawer ─────────────────────────────────────────────────────────────
-function CartDrawer({ cartOpen, setCartOpen, cart, cartCount, cartTotal, decreaseCartItem, increaseCartItem, removeCartItem, clearCart }) {
-  if (!cartOpen) return null;
-  const cartWhatsAppUrl = buildCartWhatsAppUrl(cart);
-
-  return (
-    <div className="fixed inset-0 z-[70] flex justify-end bg-black/70">
-      <button type="button" onClick={() => setCartOpen(false)} className="flex-1" aria-label="Close cart" />
-      <div className="flex h-full w-full max-w-xs flex-col border-l border-white/10 bg-[#121210] shadow-[0_35px_120px_rgba(0,0,0,0.56)] sm:max-w-sm md:max-w-md">
-        <div className="border-b border-white/8 px-4 py-4 md:px-5">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="font-display text-[20px] font-semibold tracking-[-0.02em] text-white">Your cart</p>
-              <p className="font-body mt-1 text-xs uppercase tracking-[0.14em] text-white/34">
-                {cartCount} item{cartCount !== 1 ? "s" : ""}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setCartOpen(false)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-white/58 transition hover:bg-white/[0.05] hover:text-white"
-              aria-label="Close cart"
-            >
-              <X size={18} />
-            </button>
+    <div className="fixed inset-0 z-[70] flex justify-end">
+      <button type="button" onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-[6px]" aria-label="Close" />
+      <aside className="relative flex h-full w-full max-w-[340px] flex-col border-l border-white/[0.07]" style={{ background: "#100e0b" }}>
+        {/* header */}
+        <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4">
+          <div>
+            <p className="text-[17px] font-semibold tracking-[-0.02em] text-white">Your cart</p>
+            <p className="text-[11px] text-white/30">{cartCount} item{cartCount !== 1 ? "s" : ""}</p>
           </div>
+          <button type="button" onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/40 transition hover:text-white" aria-label="Close">
+            <X size={15} />
+          </button>
         </div>
 
-        <div className="flex-1 overflow-auto px-4 py-4 md:px-5">
-          {cart.length === 0 ? (
-            <div className={cx("p-5 text-center", SOFT_PANEL)}>
-              <p className="font-display text-base font-semibold text-white">Cart is empty</p>
-              <p className="font-body mt-2 text-sm leading-7 text-white/50">
-                Add a few coffees, then send one combined order through WhatsApp.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {cart.map((item) => (
-                <div key={item.id} className={cx("p-4", SOFT_PANEL)}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-display text-[17px] font-semibold tracking-[-0.02em] text-white">{item.name}</p>
-                      <p className="font-body mt-1 text-xs uppercase tracking-[0.12em] text-white/36">{item.category} · {item.size}</p>
+        {/* items */}
+        <div className="flex-1 overflow-auto px-5 py-4 space-y-2">
+          {cart.length === 0
+            ? <div className="mt-8 text-center">
+                <p className="text-[14px] text-white/40">Your cart is empty.</p>
+                <p className="mt-1 text-[12px] text-white/24">Browse coffees below and add one.</p>
+              </div>
+            : cart.map(item => (
+                <div key={item.id} className="rounded-[14px] border border-white/[0.06] bg-white/[0.025] p-4">
+                  <div className="flex justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-[14px] font-semibold text-white">{item.name}</p>
+                      <p className="text-[11px] text-white/30 mt-0.5">{item.category} · {item.size}</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removeCartItem(item.id)}
-                      className="-mr-1 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white/36 transition hover:bg-white/[0.06] hover:text-white/78"
-                      aria-label={`Remove ${item.name}`}
-                    >
-                      <X size={15} />
-                    </button>
+                    <button type="button" onClick={() => onRemove(item.id)} className="shrink-0 text-white/20 transition hover:text-white/60" aria-label="Remove"><X size={13} /></button>
                   </div>
-                  <div className="mt-4 flex items-center justify-between border-t border-white/8 pt-4">
-                    <div className="flex items-center gap-1">
-                      <button type="button" onClick={() => decreaseCartItem(item.id)} className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-white/74 transition hover:bg-white/[0.05] active:scale-[0.96]" aria-label="Decrease quantity">−</button>
-                      <span className="font-body min-w-8 text-center text-sm font-medium text-white">{item.quantity}</span>
-                      <button type="button" onClick={() => increaseCartItem(item.id)} className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-white/74 transition hover:bg-white/[0.05] active:scale-[0.96]" aria-label="Increase quantity">+</button>
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="flex items-center gap-1 rounded-full border border-white/10 px-1">
+                      <button type="button" onClick={() => onDecrease(item.id)} className="flex h-7 w-7 items-center justify-center text-white/50 transition hover:text-white">−</button>
+                      <span className="min-w-6 text-center text-[13px] text-white">{item.quantity}</span>
+                      <button type="button" onClick={() => onIncrease(item.id)} className="flex h-7 w-7 items-center justify-center text-white/50 transition hover:text-white">+</button>
                     </div>
-                    <p className="font-body text-sm font-semibold text-white">RM {Number(item.price || 0) * item.quantity}</p>
+                    <p className="text-[14px] font-semibold text-white">RM {Number(item.price||0)*item.quantity}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+          }
         </div>
 
-        <div className="border-t border-white/8 px-4 pt-4 md:px-5" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
-          <div className="mb-4 flex items-end justify-between gap-3">
+        {/* footer */}
+        <div className="border-t border-white/[0.07] px-5 pt-4" style={{ paddingBottom:"max(1.25rem,env(safe-area-inset-bottom))" }}>
+          <div className="mb-4 flex items-end justify-between">
             <div>
-              <p className="font-body text-[10px] uppercase tracking-[0.16em] text-white/34">Total</p>
-              <p className="font-display mt-1 text-[28px] font-semibold tracking-[-0.03em] text-white">RM {cartTotal}</p>
+              <p className="text-[10px] uppercase tracking-[0.16em] text-white/28">Total</p>
+              <p className="mt-0.5 text-[28px] font-bold tracking-[-0.04em] text-white">RM {cartTotal}</p>
             </div>
-            {cart.length > 0 ? (
-              <button type="button" onClick={clearCart} className="-mb-1 -mr-2 px-3 py-3 text-xs uppercase tracking-[0.12em] text-white/36 transition hover:text-white/74">
-                Clear cart
-              </button>
-            ) : null}
+            {cart.length > 0 && (
+              <button type="button" onClick={onClear} className="text-[11px] text-white/24 transition hover:text-white/50 pb-1">Clear all</button>
+            )}
           </div>
-          <div className="flex flex-col gap-2.5">
-            <a href={cartWhatsAppUrl} target="_blank" rel="noreferrer" className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
-              Send order on WhatsApp
-            </a>
-            <button type="button" onClick={() => setCartOpen(false)} className={DARK_BUTTON}>Continue browsing</button>
+          <div className="flex flex-col gap-2">
+            <a href={url} target="_blank" rel="noreferrer" className={cx(P, "w-full justify-center")}>Send order via WhatsApp</a>
+            <button type="button" onClick={onClose} className={cx(G, "w-full justify-center")}>Keep browsing</button>
           </div>
         </div>
-      </div>
+      </aside>
     </div>
   );
 }
 
-// ─── Series mini card ─────────────────────────────────────────────────────────
-function SeriesMiniCard({ bean, onOpen }) {
-  const image = bean?.image ? appendImageParams(bean.image, { w: 1000, h: 1000, fit: "pad", fm: "webp", q: 84 }) : "";
+// ─── Coffee row ───────────────────────────────────────────────────────────────
+function CoffeeRow({ bean, onOpen, onAdd, index }) {
+  const img = bean.image ? appendImageParams(bean.image, { w:400, h:400, fit:"pad", fm:"webp", q:78 }) : "";
+  const notes = safeArray(bean.notes).slice(0, 3).join(" · ");
   return (
-    <button type="button" onClick={() => onOpen(bean.slug)} className={cx("group h-full w-full overflow-hidden text-left transition hover:-translate-y-1", SOFT_PANEL)}>
-      <div className="aspect-square overflow-hidden bg-[#11110f]">
-        {image ? (
-          <div className="flex h-full w-full items-center justify-center p-5">
-            <img src={image} alt={bean.name} className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.03]" />
+    <Fade delay={index * 28}>
+      <article className="group relative flex items-center gap-4 rounded-[14px] border border-white/[0.05] px-4 py-3.5 transition duration-200 hover:border-white/[0.10] hover:bg-[#1c1814] md:px-5">
+        {/* thumbnail */}
+        <button type="button" onClick={() => onOpen(bean.slug)} className="shrink-0 rounded-[9px] bg-[#130f0a] overflow-hidden">
+          <div className="h-[64px] w-[64px]">
+            {img
+              ? <img src={img} alt={bean.name} className="h-full w-full object-contain p-2 transition duration-400 group-hover:scale-[1.08]" />
+              : <div className="flex h-full items-center justify-center text-[9px] uppercase tracking-widest text-white/16">—</div>
+            }
           </div>
-        ) : <ImagePlaceholder className="aspect-square" />}
-      </div>
-      <div className="p-4">
-        <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">{bean.category}</p>
-        <h3 className="font-display mt-2 text-[20px] font-semibold leading-[1.02] tracking-[-0.03em] text-white">{bean.name}</h3>
-        {bean.tagline ? <p className="font-body mt-2 text-sm leading-6 text-white/56 line-clamp-2">{bean.tagline}</p> : null}
-      </div>
-    </button>
+        </button>
+
+        {/* info */}
+        <button type="button" onClick={() => onOpen(bean.slug)} className="min-w-0 flex-1 text-left">
+          <div className="flex items-center gap-2">
+            <span className="truncate text-[15px] font-semibold tracking-[-0.02em] text-white">{bean.name}</span>
+            {bean.badge && <span className="shrink-0 h-1.5 w-1.5 rounded-full bg-[#c8922a]" title={bean.badge} />}
+          </div>
+          {notes && <p className="mt-1 truncate text-[11px] text-white/32">{notes}</p>}
+        </button>
+
+        {/* price */}
+        <div className="shrink-0 text-right mr-2">
+          <p className="text-[14px] font-semibold text-white/80">RM {bean.price}</p>
+          <p className="text-[10px] text-white/24 mt-0.5">{bean.category}</p>
+        </div>
+
+        {/* add — slides in on hover desktop, always visible mobile */}
+        <button type="button" onClick={() => onAdd(bean)} aria-label="Add to cart"
+          className="shrink-0 rounded-full bg-[#c8922a] px-3.5 py-2 text-[11px] font-semibold text-[#0e0c09] transition duration-200 hover:bg-[#d9a23a] active:scale-95 md:translate-x-1.5 md:opacity-0 md:group-hover:translate-x-0 md:group-hover:opacity-100">
+          + Add
+        </button>
+      </article>
+    </Fade>
   );
 }
 
-// ─── Coffee card ─────────────────────────────────────────────────────────────
-function CoffeeCard({ bean, onOpen, onAddToCart }) {
-  const image = bean.image ? appendImageParams(bean.image, { w: 1200, h: 1200, fit: "pad", fm: "webp", q: 84 }) : "";
+// ─── Skeleton rows ────────────────────────────────────────────────────────────
+function SkeletonRow() {
   return (
-    <article className={cx("group flex h-full flex-col overflow-hidden transition duration-300 hover:-translate-y-1", PANEL)}>
-      <button type="button" onClick={() => onOpen(bean.slug)} className="block w-full text-left">
-        <div className="relative aspect-[5/4] overflow-hidden bg-[#11110f]">
-          {image ? (
-            <div className="flex h-full w-full items-center justify-center p-5 sm:p-6">
-              <img src={image} alt={bean.name} className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.02]" />
-            </div>
-          ) : <ImagePlaceholder className="h-full" />}
-          <div className="absolute left-4 top-4 flex flex-wrap gap-1.5">
-            {bean.badge ? (
-              <span className={cx("font-body rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em]", badgeClasses(bean.badge))}>{bean.badge}</span>
-            ) : null}
-            {bean.wholesaleAvailable ? (
-              <span className="font-body rounded-full border border-white/12 bg-black/40 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em] text-white/76">Wholesale</span>
-            ) : null}
-          </div>
+    <div className="flex items-center gap-4 rounded-[14px] border border-white/[0.05] px-4 py-3.5">
+      <div className="h-16 w-16 shrink-0 animate-pulse rounded-[9px] bg-white/[0.04]" />
+      <div className="flex-1 space-y-2">
+        <div className="h-3.5 w-32 animate-pulse rounded-full bg-white/[0.06]" />
+        <div className="h-2.5 w-20 animate-pulse rounded-full bg-white/[0.04]" />
+      </div>
+      <div className="h-3.5 w-10 animate-pulse rounded-full bg-white/[0.05]" />
+    </div>
+  );
+}
+
+// ─── Series card ──────────────────────────────────────────────────────────────
+function SeriesCard({ bean, onOpen, index }) {
+  const img = bean?.image ? appendImageParams(bean.image, { w:800, h:800, fit:"pad", fm:"webp", q:80 }) : "";
+  return (
+    <Fade delay={index * 60}>
+      <button type="button" onClick={() => onOpen(bean.slug)}
+        className="group w-full text-left overflow-hidden rounded-[18px] border border-white/[0.07] bg-[#1c1814] transition duration-300 hover:-translate-y-1 hover:border-white/[0.14]">
+        <div className="aspect-square overflow-hidden bg-[#130f0a] flex items-center justify-center p-8">
+          {img
+            ? <img src={img} alt={bean.name} className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.06]" />
+            : <div className="text-[10px] uppercase tracking-widest text-white/16">Soon</div>
+          }
+        </div>
+        <div className="px-5 pb-5 pt-4">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[#c8922a]/60">{bean.category}</p>
+          <h3 className="mt-1.5 text-[18px] font-semibold tracking-[-0.02em] text-white leading-tight">{bean.name}</h3>
+          {bean.tagline && <p className="mt-1.5 text-[12px] leading-relaxed text-white/38 line-clamp-2">{bean.tagline}</p>}
         </div>
       </button>
-
-      <div className="flex flex-1 flex-col p-5 md:p-6">
-        <h3 className="font-display mt-1 text-[24px] font-semibold leading-[1.02] tracking-[-0.03em] text-white">{bean.name}</h3>
-        {bean.tagline ? <p className="font-body mt-2 text-sm leading-7 text-white/58 line-clamp-2">{bean.tagline}</p> : null}
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          {safeArray(bean.notes).slice(0, 3).map((note) => (
-            <span key={note} className="font-body rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.08em] text-white/62">{note}</span>
-          ))}
-        </div>
-
-        <p className="font-body mt-3 text-[11px] uppercase tracking-[0.16em] text-white/36">Best for · {bean.bestFor || bean.category}</p>
-
-        <div className="mt-auto border-t border-white/8 pt-4">
-          <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Price</p>
-          <p className="font-display mt-1 text-[22px] font-semibold tracking-[-0.03em] text-white">RM {bean.price}</p>
-          <div className="mt-3 flex flex-col gap-2">
-            <button type="button" onClick={() => onAddToCart(bean)} className={cx(LIGHT_BUTTON, "w-full justify-center")} style={LIGHT_BUTTON_STYLE}>
-              Add to cart
-            </button>
-            <button type="button" onClick={() => onOpen(bean.slug)} className={cx(DARK_BUTTON, "w-full justify-center")}>
-              View details
-            </button>
-          </div>
-        </div>
-      </div>
-    </article>
+    </Fade>
   );
 }
 
-function SkeletonCard() {
+// ─── Accordion FAQ item ───────────────────────────────────────────────────────
+function FaqItem({ q, a, index }) {
+  const [open, setOpen] = useState(false);
   return (
-    <div className={cx("overflow-hidden", PANEL)}>
-      <div className="aspect-[5/4] animate-pulse bg-white/[0.05]" />
-      <div className="space-y-3 p-6">
-        <div className="h-3 w-24 animate-pulse rounded bg-white/10" />
-        <div className="h-8 w-40 animate-pulse rounded bg-white/10" />
-        <div className="h-4 w-full animate-pulse rounded bg-white/10" />
-        <div className="h-20 w-full animate-pulse rounded bg-white/10" />
+    <Fade delay={index * 40}>
+      <div className="border-b border-white/[0.06]">
+        <button type="button" onClick={() => setOpen(!open)}
+          className="flex w-full items-center justify-between gap-4 py-4 text-left">
+          <span className={cx("text-[14px] font-semibold tracking-[-0.01em] transition duration-200", open ? "text-white" : "text-white/65")}>{q}</span>
+          <ChevronDown size={15} className={cx("shrink-0 text-white/28 transition duration-300", open ? "rotate-180 text-[#c8922a]" : "")} />
+        </button>
+        <div className={cx("overflow-hidden transition-all duration-300", open ? "max-h-40 pb-4" : "max-h-0")}>
+          <p className="text-[13px] leading-[1.8] text-white/46">{a}</p>
+        </div>
       </div>
-    </div>
+    </Fade>
   );
 }
 
-const SKELETON_IDS = ["s1", "s2", "s3", "s4", "s5", "s6"];
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE
+// ═══════════════════════════════════════════════════════════════════════════════
 export default function HomePage() {
   const navigate = useNavigate();
   const { beans, loading, error } = useBeans();
   const { cart, cartCount, cartTotal, addToCart, decreaseCartItem, increaseCartItem, removeCartItem, clearCart } = usePersistentCart();
 
-  const [cartOpen, setCartOpen] = useState(false);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [cartOpen,     setCartOpen]     = useState(false);
+  const [navOpen,      setNavOpen]      = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
-  const [toast, setToast] = useState("");
+  const [toast,        setToast]        = useState("");
 
-  const monteblancoBeans = useMemo(() => beans.filter((item) =>
-    [item.name, item.origin, item.collection].filter(Boolean).some((v) => String(v).toLowerCase().includes("monteblanco"))
-  ), [beans]);
+  const monteblancoBeans = useMemo(() =>
+    beans.filter(b => [b.name,b.origin,b.collection].filter(Boolean).some(v => String(v).toLowerCase().includes("monteblanco")))
+  , [beans]);
 
-  const filteredBeans = useMemo(() => activeFilter === "All" ? beans : beans.filter((b) => b.category === activeFilter), [beans, activeFilter]);
-
-  const filterCounts = useMemo(() => ({
-    All: beans.length,
-    Filter: beans.filter((b) => b.category === "Filter").length,
-    Espresso: beans.filter((b) => b.category === "Espresso").length,
-  }), [beans]);
+  const filteredBeans = useMemo(() =>
+    activeFilter === "All" ? beans : beans.filter(b => b.category === activeFilter)
+  , [beans, activeFilter]);
 
   const bundleBeans = monteblancoBeans.slice(0, 3);
-  const monteblancoBundleUrl = buildBundleOrderUrl(bundleBeans, "Monteblanco Series");
-  const generalWhatsAppUrl = buildGeneralWhatsAppUrl();
-  const wholesaleWhatsAppUrl = buildWholesaleWhatsAppUrl();
+  const bundleUrl   = buildBundleOrderUrl(bundleBeans, "Monteblanco Series");
+  const waUrl       = buildGeneralWhatsAppUrl();
+  const wsUrl       = buildWholesaleWhatsAppUrl();
 
   useEffect(() => {
-    document.body.style.overflow = (cartOpen || mobileNavOpen) ? "hidden" : "";
+    document.body.style.overflow = (cartOpen || navOpen) ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
-  }, [cartOpen, mobileNavOpen]);
+  }, [cartOpen, navOpen]);
 
   useEffect(() => {
-    if (!toast) return undefined;
-    const t = setTimeout(() => setToast(""), 1800);
+    if (!toast) return;
+    const t = setTimeout(() => setToast(""), 2200);
     return () => clearTimeout(t);
   }, [toast]);
 
   function openCoffee(slug) { navigate(`/coffee/${slug}`); }
-
-  function handleAddToCart(bean) {
-    trackAddToCart(bean, "home");
-    addToCart(bean);
-    setCartOpen(true);
-    setToast(`${bean.name} added to cart`);
-  }
-
-  function handleAddBundle() {
-    if (!bundleBeans.length) return;
-    bundleBeans.forEach((bean) => addToCart(bean));
-    setCartOpen(true);
-    setToast("Monteblanco bundle added to cart");
-  }
+  function handleAdd(bean) { trackAddToCart(bean,"home"); addToCart(bean); setCartOpen(true); setToast(`${bean.name} added`); }
+  function handleBundle() { if (!bundleBeans.length) return; bundleBeans.forEach(b => addToCart(b)); setCartOpen(true); setToast("Bundle added"); }
 
   return (
     <>
       <Seo
         title="Drunk Coffee Roasters | Specialty Coffee Roaster in Malaysia"
-        description="Small-batch specialty coffee roasted in Johor, Malaysia. Shop filter and espresso coffees, explore the Monteblanco Series, and order fresh roast via WhatsApp."
+        description="Small-batch specialty coffee roasted in Johor, Malaysia. Sweet, approachable, and made for every day."
         url="/"
-        jsonLd={{
-          "@context": "https://schema.org", "@type": "Organization",
-          name: "Drunk Coffee Roasters", url: "https://drunkcoffeeroasters.com",
-          sameAs: ["https://instagram.com/drunkcoffeeroasters"],
-          contactPoint: { "@type": "ContactPoint", telephone: "+60-11-2706-0012", contactType: "customer service", areaServed: "MY" },
-        }}
+        jsonLd={{ "@context":"https://schema.org","@type":"Organization",name:"Drunk Coffee Roasters",url:"https://drunkcoffeeroasters.com",sameAs:["https://instagram.com/drunkcoffeeroasters"] }}
       />
 
-      <div className={cx("min-h-screen", APP_BG)}>
-        <div className="pointer-events-none fixed inset-0 opacity-90">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.04),transparent_26%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent_18%,transparent_82%,rgba(255,255,255,0.02))]" />
-        </div>
+      <Grain />
+      <ScrollProgress />
+
+      <div style={{ background: DARK }} className="min-h-screen">
 
         {/* ── HEADER ── */}
-        <header className="sticky top-0 z-50 border-b border-white/8 bg-[#0d0d0b]/88 backdrop-blur-xl">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6 md:py-4">
-            <a href="#top" className="flex items-center">
-              <img src="/logo.png" alt="Drunk Coffee Roasters" className="h-14 object-contain transition duration-300 hover:scale-[1.01] md:h-[70px]" />
+        <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06]"
+          style={{ background:"rgba(14,12,9,0.88)", backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)" }}>
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
+            <a href="#top" className="shrink-0">
+              <img src="/logo.png" alt="Drunk Coffee Roasters" className="h-11 object-contain md:h-12" />
             </a>
 
+            {/* desktop nav */}
             <nav className="hidden items-center gap-7 md:flex">
-              {/* Series → scrolls to #series section on the page */}
-              <a href="#series" className="font-body text-[13px] tracking-[0.08em] text-white/62 transition hover:text-white">
-                Series
-              </a>
-              {NAV_LINKS.map(([label, href]) => (
-                <a key={label} href={href} className="font-body text-[13px] tracking-[0.08em] text-white/62 transition hover:text-white">{label}</a>
+              {[["Shop","#shop"],["Series","#series"],["Wholesale","#wholesale"],["FAQ","#faq"],...NAV_LINKS].map(([l,h]) => (
+                <a key={l} href={h} className="text-[11px] uppercase tracking-[0.16em] text-white/40 transition hover:text-white/90">{l}</a>
               ))}
             </nav>
 
             <div className="flex items-center gap-2">
-              <button type="button" onClick={() => setCartOpen(true)} className="relative flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.025] text-white/76 transition hover:border-white/18 hover:bg-white/[0.05] hover:text-white" aria-label="Open cart">
-                <ShoppingCart size={19} />
-                {cartCount > 0 ? (
-                  <span className="font-body absolute right-0.5 top-0.5 min-w-[17px] rounded-full bg-[#efe8db] px-1 text-center text-[9px] font-bold leading-4" style={LIGHT_BUTTON_STYLE}>{cartCount}</span>
-                ) : null}
+              {/* cart */}
+              <button type="button" onClick={() => setCartOpen(true)} aria-label="Cart"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/50 transition hover:text-white">
+                <ShoppingCart size={15} />
+                {cartCount > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#c8922a] text-[9px] font-bold text-[#0e0c09]">{cartCount}</span>
+                )}
               </button>
-              <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" aria-label="WhatsApp" onClick={() => trackWhatsappClick("home_header", "general")} className="hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.025] transition hover:border-white/18 hover:bg-white/[0.05] md:flex">
-                <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="WhatsApp" className="h-[18px] w-[18px] opacity-75 transition hover:opacity-100" />
+              {/* IG desktop */}
+              <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer"
+                className="hidden h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/40 transition hover:text-white md:flex">
+                <Instagram size={15} />
               </a>
-              <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram" className="hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.025] text-white/76 transition hover:border-white/18 hover:bg-white/[0.05] hover:text-white md:flex">
-                <Instagram size={18} />
+              {/* WA desktop */}
+              <a href={waUrl} target="_blank" rel="noreferrer"
+                onClick={() => trackWhatsappClick("header","general")}
+                className="hidden items-center gap-1.5 rounded-full border border-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.12em] text-white/40 transition hover:text-white md:flex">
+                Order now
               </a>
-              <button type="button" onClick={() => setMobileNavOpen(true)} className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.025] text-white/76 transition hover:bg-white/[0.05] hover:text-white md:hidden" aria-label="Open menu">
-                <Menu size={19} />
+              {/* hamburger */}
+              <button type="button" onClick={() => setNavOpen(true)} aria-label="Menu"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/50 transition hover:text-white md:hidden">
+                <Menu size={16} />
               </button>
             </div>
           </div>
         </header>
 
         {/* ── MOBILE NAV ── */}
-        {mobileNavOpen ? (
-          <div className="fixed inset-0 z-[90] flex">
-            <button type="button" className="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-label="Close menu" onClick={() => setMobileNavOpen(false)} />
-            <div className="relative ml-auto flex h-full w-[80vw] max-w-xs flex-col border-l border-white/10 bg-[#0f0f0d] px-6 py-8 shadow-[0_0_80px_rgba(0,0,0,0.6)]">
-              <div className="flex items-center justify-between">
-                <img src="/logo.png" alt="Drunk Coffee Roasters" className="h-12 object-contain" />
-                <button type="button" onClick={() => setMobileNavOpen(false)} className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-white/58 transition hover:bg-white/[0.05] hover:text-white" aria-label="Close menu">
-                  <X size={18} />
-                </button>
+        {navOpen && (
+          <div className="fixed inset-0 z-[90]">
+            <button type="button" onClick={() => setNavOpen(false)} className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
+            <div className="absolute right-0 top-0 h-full w-[78vw] max-w-[280px] border-l border-white/[0.07] flex flex-col px-6 pt-6"
+              style={{ background:"#100e0b" }}>
+              <div className="flex items-center justify-between mb-8">
+                <img src="/logo.png" alt="" className="h-10 object-contain" />
+                <button type="button" onClick={() => setNavOpen(false)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/40"><X size={15} /></button>
               </div>
-
-              <nav className="mt-10 flex flex-col gap-1">
-                {/* Series → scroll to #series, close nav */}
-                <a
-                  href="#series"
-                  onClick={() => setMobileNavOpen(false)}
-                  className="font-body rounded-[14px] px-4 py-4 text-[15px] tracking-[0.04em] text-white/70 transition hover:bg-white/[0.05] hover:text-white"
-                >
-                  Series
-                </a>
-                {/* Shop → scroll to #shop */}
-                <a
-                  href="#shop"
-                  onClick={() => setMobileNavOpen(false)}
-                  className="font-body rounded-[14px] px-4 py-4 text-[15px] tracking-[0.04em] text-white/70 transition hover:bg-white/[0.05] hover:text-white"
-                >
-                  Shop
-                </a>
-                {NAV_LINKS.map(([label, href]) => (
-                  <a key={label} href={href} onClick={() => setMobileNavOpen(false)} className="font-body rounded-[14px] px-4 py-4 text-[15px] tracking-[0.04em] text-white/70 transition hover:bg-white/[0.05] hover:text-white">
-                    {label}
-                  </a>
+              <nav className="flex flex-col">
+                {[["Shop","#shop"],["Series","#series"],["Why us","#why"],["Wholesale","#wholesale"],["FAQ","#faq"],...NAV_LINKS].map(([l,h]) => (
+                  <a key={l} href={h} onClick={() => setNavOpen(false)}
+                    className="border-b border-white/[0.05] py-3.5 text-[14px] text-white/55 transition hover:text-white">{l}</a>
                 ))}
               </nav>
-
-              <div className="mt-auto flex flex-col gap-3 border-t border-white/8 pt-6" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-                <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_mobile_menu", "general")} className={cx(LIGHT_BUTTON, "w-full justify-center")} style={LIGHT_BUTTON_STYLE}>
-                  Order on WhatsApp
-                </a>
-                <div className="flex justify-center gap-4">
-                  <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-white/60 transition hover:text-white" aria-label="Instagram">
-                    <Instagram size={17} />
-                  </a>
-                  <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_mobile_menu_icon", "general")} className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 transition hover:bg-white/[0.05]" aria-label="WhatsApp">
-                    <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="WhatsApp" className="h-4 w-4 opacity-60" />
-                  </a>
-                </div>
+              <div className="mt-auto pb-8 pt-6" style={{ paddingBottom:"max(2rem,env(safe-area-inset-bottom))" }}>
+                <a href={waUrl} target="_blank" rel="noreferrer"
+                  onClick={() => { trackWhatsappClick("mobile_nav","general"); setNavOpen(false); }}
+                  className={cx(P,"w-full justify-center")}>Order via WhatsApp</a>
               </div>
             </div>
           </div>
-        ) : null}
+        )}
 
-        <main id="top" className="relative z-[1]">
-          {/* ── HERO ── */}
-          <section className="relative overflow-hidden border-b border-white/8">
+        <main id="top" className="pt-[56px] md:pt-[60px]">
+
+          {/* ══════════════════════════════════════════════════════════
+              HERO
+          ══════════════════════════════════════════════════════════ */}
+          <section className="relative flex min-h-[94svh] flex-col overflow-hidden">
+            {/* bg */}
             <div className="absolute inset-0">
-              <img src="/hero-coffee.jpg" alt="Drunk Coffee Roasters roasting coffee" className="h-full w-full object-cover opacity-42" fetchPriority="high" />
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,8,8,0.86)_0%,rgba(8,8,8,0.62)_48%,rgba(8,8,8,0.7)_100%)]" />
-              <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.82),transparent_38%,rgba(0,0,0,0.22))]" />
+              <img src="/hero-coffee.jpg" alt="" className="h-full w-full object-cover opacity-25" fetchPriority="high" />
+              <div className="absolute inset-0" style={{ background:"linear-gradient(155deg,rgba(14,12,9,0.45) 0%,rgba(14,12,9,0.78) 45%,rgba(14,12,9,1) 100%)" }} />
             </div>
-            <div className="relative mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-20">
-              <FadeSection>
-                <p className={EYEBROW}>Johor · Specialty Coffee Roaster</p>
-                <h1 className="font-display mt-5 text-[38px] font-semibold leading-[0.88] tracking-[-0.05em] text-white sm:text-[56px] md:max-w-[11ch] md:text-[88px]">
-                  Coffee with clarity.
-                  <br />
-                  Roasted with intent.
+            {/* warm glow top-right */}
+            <div className="absolute right-0 top-0 h-[80vh] w-[55vw] opacity-[0.08]"
+              style={{ background:"radial-gradient(ellipse at 80% 10%,#c8922a,transparent 60%)" }} />
+
+            <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col justify-end px-4 pb-14 pt-24 md:px-6 md:pb-20">
+              <Fade>
+                <Eyebrow>Johor · Malaysia · Est. 2023</Eyebrow>
+              </Fade>
+              <Fade delay={60}>
+                <h1 className="text-[clamp(52px,9.5vw,120px)] font-bold leading-[0.85] tracking-[-0.05em] text-white max-w-[12ch]">
+                  Coffee<br />
+                  <em className="not-italic" style={{ color:AMBER }}>worth</em><br />
+                  getting<br />
+                  drunk on.
                 </h1>
-                <p className="font-body mt-5 max-w-2xl text-sm leading-8 text-white/62 md:text-[16px]">
-                  Small-batch roasting from Johor, with coffees chosen for balance, character, and everyday brewing.
+              </Fade>
+              <Fade delay={120}>
+                <p className="mt-7 max-w-[38ch] text-[15px] leading-[1.9] text-white/48 md:text-[16px]">
+                  Small-batch specialty coffee roasted in Johor. Sweet, approachable, and made for every day — not just special occasions.
                 </p>
-                <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:gap-3.5">
-                  <a href="#shop" className={cx(LIGHT_BUTTON, "w-full justify-center sm:w-auto")} style={LIGHT_BUTTON_STYLE}>Shop coffees</a>
-                  <a href="#series" className={cx(DARK_BUTTON, "w-full justify-center sm:w-auto")}>Explore series</a>
+              </Fade>
+              <Fade delay={180}>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <a href="#shop" className={P}>Shop coffees</a>
+                  <a href={waUrl} target="_blank" rel="noreferrer"
+                    onClick={() => trackWhatsappClick("hero","general")} className={G}>
+                    <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="" className="h-3.5 w-3.5 opacity-40" />
+                    Order on WhatsApp
+                  </a>
                 </div>
-                <div className="mt-8 grid max-w-3xl gap-3 sm:grid-cols-3">
-                  <div className={cx("p-4", SOFT_PANEL)}>
-                    <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Roast style</p>
-                    <p className="font-body mt-2 text-sm leading-7 text-white/74">Clean · balanced · expressive</p>
-                  </div>
-                  <div className={cx("p-4", SOFT_PANEL)}>
-                    <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Best for</p>
-                    <p className="font-body mt-2 text-sm leading-7 text-white/74">Home brewers · cafés · gifts</p>
-                  </div>
-                  <div className={cx("p-4", SOFT_PANEL)}>
-                    <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">Ordering</p>
-                    <p className="font-body mt-2 text-sm leading-7 text-white/74">Cart + WhatsApp flow</p>
-                  </div>
-                </div>
-              </FadeSection>
-            </div>
-          </section>
+              </Fade>
 
-          {/* ── INFO STRIPS ── */}
-          <section className="border-b border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8">
-              <div className="grid gap-3 md:grid-cols-3">
-                {[
-                  { label: "Roasted fresh", text: "Roasted in small batches for clarity, balance, and consistency." },
-                  { label: "Shipping", text: "Orders are usually packed and sent within 1–3 working days." },
-                  { label: "Ordering", text: "Add to cart, then send one clean order through WhatsApp." },
-                ].map((item, i) => (
-                  <FadeSection key={item.label} delay={i * 90}>
-                    <div className={cx("p-4", SOFT_PANEL)}>
-                      <p className="font-body text-[10px] uppercase tracking-[0.18em] text-white/34">{item.label}</p>
-                      <p className="font-body mt-2 text-sm leading-7 text-white/74">{item.text}</p>
+              {/* stats strip */}
+              <Fade delay={240}>
+                <div className="mt-14 flex flex-wrap gap-x-7 gap-y-3 border-t border-white/[0.06] pt-6">
+                  {[
+                    { n:"100%",   l:"Roasted to order" },
+                    { n:"48 hr",  l:"Dispatch time"    },
+                    { n:"MY · SG",l:"Ships to"         },
+                    { n:"Filter + Espresso", l:"Brew styles" },
+                  ].map(({ n,l }) => (
+                    <div key={l} className="flex items-baseline gap-2">
+                      <span className="text-[15px] font-semibold text-white">{n}</span>
+                      <span className="text-[10px] text-white/30">{l}</span>
                     </div>
-                  </FadeSection>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </Fade>
             </div>
           </section>
 
-          {/* ═══════════════════════════════════════════════════════════════════
-              SHOP — comes FIRST on mobile so user sees coffees right away
-          ═══════════════════════════════════════════════════════════════════ */}
-          <section id="shop" className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
-            <FadeSection>
-              <SectionHeading
-                eyebrow="Coffee menu"
-                title="Shop by brew style"
-                description="Filter, espresso, or all. Swipe to browse on mobile."
-                action={
-                  <div className="font-body text-sm text-white/42">
-                    <span className="text-white/74">{filteredBeans.length}</span> coffee{filteredBeans.length !== 1 ? "s" : ""}
-                  </div>
-                }
-              />
-            </FadeSection>
+          {/* ══════════════════════════════════════════════════════════
+              SHOP — narrow list, flows naturally after hero
+          ══════════════════════════════════════════════════════════ */}
+          <section id="shop" className="border-t border-white/[0.06]">
+            <div className="mx-auto max-w-2xl px-4 py-14 md:px-6 md:py-20">
+              <Fade>
+                <Eyebrow>Coffee menu</Eyebrow>
+                <h2 className="text-[clamp(26px,3.5vw,38px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Our coffees</h2>
+              </Fade>
 
-            {/* Sticky filter bar */}
-            <div className="sticky top-[72px] z-20 -mx-4 mt-7 border-b border-white/5 bg-[#0d0d0b]/92 px-4 pb-3 pt-2 backdrop-blur-md md:mx-0 md:px-0">
-              <div className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-                {FILTERS.map((filter) => {
-                  const isActive = activeFilter === filter;
+              {/* filter tabs */}
+              <div className="mt-7 flex items-center gap-1 border-b border-white/[0.06]">
+                {FILTERS.map(f => {
+                  const active = activeFilter === f;
                   return (
-                    <button
-                      key={filter}
-                      type="button"
-                      onClick={() => setActiveFilter(filter)}
-                      className={cx(
-                        "font-body shrink-0 rounded-full border px-4 py-3 text-[13px] tracking-[0.04em] transition duration-200 active:scale-[0.97]",
-                        isActive ? "border-[#efe8db] bg-[#efe8db] font-semibold" : "border-white/12 bg-white/[0.02] text-white/52 hover:border-white/22 hover:bg-white/[0.04] hover:text-white",
-                      )}
-                      style={isActive ? LIGHT_BUTTON_STYLE : undefined}
-                    >
-                      {filter} ({filterCounts[filter] ?? 0})
+                    <button key={f} type="button" onClick={() => setActiveFilter(f)}
+                      className={cx("relative pb-3 pr-4 text-[12px] uppercase tracking-[0.1em] transition duration-200",
+                        active ? "font-semibold text-white" : "text-white/30 hover:text-white/60")}>
+                      {f}
+                      {active && <span className="absolute bottom-0 left-0 right-4 h-[1.5px] rounded-full bg-[#c8922a]" />}
                     </button>
                   );
                 })}
+                <span className="ml-auto pb-3 text-[11px] text-white/20">
+                  {filteredBeans.length} available
+                </span>
               </div>
-            </div>
 
-            {error ? (
-              <div className="mt-5 rounded-[22px] border border-amber-200/15 bg-amber-200/8 p-4 text-sm text-amber-100">{error}</div>
-            ) : null}
+              {error && <p className="mt-4 text-[12px] text-amber-300">{error}</p>}
 
-            <div className="mt-8">
-              {loading ? (
-                <>
-                  {/* Mobile skeleton swipe */}
-                  <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-4 [&::-webkit-scrollbar]:hidden md:hidden">
-                    {SKELETON_IDS.slice(0, 3).map((id) => (
-                      <div key={id} className="w-[82vw] shrink-0"><SkeletonCard /></div>
-                    ))}
-                  </div>
-                  {/* Desktop skeleton grid */}
-                  <div className="hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-3">
-                    {SKELETON_IDS.map((id) => <SkeletonCard key={id} />)}
-                  </div>
-                </>
-              ) : (
-                <SwipeRowTracked
-                  items={filteredBeans}
-                  mobileItemWidth="w-[82vw]"
-                  desktopCols="md:grid-cols-2 xl:grid-cols-3"
-                  renderItem={(bean) => (
-                    <CoffeeCard bean={bean} onOpen={openCoffee} onAddToCart={handleAddToCart} />
-                  )}
-                />
-              )}
+              <div className="mt-3 flex flex-col gap-1.5">
+                {loading
+                  ? Array.from({length:4}).map((_,i) => <SkeletonRow key={i} />)
+                  : filteredBeans.map((bean,i) => (
+                      <CoffeeRow key={bean.id} bean={bean} onOpen={openCoffee} onAdd={handleAdd} index={i} />
+                    ))
+                }
+              </div>
             </div>
           </section>
 
-          {/* ═══════════════════════════════════════════════════════════════════
-              SERIES — below shop, so mobile users see coffees first
-          ═══════════════════════════════════════════════════════════════════ */}
-          <section id="series" className="border-t border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
-              <FadeSection>
-                <SectionHeading
-                  eyebrow="Series focus"
-                  title="The Monteblanco Series"
-                  description="Fruit-forward profiles from Monteblanco — swipe to compare, or order the full bundle."
-                  action={
-                    bundleBeans.length ? (
-                      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-2.5">
-                        <button type="button" onClick={handleAddBundle} className={DARK_BUTTON}>Add bundle to cart</button>
-                        <a href={monteblancoBundleUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_series_bundle", "monteblanco")} className={LIGHT_BUTTON} style={LIGHT_BUTTON_STYLE}>
-                          Order bundle on WhatsApp
-                        </a>
-                      </div>
-                    ) : null
-                  }
-                />
-              </FadeSection>
-
-              <div className="mt-8">
-                {bundleBeans.length ? (
-                  <SwipeRowTracked
-                    items={bundleBeans}
-                    mobileItemWidth="w-[72vw]"
-                    desktopCols="md:grid-cols-3"
-                    renderItem={(bean) => <SeriesMiniCard bean={bean} onOpen={openCoffee} />}
-                  />
-                ) : (
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <SkeletonCard /><SkeletonCard /><SkeletonCard />
-                  </div>
+          {/* ══════════════════════════════════════════════════════════
+              SERIES — editorial layout, not a product grid
+          ══════════════════════════════════════════════════════════ */}
+          <section id="series" className="border-t border-white/[0.06] overflow-hidden">
+            <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
+              <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+                <Fade>
+                  <Eyebrow>Series focus</Eyebrow>
+                  <h2 className="text-[clamp(26px,3.5vw,44px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">
+                    The Monteblanco<br />Series
+                  </h2>
+                  <p className="mt-4 max-w-[38ch] text-[14px] leading-[1.85] text-white/42">
+                    Fruit-forward, expressive. Three expressions of the same farm — compare side by side or grab the full set.
+                  </p>
+                </Fade>
+                {bundleBeans.length > 0 && (
+                  <Fade delay={80} className="flex shrink-0 flex-wrap gap-2">
+                    <button type="button" onClick={handleBundle}
+                      className={cx(G,"shrink-0")}>Add bundle to cart</button>
+                    <a href={bundleUrl} target="_blank" rel="noreferrer"
+                      onClick={() => trackWhatsappClick("series_bundle","monteblanco")}
+                      className={cx(P,"shrink-0")}>Order bundle on WhatsApp</a>
+                  </Fade>
                 )}
               </div>
-            </div>
-          </section>
 
-          {/* ── FEATURE CARDS ── */}
-          <section className="border-t border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
-              <div className="grid gap-4 md:grid-cols-3">
-                {[
-                  { icon: <Sparkles size={20} className="text-white/34" />, title: "Built for everyday brewing", text: "A clearer storefront, with direct product pages and a simpler route into coffees worth drinking every day." },
-                  { icon: <Package size={20} className="text-white/34" />, title: "Bundle, compare, repeat", text: "Explore the series side by side, or add the full set to cart in one go when you want the full expression." },
-                  { icon: <ArrowRight size={20} className="text-white/34" />, title: "From browse to order", text: "Product cards, detail pages, cart, and WhatsApp now connect more naturally, so ordering feels faster and clearer." },
-                ].map((card, i) => (
-                  <FadeSection key={card.title} delay={i * 90}>
-                    <div className={cx("h-full p-6 md:p-7", PANEL)}>
-                      {card.icon}
-                      <h3 className="font-display mt-4 text-[26px] font-semibold leading-[0.96] tracking-[-0.03em] text-white">{card.title}</h3>
-                      <p className="font-body mt-4 text-sm leading-8 text-white/58">{card.text}</p>
-                    </div>
-                  </FadeSection>
-                ))}
+              <div className="mt-10 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+                {bundleBeans.length > 0
+                  ? bundleBeans.map((bean,i) => <SeriesCard key={bean.id} bean={bean} onOpen={openCoffee} index={i} />)
+                  : Array.from({length:3}).map((_,i) => (
+                      <div key={i} className="rounded-[18px] border border-white/[0.06] bg-[#1c1814]">
+                        <div className="aspect-square animate-pulse bg-white/[0.03]" />
+                      </div>
+                    ))
+                }
               </div>
             </div>
           </section>
 
-          {/* ── EDITORIAL ── */}
-          <section className="border-t border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
-              <FadeSection>
-                <SectionHeading eyebrow="Proof of work" title="A closer look at how we work." description="Real moments from roasting, brewing, and packing coffee." />
-              </FadeSection>
-              <div className="mt-8 grid gap-4 lg:grid-cols-[1.02fr_0.98fr]">
-                <FadeSection>
-                  <div className="overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.03]">
-                    <img src="/editorial-drunk-coffee-roasters.jpg" alt="Drunk Coffee Roasters at work" className="h-full min-h-[280px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:min-h-[440px] lg:min-h-[560px]" loading="lazy" />
+          {/* ══════════════════════════════════════════════════════════
+              WHY + REVIEWS — alternating rhythm
+          ══════════════════════════════════════════════════════════ */}
+          <section id="why" className="border-t border-white/[0.06]">
+            <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
+              <Fade>
+                <Eyebrow>Why us</Eyebrow>
+                <h2 className="text-[clamp(26px,3.5vw,44px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">
+                  Roasted small.<br />Shipped fast.
+                </h2>
+              </Fade>
+
+              {/* 2-up: photo left, reasons right */}
+              <div className="mt-10 grid gap-5 lg:grid-cols-2 lg:items-start">
+                <Fade className="relative overflow-hidden rounded-[20px]">
+                  <img src="/editorial-drunk-coffee-roasters.jpg" alt="Roasting at Drunk Coffee"
+                    className="aspect-[4/3] w-full object-cover lg:aspect-auto lg:min-h-[420px]" loading="lazy" />
+                  <div className="absolute inset-0" style={{ background:"linear-gradient(to top,rgba(14,12,9,0.88) 0%,rgba(14,12,9,0.1) 50%,transparent)" }} />
+                  <div className="absolute bottom-0 p-6 md:p-7">
+                    <p className="text-[20px] font-bold leading-[1.25] tracking-[-0.02em] text-white">
+                      "Every bag roasted<br />after your order lands."
+                    </p>
+                    <p className="mt-2 text-[12px] text-white/42">No shelf stock. No stale coffee.</p>
                   </div>
-                </FadeSection>
-                <div className="grid gap-4">
-                  <FadeSection delay={90}><div className="overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03]"><img src="/editorial-brewing.jpg" alt="Brewing coffee" className="h-[200px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:h-[260px]" loading="lazy" /></div></FadeSection>
-                  <FadeSection delay={180}><div className="overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03]"><img src="/editorial-roasted-beans.jpg" alt="Freshly roasted coffee beans" className="h-[200px] w-full object-cover transition duration-700 hover:scale-[1.02] sm:h-[260px]" loading="lazy" /></div></FadeSection>
-                  <FadeSection delay={270}>
-                    <div className={cx("p-6 md:p-7", PANEL)}>
-                      <Sparkles className="text-white/34" size={20} />
-                      <h3 className="font-display mt-4 text-[26px] font-semibold leading-[0.96] tracking-[-0.03em] text-white">Roasted by hand, packed with care</h3>
-                      <p className="font-body mt-4 text-sm leading-8 text-white/58">The work behind each release matters. Showing it makes the site feel grounded, active, and worth trusting.</p>
-                    </div>
-                  </FadeSection>
-                </div>
-              </div>
-            </div>
-          </section>
+                </Fade>
 
-          {/* ── REVIEWS ── */}
-          <section className="border-t border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
-              <FadeSection>
-                <SectionHeading eyebrow="Reviews" title="What customers are saying" />
-              </FadeSection>
-              <div className="mt-8 grid gap-4 md:grid-cols-3">
-                {[
-                  { handle: "@coffeewithmei", sub: "Fresh roast · repeat order", text: '"The beans were really fragrant and tasted super fresh. I really liked them."' },
-                  { handle: "@joeydrinkscoffee", sub: "Giftable · approachable", text: '"Perfect as a gift. My friend really loved it."' },
-                  { handle: "@linaroundtheworld", sub: "Souvenir · easy to share", text: '"Amazing as a souvenir to bring back to China."' },
-                ].map((r, i) => (
-                  <FadeSection key={r.handle} delay={i * 90}>
-                    <div className={cx("h-full p-6 md:p-7", PANEL)}>
-                      <div className="flex items-center gap-1 text-[#efe8db]"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
-                      <p className="font-body mt-5 text-base leading-8 text-white/78">{r.text}</p>
-                      <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 lg:gap-3">
+                  {[
+                    { n:"01", title:"Roasted to order",     body:"No warehouse stock. We roast each batch after your order, so you get peak freshness every time." },
+                    { n:"02", title:"48-hr dispatch",        body:"Most orders packed and shipped within 48 hours. Fast, without cutting corners on the roast." },
+                    { n:"03", title:"Transparent sourcing",  body:"Origin, process, tasting notes — you know exactly what you're drinking and where it came from." },
+                    { n:"04", title:"Zero-friction ordering",body:"Cart → WhatsApp → done. No accounts, no complexity. Just coffee." },
+                  ].map((c,i) => (
+                    <Fade key={c.n} delay={i*50}>
+                      <div className="flex gap-4 rounded-[14px] border border-white/[0.05] bg-white/[0.02] p-4 md:p-5">
+                        <span className="mt-0.5 text-[10px] font-bold tracking-[0.14em] text-[#c8922a]/40 shrink-0">{c.n}</span>
                         <div>
-                          <p className="font-body text-sm text-white/72">{r.handle}</p>
-                          <p className="font-body mt-1 text-xs text-white/44">{r.sub}</p>
+                          <p className="text-[14px] font-semibold tracking-[-0.01em] text-white">{c.title}</p>
+                          <p className="mt-1.5 text-[12px] leading-[1.75] text-white/40">{c.body}</p>
                         </div>
-                        <span className="font-body rounded-full border border-white/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] text-white/42">Customer note</span>
+                      </div>
+                    </Fade>
+                  ))}
+                </div>
+              </div>
+
+              {/* reviews — inlined below WHY for narrative flow */}
+              <div className="mt-14 grid gap-4 md:grid-cols-3">
+                {[
+                  { init:"M", handle:"@coffeewithmei",     source:"Instagram", tag:"Repeat order", quote:"The beans were really fragrant and tasted super fresh. I really liked them." },
+                  { init:"J", handle:"@joeydrinkscoffee",  source:"WhatsApp",  tag:"Gift",         quote:"Perfect as a gift. My friend really loved it." },
+                  { init:"L", handle:"@linaroundtheworld", source:"Instagram", tag:"Souvenir",      quote:"Amazing as a souvenir to bring back to China." },
+                ].map((r,i) => (
+                  <Fade key={r.handle} delay={i*70}>
+                    <div className="flex h-full flex-col rounded-[18px] border border-white/[0.06] bg-[#1c1814] p-5">
+                      {/* stars */}
+                      <div className="flex gap-0.5 mb-4">
+                        {[0,1,2,3,4].map(s => (
+                          <svg key={s} viewBox="0 0 12 12" className="h-2.5 w-2.5" fill={AMBER}><path d="M6 0l1.5 4H12l-3.7 2.7 1.4 4.3L6 8.7l-3.7 2.3 1.4-4.3L0 4h4.5z"/></svg>
+                        ))}
+                      </div>
+                      <p className="flex-1 text-[18px] font-bold leading-[1.25] tracking-[-0.02em] text-white/88">"{r.quote}"</p>
+                      <div className="mt-5 flex items-center justify-between border-t border-white/[0.05] pt-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] border border-white/10">
+                            <span className="text-[12px] font-bold text-white/55">{r.init}</span>
+                          </div>
+                          <div>
+                            <p className="text-[12px] text-white/60">{r.handle}</p>
+                            <p className="text-[10px] text-white/26">{r.tag}</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] uppercase tracking-[0.1em] text-white/24 border border-white/[0.07] rounded-full px-2.5 py-1">{r.source}</span>
                       </div>
                     </div>
-                  </FadeSection>
+                  </Fade>
                 ))}
               </div>
             </div>
           </section>
 
-          {/* ── WHOLESALE ── */}
-          <section id="wholesale" className="border-t border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
-              <div className="grid gap-5 lg:grid-cols-[1.06fr_0.94fr]">
-                <FadeSection className={cx("p-6 md:p-8", PANEL)}>
-                  <p className={EYEBROW}>Wholesale</p>
-                  <h2 className="font-display mt-4 text-[28px] font-semibold leading-[0.94] tracking-[-0.03em] text-white sm:text-[30px] md:text-[44px]">Supply for cafés, offices, and partners.</h2>
-                  <p className="font-body mt-5 max-w-xl text-sm leading-8 text-white/54 md:text-[15px]">Small-batch roasting with cleaner house blends, more expressive seasonal filters.</p>
-                  <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3.5">
-                    <Link to="/wholesale" className={cx(DARK_BUTTON, "w-full justify-center sm:w-auto")}>View wholesale page</Link>
-                    <a href={wholesaleWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_wholesale", "wholesale")} className={cx(LIGHT_BUTTON, "w-full justify-center sm:w-auto")} style={LIGHT_BUTTON_STYLE}>Enquire on WhatsApp</a>
-                  </div>
-                </FadeSection>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                  <FadeSection delay={90} className={cx("p-5 md:p-6", SOFT_PANEL)}><p className="font-display text-[20px] font-semibold text-white">Suitable for</p><p className="font-body mt-2 text-sm leading-7 text-white/56">Cafés · office coffee corners · retail shelves · events</p></FadeSection>
-                  <FadeSection delay={180} className={cx("p-5 md:p-6", SOFT_PANEL)}><p className="font-display text-[20px] font-semibold text-white">Roast direction</p><p className="font-body mt-2 text-sm leading-7 text-white/56">House espresso, seasonal filters, and approachable coffees that stay consistent.</p></FadeSection>
-                </div>
+          {/* ══════════════════════════════════════════════════════════
+              INSTAGRAM — full-bleed mosaic
+          ══════════════════════════════════════════════════════════ */}
+          <section className="border-t border-white/[0.06]">
+            <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
+              <div className="flex flex-col gap-5 mb-8 md:flex-row md:items-end md:justify-between">
+                <Fade>
+                  <Eyebrow>Instagram</Eyebrow>
+                  <h2 className="text-[clamp(26px,3.5vw,44px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Follow the process</h2>
+                </Fade>
+                <Fade delay={60}>
+                  <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer"
+                    className={cx(G,"shrink-0 self-start")}>
+                    <Instagram size={13} />
+                    @drunkcoffeeroasters
+                  </a>
+                </Fade>
               </div>
-            </div>
-          </section>
 
-          {/* ── STORY + FOOTER ── */}
-          <section id="story" className="border-t border-white/8">
-            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-18">
-              <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
-                <FadeSection className={cx("p-6 md:p-8", PANEL)}>
-                  <p className={EYEBROW}>Story</p>
-                  <h2 className="font-display mt-4 text-[28px] font-semibold leading-[0.94] tracking-[-0.03em] text-white sm:text-[30px] md:text-[44px]">Coffee made to be enjoyed, not overcomplicated.</h2>
-                  <p className="font-body mt-5 max-w-xl text-sm leading-8 text-white/56 md:text-[15px]">Drunk Coffee Roasters is built around daily brewing, careful roasting, and coffees with clarity, balance, and character.</p>
-                  <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:gap-3">
-                    <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_story", "general")} className={cx(LIGHT_BUTTON, "w-full justify-center sm:w-auto")} style={LIGHT_BUTTON_STYLE}>Order fresh roast</a>
-                    <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className={cx(DARK_BUTTON, "w-full justify-center sm:w-auto")}>Follow Instagram</a>
-                  </div>
-                  <div className="mt-6 space-y-1 border-t border-white/8 pt-6">
-                    <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="flex min-h-[44px] items-center gap-3 text-sm text-white/56 transition hover:text-white">
-                      <span className="w-24 shrink-0 text-[10px] uppercase tracking-[0.18em] text-white/30">Instagram</span>
-                      <span>@drunkcoffeeroasters ↗</span>
-                    </a>
-                    <div className="flex min-h-[44px] items-center gap-3 text-sm text-white/56">
-                      <span className="w-24 shrink-0 text-[10px] uppercase tracking-[0.18em] text-white/30">小红书</span>
-                      <span>{XHS_LABEL}</span>
-                    </div>
-                    <a href={generalWhatsAppUrl} target="_blank" rel="noreferrer" onClick={() => trackWhatsappClick("home_find_us", "general")} className="flex min-h-[44px] items-center gap-3 text-sm text-white/56 transition hover:text-white">
-                      <span className="w-24 shrink-0 text-[10px] uppercase tracking-[0.18em] text-white/30">WhatsApp</span>
-                      <span>+601127060012 ↗</span>
-                    </a>
-                    <div className="flex min-h-[44px] items-center gap-3 text-sm text-white/56">
-                      <span className="w-24 shrink-0 text-[10px] uppercase tracking-[0.18em] text-white/30">Location</span>
-                      <span>Johor, Malaysia</span>
-                    </div>
-                  </div>
-                </FadeSection>
-
-                <FadeSection delay={100} className={cx("p-6 md:p-8", PANEL)}>
-                  <p className={EYEBROW}>FAQ</p>
-                  <h2 className="font-display mt-4 text-[28px] font-semibold leading-[0.94] tracking-[-0.03em] text-white sm:text-[30px] md:text-[44px]">A few useful things to know</h2>
-                  <div className="mt-6 space-y-4">
-                    {[
-                      { q: "How do I place an order?", a: "Add your coffees to cart and send the order through WhatsApp. We'll confirm availability and roasting lead time there." },
-                      { q: "When will my coffee be shipped?", a: "Most orders are packed and shipped within 1–3 working days, depending on roast schedule and order volume." },
-                      { q: "Filter or espresso?", a: "Each coffee is marked by brew style and best use, so you can choose more easily without guessing." },
-                      { q: "Do you offer wholesale?", a: "Yes. We supply cafés, offices, events, and retail partners. Use the wholesale section or WhatsApp to enquire." },
-                    ].map((faq) => (
-                      <div key={faq.q} className={cx("p-4", SOFT_PANEL)}>
-                        <p className="font-display text-[17px] font-semibold text-white">{faq.q}</p>
-                        <p className="font-body mt-2 text-sm leading-7 text-white/58">{faq.a}</p>
+              {/* mosaic */}
+              {/* Grid adapts: 1 col if only 1 photo, 2-col if 2+, up to 4-col for 4+ */}
+              <div className={
+                IG_POSTS.length === 1 ? "max-w-sm mx-auto" :
+                IG_POSTS.length === 2 ? "grid grid-cols-2 gap-3 max-w-2xl mx-auto" :
+                IG_POSTS.length === 3 ? "grid grid-cols-2 sm:grid-cols-3 gap-3" :
+                "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
+              }>
+                {IG_POSTS.map((p,i) => (
+                  <Fade key={i} delay={i*50} className="overflow-hidden rounded-[14px]">
+                    <a href={p.url} target="_blank" rel="noreferrer" className="group relative block">
+                      <img src={p.src} alt={p.alt}
+                        className="aspect-square w-full object-cover transition duration-500 group-hover:scale-[1.04] group-hover:brightness-75"
+                        loading="lazy" />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 transition duration-300 group-hover:opacity-100">
+                        <div className="rounded-full bg-black/50 p-2.5 backdrop-blur-sm"><Instagram size={15} className="text-white" /></div>
                       </div>
-                    ))}
+                    </a>
+                  </Fade>
+                ))}
+              </div>
+
+              <Fade className="mt-7 text-center">
+                <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className={cx(P,"mx-auto")}>
+                  <Instagram size={13} />
+                  Follow on Instagram
+                </a>
+              </Fade>
+            </div>
+          </section>
+
+          {/* ══════════════════════════════════════════════════════════
+              WHOLESALE — cinematic full-width banner
+          ══════════════════════════════════════════════════════════ */}
+          <section id="wholesale" className="border-t border-white/[0.06]">
+            <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
+              <Fade>
+                <div className="relative overflow-hidden rounded-[22px] border border-white/[0.07]" style={{ background:PANEL }}>
+                  {/* amber glow top-right */}
+                  <div className="absolute right-0 top-0 h-[300px] w-[400px] opacity-10"
+                    style={{ background:"radial-gradient(ellipse at top right,#c8922a,transparent 65%)" }} />
+
+                  <div className="relative grid gap-10 p-7 md:p-10 lg:grid-cols-[1fr_280px]">
+                    {/* left */}
+                    <div>
+                      <Eyebrow>Wholesale</Eyebrow>
+                      <h2 className="text-[clamp(26px,3.5vw,48px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">
+                        Fresh roast,<br />at scale.
+                      </h2>
+                      <p className="mt-5 max-w-[44ch] text-[14px] leading-[1.9] text-white/46">
+                        We supply cafés, offices, gift shops, and events across Malaysia. House espresso or seasonal filters — tell us what you need.
+                      </p>
+
+                      {/* stat chips */}
+                      <div className="mt-6 flex flex-wrap gap-2">
+                        {[
+                          {v:"Min. 1 kg", l:"Starting order"},
+                          {v:"2–5 days",  l:"Lead time"},
+                          {v:"Custom",    l:"Label options"},
+                        ].map(({v,l}) => (
+                          <div key={l} className="rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-2 flex items-baseline gap-2">
+                            <span className="text-[13px] font-semibold text-white">{v}</span>
+                            <span className="text-[10px] text-white/32">{l}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-7 flex flex-wrap gap-3">
+                        <a href={wsUrl} target="_blank" rel="noreferrer"
+                          onClick={() => trackWhatsappClick("wholesale","wholesale")}
+                          className={P}>
+                          <img src="https://cdn.simpleicons.org/whatsapp/0e0c09" alt="" className="h-3.5 w-3.5" />
+                          Enquire on WhatsApp
+                        </a>
+                        <Link to="/wholesale" className={G}>View wholesale page</Link>
+                      </div>
+                    </div>
+
+                    {/* right — supply types */}
+                    <div className="flex flex-col gap-3">
+                      {[
+                        { title:"House Espresso", desc:"Consistent and balanced — works black or with milk." },
+                        { title:"Seasonal Filter", desc:"Expressive and rotating, for menus with character." },
+                        { title:"Gift Sets",       desc:"Packaged for retail or corporate gifting." },
+                      ].map(item => (
+                        <div key={item.title} className="rounded-[13px] border border-white/[0.06] bg-white/[0.025] p-4">
+                          <p className="text-[13px] font-semibold text-white">{item.title}</p>
+                          <p className="mt-1 text-[12px] leading-relaxed text-white/36">{item.desc}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </FadeSection>
+                </div>
+              </Fade>
+            </div>
+          </section>
+
+          {/* ══════════════════════════════════════════════════════════
+              FAQ — accordion, narrow column
+          ══════════════════════════════════════════════════════════ */}
+          <section id="faq" className="border-t border-white/[0.06]">
+            <div className="mx-auto max-w-2xl px-4 py-14 md:px-6 md:py-20">
+              <Fade>
+                <Eyebrow>FAQ</Eyebrow>
+                <h2 className="text-[clamp(26px,3.5vw,38px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Good to know</h2>
+              </Fade>
+              <div className="mt-8">
+                {[
+                  { q:"How do I place an order?",      a:"Add coffees to cart, then send through WhatsApp. We'll confirm availability and roasting schedule there." },
+                  { q:"When will my coffee ship?",     a:"Most orders pack and ship within 1–3 working days depending on roast schedule and volume." },
+                  { q:"Filter or espresso — which?",   a:"Every coffee is labelled by brew style and best use so you can choose without guessing." },
+                  { q:"Do you do wholesale?",          a:"Yes — cafés, offices, events, retail. Hit the wholesale section above or message us directly." },
+                  { q:"Do you ship outside Malaysia?", a:"We currently ship to Malaysia and Singapore. DM us on WhatsApp if you're elsewhere and we'll see what we can do." },
+                ].map((f,i) => <FaqItem key={f.q} q={f.q} a={f.a} index={i} />)}
               </div>
             </div>
           </section>
+
         </main>
 
-        <CartDrawer
-          cartOpen={cartOpen}
-          setCartOpen={setCartOpen}
-          cart={cart}
-          cartCount={cartCount}
-          cartTotal={cartTotal}
-          decreaseCartItem={decreaseCartItem}
-          increaseCartItem={increaseCartItem}
-          removeCartItem={removeCartItem}
-          clearCart={clearCart}
-        />
+        {/* ══════════════════════════════════════════════════════════
+            FOOTER
+        ══════════════════════════════════════════════════════════ */}
+        <footer className="border-t border-white/[0.06]">
+          {/* ambient glow behind footer */}
+          <div className="relative overflow-hidden">
+            <div className="absolute bottom-0 left-1/2 h-[200px] w-[600px] -translate-x-1/2 opacity-[0.06]"
+              style={{ background:"radial-gradient(ellipse,#c8922a,transparent 70%)" }} />
+            <div className="relative mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-16">
+              <div className="grid gap-10 md:grid-cols-[1.6fr_1fr_1fr]">
+                {/* brand */}
+                <div>
+                  <img src="/logo.png" alt="Drunk Coffee Roasters" className="h-10 object-contain" />
+                  <p className="mt-5 max-w-[260px] text-[13px] leading-[1.9] text-white/34">
+                    Drunk Coffee Roasters started as a passion for roasting coffees that are sweet, approachable and enjoyable every day.
+                  </p>
+                  <p className="mt-2 text-[11px] text-white/20">Based in Johor, Malaysia.</p>
+                </div>
 
-        {toast ? (
-          <div
-            className="pointer-events-none fixed left-1/2 z-[80] -translate-x-1/2 rounded-full border border-white/12 bg-[#efe8db] px-4 py-2 text-sm font-medium shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
-            style={{ ...LIGHT_BUTTON_STYLE, bottom: "max(5rem, calc(1.25rem + env(safe-area-inset-bottom)))" }}
-          >
-            {toast}
+                {/* pages */}
+                <div>
+                  <p className="text-[9px] uppercase tracking-[0.24em] text-white/20 mb-4">Pages</p>
+                  {[["Shop","#shop"],["Series","#series"],["Why us","#why"],["Wholesale","#wholesale"],["FAQ","#faq"]].map(([l,h]) => (
+                    <a key={l} href={h} className="block py-1.5 text-[13px] text-white/36 transition hover:text-white">{l}</a>
+                  ))}
+                </div>
+
+                {/* contact */}
+                <div>
+                  <p className="text-[9px] uppercase tracking-[0.24em] text-white/20 mb-4">Find us</p>
+                  <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="block py-1.5 text-[13px] text-white/36 transition hover:text-white">@drunkcoffeeroasters ↗</a>
+                  <span className="block py-1.5 text-[13px] text-white/36">小红书 · {XHS_LABEL}</span>
+                  <a href={waUrl} target="_blank" rel="noreferrer"
+                    onClick={() => trackWhatsappClick("footer","general")}
+                    className="block py-1.5 text-[13px] text-white/36 transition hover:text-white">WhatsApp ↗</a>
+                  <span className="block py-1.5 text-[13px] text-white/36">Johor, Malaysia</span>
+                </div>
+              </div>
+
+              {/* bottom bar */}
+              <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/[0.05] pt-6 md:flex-row">
+                <p className="text-[11px] text-white/18">© {new Date().getFullYear()} Drunk Coffee Roasters · All rights reserved</p>
+                <div className="flex gap-2.5">
+                  <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.07] text-white/22 transition hover:text-white/60">
+                    <Instagram size={13} />
+                  </a>
+                  <a href={waUrl} target="_blank" rel="noreferrer" aria-label="WhatsApp"
+                    onClick={() => trackWhatsappClick("footer_icon","general")}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.07] transition hover:border-white/16">
+                    <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="" className="h-3.5 w-3.5 opacity-20 transition hover:opacity-50" />
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
-        ) : null}
+        </footer>
+
       </div>
+
+      {/* Cart */}
+      <CartDrawer
+        open={cartOpen} onClose={() => setCartOpen(false)}
+        cart={cart} cartCount={cartCount} cartTotal={cartTotal}
+        onDecrease={decreaseCartItem} onIncrease={increaseCartItem}
+        onRemove={removeCartItem} onClear={clearCart}
+      />
+
+      {/* Toast */}
+      {toast && (
+        <div className="pointer-events-none fixed left-1/2 z-[80] -translate-x-1/2 rounded-full bg-[#c8922a] px-5 py-2.5 text-[12px] font-semibold text-[#0e0c09] shadow-[0_16px_48px_rgba(0,0,0,0.5)] transition-opacity"
+          style={{ bottom:"max(5rem,calc(1rem + env(safe-area-inset-bottom)))" }}>
+          {toast}
+        </div>
+      )}
     </>
   );
 }
