@@ -6,7 +6,6 @@ import { trackAddToCart, trackWhatsappClick } from "../lib/analytics";
 import {
   FILTERS,
   INSTAGRAM_URL,
-  NAV_LINKS,
   XHS_LABEL,
   appendImageParams,
   badgeClasses,
@@ -246,6 +245,22 @@ function SeriesCard({ bean, onOpen, index }) {
 }
 
 // ─── Accordion FAQ item ───────────────────────────────────────────────────────
+// ─── IG tile with error fallback ────────────────────────────────────────────
+function IgTile({ src, alt }) {
+  const [err, setErr] = useState(false);
+  if (err) return (
+    <div className="aspect-square w-full flex flex-col items-center justify-center gap-2">
+      <Instagram size={18} className="text-white/12" />
+      <span className="text-[9px] uppercase tracking-[0.2em] text-white/18">Coming soon</span>
+    </div>
+  );
+  return (
+    <img src={src} alt={alt} onError={() => setErr(true)}
+      className="aspect-square w-full object-cover transition duration-500 group-hover:scale-[1.04] group-hover:brightness-75"
+      loading="lazy" />
+  );
+}
+
 function FaqItem({ q, a, index }) {
   const [open, setOpen] = useState(false);
   return (
@@ -329,7 +344,7 @@ export default function HomePage() {
 
             {/* desktop nav */}
             <nav className="hidden items-center gap-7 md:flex">
-              {[["Shop","#shop"],["Series","#series"],["Wholesale","#wholesale"],["FAQ","#faq"],...NAV_LINKS].map(([l,h]) => (
+              {[["Shop","#shop"],["Series","#series"],["Wholesale","#wholesale"],["FAQ","#faq"]].map(([l,h]) => (
                 <a key={l} href={h} className="text-[11px] uppercase tracking-[0.16em] text-white/40 transition hover:text-white/90">{l}</a>
               ))}
             </nav>
@@ -375,7 +390,7 @@ export default function HomePage() {
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/40"><X size={15} /></button>
               </div>
               <nav className="flex flex-col">
-                {[["Shop","#shop"],["Series","#series"],["Why us","#why"],["Wholesale","#wholesale"],["FAQ","#faq"],...NAV_LINKS].map(([l,h]) => (
+                {[["Shop","#shop"],["Series","#series"],["Why us","#why"],["Wholesale","#wholesale"],["FAQ","#faq"]].map(([l,h]) => (
                   <a key={l} href={h} onClick={() => setNavOpen(false)}
                     className="border-b border-white/[0.05] py-3.5 text-[14px] text-white/55 transition hover:text-white">{l}</a>
                 ))}
@@ -631,20 +646,17 @@ export default function HomePage() {
                 </Fade>
               </div>
 
-              {/* mosaic */}
-              {/* Grid adapts: 1 col if only 1 photo, 2-col if 2+, up to 4-col for 4+ */}
+              {/* Grid: auto-adapts to number of posts */}
               <div className={
-                IG_POSTS.length === 1 ? "max-w-sm mx-auto" :
-                IG_POSTS.length === 2 ? "grid grid-cols-2 gap-3 max-w-2xl mx-auto" :
-                IG_POSTS.length === 3 ? "grid grid-cols-2 sm:grid-cols-3 gap-3" :
+                IG_POSTS.length === 1 ? "max-w-xs mx-auto" :
+                IG_POSTS.length === 2 ? "grid grid-cols-2 gap-3 max-w-xl mx-auto" :
+                IG_POSTS.length === 3 ? "grid grid-cols-3 gap-3" :
                 "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
               }>
                 {IG_POSTS.map((p,i) => (
-                  <Fade key={i} delay={i*50} className="overflow-hidden rounded-[14px]">
+                  <Fade key={i} delay={i*50} className="overflow-hidden rounded-[14px] bg-[#1c1814] border border-white/[0.06]">
                     <a href={p.url} target="_blank" rel="noreferrer" className="group relative block">
-                      <img src={p.src} alt={p.alt}
-                        className="aspect-square w-full object-cover transition duration-500 group-hover:scale-[1.04] group-hover:brightness-75"
-                        loading="lazy" />
+                      <IgTile src={p.src} alt={p.alt} />
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 transition duration-300 group-hover:opacity-100">
                         <div className="rounded-full bg-black/50 p-2.5 backdrop-blur-sm"><Instagram size={15} className="text-white" /></div>
                       </div>
