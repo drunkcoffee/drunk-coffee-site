@@ -1,4 +1,6 @@
 import { ArrowLeft, ChevronLeft, ChevronRight, Instagram, Minus, Plus, ShoppingCart, X } from "lucide-react";
+import BlurImage from "../components/BlurImage";
+import { Lightbox, useLightbox } from "../components/Lightbox";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Seo from "../components/Seo";
@@ -208,6 +210,10 @@ export default function ProductDetail() {
   const [toast,    setToast]    = useState("");
   const [qty,      setQty]      = useState(1);
 
+  // Lightbox — opens when user clicks the product image
+  const lightboxImages = detailImage ? [{ src: detailImage, alt: bean?.name || "" }] : [];
+  const { open: openLightbox, lightboxProps } = useLightbox(lightboxImages);
+
   const bean          = useMemo(() => beans.find(b => b.slug === slug), [beans, slug]);
   const currentIndex  = useMemo(() => beans.findIndex(b => b.slug === slug), [beans, slug]);
   const previousBean  = currentIndex > 0 ? beans[currentIndex - 1] : null;
@@ -338,19 +344,37 @@ export default function ProductDetail() {
               ════════════════════════════════════════ */}
               <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
 
-                {/* ── Image panel — sticky on desktop ── */}
+                {/* ── Image panel — sticky on desktop, click to lightbox ── */}
                 <Fade className="lg:sticky lg:top-[68px]">
-                  <div className="overflow-hidden rounded-[24px] border border-white/[0.07] bg-[#130f0a]">
-                    {detailImage
-                      ? <div className="flex aspect-square items-center justify-center p-10 md:p-14">
-                          <img src={detailImage} alt={bean.name}
-                            className="h-full w-full object-contain transition duration-700 hover:scale-[1.03]" />
+                  <div className="group relative overflow-hidden rounded-[24px] border border-white/[0.07]">
+                    {detailImage ? (
+                      <button
+                        type="button"
+                        onClick={() => openLightbox(0)}
+                        className="block w-full text-left"
+                        aria-label="View full image"
+                      >
+                        <BlurImage
+                          src={detailImage}
+                          alt={bean.name}
+                          aspect="square"
+                          priority
+                          className="h-full w-full object-contain p-10 md:p-14 transition duration-700 group-hover:scale-[1.03]"
+                        />
+                        {/* zoom hint */}
+                        <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-white/14 bg-black/50 px-3 py-1.5 opacity-0 backdrop-blur-sm transition duration-300 group-hover:opacity-100">
+                          <svg viewBox="0 0 16 16" className="h-3 w-3 text-white/60" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3 3"/><path d="M6.5 4.5v4M4.5 6.5h4"/>
+                          </svg>
+                          <span className="text-[10px] uppercase tracking-[0.12em] text-white/50">Zoom</span>
                         </div>
-                      : <div className="aspect-square flex flex-col items-center justify-center gap-3">
-                          <div className="h-10 w-10 rounded-full border border-white/10" />
-                          <span className="text-[10px] uppercase tracking-[0.2em] text-white/18">Photo coming soon</span>
-                        </div>
-                    }
+                      </button>
+                    ) : (
+                      <div className="aspect-square flex flex-col items-center justify-center gap-3 bg-[#130f0a]">
+                        <div className="h-10 w-10 rounded-full border border-white/10" />
+                        <span className="text-[10px] uppercase tracking-[0.2em] text-white/18">Photo coming soon</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Prev / Next beneath image */}
@@ -577,6 +601,9 @@ export default function ProductDetail() {
             </div>
           </div>
         )}
+
+        {/* Lightbox */}
+        <Lightbox {...lightboxProps} />
 
         <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)}
           cart={cart} cartCount={cartCount} cartTotal={cartTotal}

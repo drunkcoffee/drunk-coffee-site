@@ -1,4 +1,5 @@
 import { ChevronDown, Instagram, Menu, ShoppingCart, X } from "lucide-react";
+import BlurImage from "../components/BlurImage";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Seo from "../components/Seo";
@@ -265,10 +266,10 @@ function SeriesCard({ bean, onOpen, index }) {
     <Fade delay={index * 60}>
       <button type="button" onClick={() => onOpen(bean.slug)}
         className="group w-full text-left overflow-hidden rounded-[18px] border border-white/[0.07] bg-[#1c1814] transition duration-300 hover:-translate-y-1 hover:border-white/[0.14]">
-        <div className="aspect-square overflow-hidden bg-[#130f0a] flex items-center justify-center p-8">
+        <div className="aspect-square overflow-hidden flex items-center justify-center p-8">
           {img
-            ? <img src={img} alt={bean.name} className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.06]" />
-            : <div className="text-[10px] uppercase tracking-widest text-white/16">Soon</div>
+            ? <BlurImage src={img} alt={bean.name} className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.06]" />
+            : <div className="flex h-full w-full items-center justify-center bg-[#130f0a] text-[10px] uppercase tracking-widest text-white/16">Soon</div>
           }
         </div>
         <div className="px-5 pb-5 pt-4">
