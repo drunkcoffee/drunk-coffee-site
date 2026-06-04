@@ -95,6 +95,43 @@ function ScrollProgress() {
   );
 }
 
+
+
+// ─── Global keyframes (injected once) ────────────────────────────────────────
+function GlobalStyles() {
+  return (
+    <style>{`
+      @keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+    `}</style>
+  );
+}
+
+// ─── Marquee ticker ───────────────────────────────────────────────────────────
+const TICKER_ITEMS = [
+  "Roasted to order",
+  "Johor · Malaysia",
+  "Ships within 48 hrs",
+  "Filter + Espresso",
+  "Small-batch specialty",
+  "WhatsApp ordering",
+  "Fresh · Sweet · Approachable",
+];
+function Marquee() {
+  const items = [...TICKER_ITEMS, ...TICKER_ITEMS]; // double for seamless loop
+  return (
+    <div className="overflow-hidden border-b border-white/[0.05] py-2.5" style={{ background:"rgba(14,12,9,0.6)" }}>
+      <div className="flex w-max animate-[marquee_28s_linear_infinite] items-center gap-0">
+        {items.map((item, i) => (
+          <span key={i} className="flex items-center gap-4 px-4 text-[10px] uppercase tracking-[0.22em] text-white/28">
+            {item}
+            <span className="h-1 w-1 rounded-full bg-[#c8922a]/40" />
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Cart Drawer ──────────────────────────────────────────────────────────────
 function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onIncrease, onRemove, onClear }) {
   const url = buildCartWhatsAppUrl(cart);
@@ -330,6 +367,7 @@ export default function HomePage() {
       />
 
       <Grain />
+      <GlobalStyles />
       <ScrollProgress />
 
       <div style={{ background: DARK }} className="min-h-screen">
@@ -469,6 +507,7 @@ export default function HomePage() {
           {/* ══════════════════════════════════════════════════════════
               SHOP — narrow list, flows naturally after hero
           ══════════════════════════════════════════════════════════ */}
+          <Marquee />
           <section id="shop" className="border-t border-white/[0.06]">
             <div className="mx-auto max-w-2xl px-4 py-14 md:px-6 md:py-20">
               <Fade>
