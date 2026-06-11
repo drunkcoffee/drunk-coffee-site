@@ -1,143 +1,96 @@
+/**
+ * Seo.jsx — unified meta tags for all pages
+ * 
+ * Place at src/components/Seo.jsx (replaces existing Seo component)
+ * 
+ * Props:
+ *   title        — page title (shown in tab + OG)
+ *   description  — meta description + OG description
+ *   url          — canonical path e.g. "/coffee/paraiso-java"
+ *   image        — OG image URL (full URL). Falls back to /og-default.jpg
+ *   imageAlt     — alt text for OG image
+ *   type         — "website" | "article" | "product" (default: "website")
+ *   jsonLd       — structured data object (will be JSON.stringify'd)
+ *   noIndex      — if true, adds noindex meta
+ */
+
 import { useEffect } from "react";
 
-const SITE_NAME = "Drunk Coffee Roasters";
-const SITE_URL = "https://drunkcoffeeroasters.com";
-const DEFAULT_TITLE = "Drunk Coffee Roasters | Specialty Coffee Roaster in Malaysia";
-const DEFAULT_DESCRIPTION =
-  "Small-batch specialty coffee roasted in Johor, Malaysia. Shop filter and espresso coffees, explore the Monteblanco Series, and order fresh roast via WhatsApp.";
-const DEFAULT_IMAGE = `${SITE_URL}/og-default.jpg`;
+const SITE_NAME   = "Drunk Coffee Roasters";
+const SITE_URL    = "https://drunkcoffeeroasters.com";
+const DEFAULT_IMG = `${SITE_URL}/og-default.jpg`;   // put a 1200×630 brand image here
+const TWITTER_HDL = "@drunkcoffeemy";               // update if you have one
 
-function upsertMeta(selector, attributes) {
-  let element = document.head.querySelector(selector);
-  if (!element) {
-    element = document.createElement("meta");
-    document.head.appendChild(element);
+function setMeta(name, content, attr = "name") {
+  if (!content) return;
+  let el = document.querySelector(`meta[${attr}="${name}"]`);
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute(attr, name);
+    document.head.appendChild(el);
   }
-  Object.entries(attributes).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      element.setAttribute(key, value);
-    }
-  });
+  el.setAttribute("content", content);
 }
 
-function upsertLink(selector, attributes) {
-  let element = document.head.querySelector(selector);
-  if (!element) {
-    element = document.createElement("link");
-    document.head.appendChild(element);
-  }
-  Object.entries(attributes).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      element.setAttribute(key, value);
-    }
-  });
+function setLink(rel, href) {
+  if (!href) return;
+  let el = document.querySelector(`link[rel="${rel}"]`);
+  if (!el) { el = document.createElement("link"); el.setAttribute("rel", rel); document.head.appendChild(el); }
+  el.setAttribute("href", href);
 }
 
-function upsertJsonLd(jsonLd) {
-  let element = document.head.querySelector('script[data-seo-jsonld="true"]');
-  if (!jsonLd) {
-    if (element) element.remove();
-    return;
-  }
-  if (!element) {
-    element = document.createElement("script");
-    element.setAttribute("type", "application/ld+json");
-    element.setAttribute("data-seo-jsonld", "true");
-    document.head.appendChild(element);
-  }
-  element.textContent = JSON.stringify(jsonLd);
+function setJsonLd(data) {
+  const id = "json-ld-main";
+  let el = document.getElementById(id);
+  if (!el) { el = document.createElement("script"); el.id = id; el.type = "application/ld+json"; document.head.appendChild(el); }
+  el.textContent = JSON.stringify(data);
 }
 
 export default function Seo({
-  title = DEFAULT_TITLE,
-  description = DEFAULT_DESCRIPTION,
+  title,
+  description,
   url = "/",
-  image = DEFAULT_IMAGE,
-  noindex = false,
-  jsonLd = null,
+  image,
+  imageAlt,
+  type = "website",
+  jsonLd,
+  noIndex = false,
 }) {
+  const fullTitle  = title ? `${title}` : SITE_NAME;
+  const fullUrl    = `${SITE_URL}${url.startsWith("/") ? url : `/${url}`}`;
+  const ogImage    = image || DEFAULT_IMG;
+  const ogImageAlt = imageAlt || title || SITE_NAME;
+
   useEffect(() => {
-    const absoluteUrl = url.startsWith("http") ? url : `${SITE_URL}${url}`;
-    const absoluteImage = image?.startsWith("http")
-      ? image
-      : `${SITE_URL}${image || "/og-default.jpg"}`;
+    // Basic
+    document.title = fullTitle;
+    setMeta("description",        description);
+    setMeta("robots",             noIndex ? "noindex,nofollow" : "index,follow");
+    setLink("canonical",          fullUrl);
 
-    document.title = title || DEFAULT_TITLE;
+    // Open Graph
+    setMeta("og:type",            type,        "property");
+    setMeta("og:site_name",       SITE_NAME,   "property");
+    setMeta("og:title",           fullTitle,   "property");
+    setMeta("og:description",     description, "property");
+    setMeta("og:url",             fullUrl,     "property");
+    setMeta("og:image",           ogImage,     "property");
+    setMeta("og:image:alt",       ogImageAlt,  "property");
+    setMeta("og:image:width",     "1200",      "property");
+    setMeta("og:image:height",    "630",       "property");
+    setMeta("og:locale",          "en_MY",     "property");
 
-    upsertMeta('meta[name="description"]', {
-      name: "description",
-      content: description || DEFAULT_DESCRIPTION,
-    });
+    // Twitter / X card
+    setMeta("twitter:card",        "summary_large_image");
+    setMeta("twitter:site",        TWITTER_HDL);
+    setMeta("twitter:title",       fullTitle);
+    setMeta("twitter:description", description);
+    setMeta("twitter:image",       ogImage);
+    setMeta("twitter:image:alt",   ogImageAlt);
 
-    upsertMeta('meta[property="og:type"]', {
-      property: "og:type",
-      content: "website",
-    });
-
-    upsertMeta('meta[property="og:site_name"]', {
-      property: "og:site_name",
-      content: SITE_NAME,
-    });
-
-    upsertMeta('meta[property="og:title"]', {
-      property: "og:title",
-      content: title || DEFAULT_TITLE,
-    });
-
-    upsertMeta('meta[property="og:description"]', {
-      property: "og:description",
-      content: description || DEFAULT_DESCRIPTION,
-    });
-
-    upsertMeta('meta[property="og:url"]', {
-      property: "og:url",
-      content: absoluteUrl,
-    });
-
-    upsertMeta('meta[property="og:image"]', {
-      property: "og:image",
-      content: absoluteImage,
-    });
-
-    upsertMeta('meta[name="twitter:card"]', {
-      name: "twitter:card",
-      content: "summary_large_image",
-    });
-
-    upsertMeta('meta[name="twitter:title"]', {
-      name: "twitter:title",
-      content: title || DEFAULT_TITLE,
-    });
-
-    upsertMeta('meta[name="twitter:description"]', {
-      name: "twitter:description",
-      content: description || DEFAULT_DESCRIPTION,
-    });
-
-    upsertMeta('meta[name="twitter:image"]', {
-      name: "twitter:image",
-      content: absoluteImage,
-    });
-
-    if (noindex) {
-      upsertMeta('meta[name="robots"]', {
-        name: "robots",
-        content: "noindex,nofollow",
-      });
-    } else {
-      upsertMeta('meta[name="robots"]', {
-        name: "robots",
-        content: "index,follow,max-image-preview:large",
-      });
-    }
-
-    upsertLink('link[rel="canonical"]', {
-      rel: "canonical",
-      href: absoluteUrl,
-    });
-
-    upsertJsonLd(jsonLd);
-  }, [title, description, url, image, noindex, jsonLd]);
+    // JSON-LD
+    if (jsonLd) setJsonLd(jsonLd);
+  }, [fullTitle, description, fullUrl, ogImage, ogImageAlt, type, jsonLd, noIndex]);
 
   return null;
 }

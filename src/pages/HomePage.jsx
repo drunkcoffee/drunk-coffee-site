@@ -1,5 +1,6 @@
 import { ChevronDown, Instagram, Menu, ShoppingCart, X } from "lucide-react";
 import BlurImage from "../components/BlurImage";
+import Toast from "../components/Toast";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Seo from "../components/Seo";
@@ -9,7 +10,6 @@ import {
   INSTAGRAM_URL,
   XHS_LABEL,
   appendImageParams,
-  badgeClasses,
   buildBundleOrderUrl,
   buildCartWhatsAppUrl,
   buildGeneralWhatsAppUrl,
@@ -21,11 +21,9 @@ import {
 } from "../lib/coffeeStore";
 
 // ─── Tokens ──────────────────────────────────────────────────────────────────
-const AMBER    = "#c8922a";
-const AMBER_HI = "#d9a23a";
-const DARK     = "#0e0c09";
-const MID      = "#151210";
-const PANEL    = "#1c1814";
+const AMBER = "#c8922a";
+const DARK  = "#0e0c09";
+const PANEL = "#1c1814";
 
 const P = "inline-flex items-center gap-2 rounded-full bg-[#c8922a] px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-[#0e0c09] transition duration-150 hover:bg-[#d9a23a] active:scale-[0.97]";
 const G = "inline-flex items-center gap-2 rounded-full border border-white/12 px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-white/60 transition duration-150 hover:border-white/24 hover:text-white active:scale-[0.97]";
@@ -140,9 +138,9 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
   return (
     <div className="fixed inset-0 z-[70] flex justify-end">
       <button type="button" onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-[6px]" aria-label="Close" />
-      <aside className="relative flex h-full w-full max-w-[340px] flex-col border-l border-white/[0.07]" style={{ background: "#100e0b" }}>
+      <aside className="relative flex w-full max-w-[340px] flex-col border-l border-white/[0.07]" style={{ background: "#100e0b", height: "100dvh" }}>
         {/* header */}
-        <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4">
+        <div className="shrink-0 flex items-center justify-between border-b border-white/[0.07] px-5 py-4">
           <div>
             <p className="text-[17px] font-semibold tracking-[-0.02em] text-white">Your cart</p>
             <p className="text-[11px] text-white/30">{cartCount} item{cartCount !== 1 ? "s" : ""}</p>
@@ -154,7 +152,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
         </div>
 
         {/* items */}
-        <div className="flex-1 overflow-auto px-5 py-4 space-y-2">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 space-y-2">
           {cart.length === 0
             ? <div className="mt-8 text-center">
                 <p className="text-[14px] text-white/40">Your cart is empty.</p>
@@ -183,7 +181,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
         </div>
 
         {/* footer */}
-        <div className="border-t border-white/[0.07] px-5 pt-4" style={{ paddingBottom:"max(1.25rem,env(safe-area-inset-bottom))" }}>
+        <div className="shrink-0 border-t border-white/[0.07] px-5 pt-4" style={{ paddingBottom:"max(1.5rem,env(safe-area-inset-bottom))" }}>
           <div className="mb-4 flex items-end justify-between">
             <div>
               <p className="text-[10px] uppercase tracking-[0.16em] text-white/28">Total</p>
@@ -364,6 +362,8 @@ export default function HomePage() {
         title="Drunk Coffee Roasters | Specialty Coffee Roaster in Malaysia"
         description="Small-batch specialty coffee roasted in Johor, Malaysia. Sweet, approachable, and made for every day."
         url="/"
+        image="https://drunkcoffeeroasters.com/og-default.jpg"
+        imageAlt="Drunk Coffee Roasters — Specialty Coffee from Johor, Malaysia"
         jsonLd={{ "@context":"https://schema.org","@type":"Organization",name:"Drunk Coffee Roasters",url:"https://drunkcoffeeroasters.com",sameAs:["https://instagram.com/drunkcoffeeroasters"] }}
       />
 
@@ -445,6 +445,22 @@ export default function HomePage() {
 
         <main id="top" className="pt-[56px] md:pt-[60px]">
 
+          {/* ── Cart return-visitor nudge ── */}
+          {cartCount > 0 && !cartOpen && (
+            <div
+              className="sticky top-[56px] md:top-[60px] z-40 flex items-center justify-between gap-3 border-b border-[#c8922a]/20 px-4 py-2.5 md:px-6"
+              style={{ background: "rgba(200,146,42,0.08)", backdropFilter: "blur(12px)" }}>
+              <p className="text-[12px] text-[#c8922a]/80">
+                <span className="font-semibold text-[#c8922a]">{cartCount} item{cartCount !== 1 ? "s" : ""}</span>
+                {" "}in your cart — ready to order?
+              </p>
+              <button type="button" onClick={() => setCartOpen(true)}
+                className="shrink-0 rounded-full bg-[#c8922a] px-4 py-1.5 text-[11px] font-semibold text-[#0e0c09] transition hover:bg-[#d9a23a]">
+                View cart
+              </button>
+            </div>
+          )}
+
           {/* ══════════════════════════════════════════════════════════
               HERO
           ══════════════════════════════════════════════════════════ */}
@@ -463,7 +479,7 @@ export default function HomePage() {
                 <Eyebrow>Johor · Malaysia · Est. 2023</Eyebrow>
               </Fade>
               <Fade delay={60}>
-                <h1 className="text-[clamp(52px,9.5vw,120px)] font-bold leading-[0.85] tracking-[-0.05em] text-white max-w-[12ch]">
+                <h1 className="text-[clamp(38px,9.5vw,112px)] font-bold leading-[0.88] tracking-[-0.05em] text-white max-w-[12ch]">
                   Coffee<br />
                   <em className="not-italic" style={{ color:AMBER }}>worth</em><br />
                   getting<br />
@@ -502,6 +518,14 @@ export default function HomePage() {
                   ))}
                 </div>
               </Fade>
+
+              {/* scroll cue */}
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-30">
+                <span className="text-[9px] uppercase tracking-[0.2em] text-white">Scroll</span>
+                <svg viewBox="0 0 16 16" className="h-4 w-4 text-white animate-bounce" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M3 6l5 5 5-5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
             </div>
           </section>
 
@@ -720,7 +744,7 @@ export default function HomePage() {
           <section id="wholesale" className="border-t border-white/[0.06]">
             <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
               <Fade>
-                <div className="relative overflow-hidden rounded-[22px] border border-white/[0.07]" style={{ background:PANEL }}>
+                <div className="relative overflow-hidden rounded-[22px] border border-white/[0.07]" style={{ background:"rgba(255,255,255,0.02)" }}>
                   {/* amber glow top-right */}
                   <div className="absolute right-0 top-0 h-[300px] w-[400px] opacity-10"
                     style={{ background:"radial-gradient(ellipse at top right,#c8922a,transparent 65%)" }} />
@@ -872,12 +896,7 @@ export default function HomePage() {
       />
 
       {/* Toast */}
-      {toast && (
-        <div className="pointer-events-none fixed left-1/2 z-[80] -translate-x-1/2 rounded-full bg-[#c8922a] px-5 py-2.5 text-[12px] font-semibold text-[#0e0c09] shadow-[0_16px_48px_rgba(0,0,0,0.5)] transition-opacity"
-          style={{ bottom:"max(5rem,calc(1rem + env(safe-area-inset-bottom)))" }}>
-          {toast}
-        </div>
-      )}
+      <Toast message={toast} />
     </>
   );
 }
