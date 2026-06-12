@@ -21,9 +21,8 @@ import {
 } from "../lib/coffeeStore";
 
 // ─── Tokens ──────────────────────────────────────────────────────────────────
-const AMBER = "#c8922a";
-const DARK  = "#0e0c09";
-const PANEL = "#1c1814";
+const AMBER    = "#c8922a";
+const DARK     = "#0e0c09";
 
 const P = "inline-flex items-center gap-2 rounded-full bg-[#c8922a] px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-[#0e0c09] transition duration-150 hover:bg-[#d9a23a] active:scale-[0.97]";
 const G = "inline-flex items-center gap-2 rounded-full border border-white/12 px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-white/60 transition duration-150 hover:border-white/24 hover:text-white active:scale-[0.97]";
@@ -656,7 +655,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* reviews — inlined below WHY for narrative flow */}
+              {/* reviews */}
               <div className="mt-14 grid gap-4 md:grid-cols-3">
                 {[
                   { init:"M", handle:"@coffeewithmei",     source:"Instagram", tag:"Repeat order", quote:"The beans were really fragrant and tasted super fresh. I really liked them." },
@@ -664,26 +663,37 @@ export default function HomePage() {
                   { init:"L", handle:"@linaroundtheworld", source:"Instagram", tag:"Souvenir",      quote:"Amazing as a souvenir to bring back to China." },
                 ].map((r,i) => (
                   <Fade key={r.handle} delay={i*70}>
-                    <div className="flex h-full flex-col rounded-[18px] border border-white/[0.06] bg-[#1c1814] p-5">
-                      {/* stars */}
-                      <div className="flex gap-0.5 mb-4">
+                    <div className="flex h-full flex-col rounded-[20px] border border-white/[0.07] bg-[#1c1814] p-6 md:p-7">
+
+                      {/* stars — bigger */}
+                      <div className="flex gap-1 mb-5">
                         {[0,1,2,3,4].map(s => (
-                          <svg key={s} viewBox="0 0 12 12" className="h-2.5 w-2.5" fill={AMBER}><path d="M6 0l1.5 4H12l-3.7 2.7 1.4 4.3L6 8.7l-3.7 2.3 1.4-4.3L0 4h4.5z"/></svg>
+                          <svg key={s} viewBox="0 0 12 12" className="h-4 w-4" fill={AMBER}>
+                            <path d="M6 0l1.5 4H12l-3.7 2.7 1.4 4.3L6 8.7l-3.7 2.3 1.4-4.3L0 4h4.5z"/>
+                          </svg>
                         ))}
                       </div>
-                      <p className="flex-1 text-[18px] font-bold leading-[1.25] tracking-[-0.02em] text-white/88">"{r.quote}"</p>
-                      <div className="mt-5 flex items-center justify-between border-t border-white/[0.05] pt-4">
-                        <div className="flex items-center gap-2.5">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] border border-white/10">
-                            <span className="text-[12px] font-bold text-white/55">{r.init}</span>
+
+                      {/* quote — larger, more breathing room */}
+                      <p className="flex-1 text-[20px] font-semibold leading-[1.55] tracking-[-0.01em] text-white/90 md:text-[22px]">
+                        "{r.quote}"
+                      </p>
+
+                      {/* byline */}
+                      <div className="mt-6 flex items-center justify-between border-t border-white/[0.06] pt-5">
+                        <div className="flex items-center gap-3">
+                          {/* avatar */}
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.07] border border-white/10">
+                            <span className="text-[14px] font-bold text-white/60">{r.init}</span>
                           </div>
                           <div>
-                            <p className="text-[12px] text-white/60">{r.handle}</p>
-                            <p className="text-[10px] text-white/26">{r.tag}</p>
+                            <p className="text-[14px] font-medium text-white/70">{r.handle}</p>
+                            <p className="mt-0.5 text-[12px] text-white/36">{r.tag}</p>
                           </div>
                         </div>
-                        <span className="text-[10px] uppercase tracking-[0.1em] text-white/24 border border-white/[0.07] rounded-full px-2.5 py-1">{r.source}</span>
+                        <span className="shrink-0 text-[11px] uppercase tracking-[0.1em] text-white/30 border border-white/[0.08] rounded-full px-3 py-1.5">{r.source}</span>
                       </div>
+
                     </div>
                   </Fade>
                 ))}
@@ -744,7 +754,7 @@ export default function HomePage() {
           <section id="wholesale" className="border-t border-white/[0.06]">
             <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
               <Fade>
-                <div className="relative overflow-hidden rounded-[22px] border border-white/[0.07]" style={{ background:"rgba(255,255,255,0.02)" }}>
+                <div className="relative overflow-hidden rounded-[22px] border border-white/[0.07]" style={{ background:"#1c1814" }}>
                   {/* amber glow top-right */}
                   <div className="absolute right-0 top-0 h-[300px] w-[400px] opacity-10"
                     style={{ background:"radial-gradient(ellipse at top right,#c8922a,transparent 65%)" }} />
