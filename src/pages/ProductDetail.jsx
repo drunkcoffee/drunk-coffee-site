@@ -59,8 +59,8 @@ function DetailRow({ label, value }) {
   if (!value) return null;
   return (
     <div className="flex items-baseline justify-between gap-6 border-b border-white/[0.05] py-3.5">
-      <span className="shrink-0 text-[11px] uppercase tracking-[0.14em] text-white/28">{label}</span>
-      <span className="text-right text-[13px] leading-relaxed text-white/62">{value}</span>
+      <span className="shrink-0 text-[11px] uppercase tracking-[0.14em] text-white/36">{label}</span>
+      <span className="text-right text-[14px] leading-relaxed text-white/70">{value}</span>
     </div>
   );
 }
@@ -68,7 +68,7 @@ function DetailRow({ label, value }) {
 // ─── Note pill with amber dot ─────────────────────────────────────────────────
 function NotePill({ note }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] text-white/56">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-3.5 py-1.5 text-[12px] text-white/62">
       <span className="h-1 w-1 shrink-0 rounded-full bg-[#c8922a]/60" />
       {note}
     </span>
@@ -103,7 +103,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
                 <div key={item.id} className="rounded-[14px] border border-white/[0.06] bg-white/[0.025] p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-[14px] font-semibold text-white">{item.name}</p>
+                      <p className="truncate text-[15px] font-semibold text-white">{item.name}</p>
                       <p className="mt-0.5 text-[11px] text-white/30">{item.category} · {item.size}</p>
                     </div>
                     <button type="button" onClick={() => onRemove(item.id)}
@@ -132,8 +132,8 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
           style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
           <div className="mb-4 flex items-end justify-between">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.16em] text-white/28">Total</p>
-              <p className="mt-0.5 text-[30px] font-bold tracking-[-0.045em] text-white">RM {cartTotal}</p>
+              <p className="text-[11px] uppercase tracking-[0.16em] text-white/32">Total</p>
+              <p className="mt-0.5 text-[32px] font-bold tracking-[-0.045em] text-white">RM {cartTotal}</p>
             </div>
             {cart.length > 0 &&
               <button type="button" onClick={onClear}
@@ -168,10 +168,10 @@ function RelatedRow({ bean, onAdd }) {
         </div>
       </Link>
       <Link to={`/coffee/${bean.slug}`} className="min-w-0 flex-1">
-        <p className="truncate text-[14px] font-semibold text-white">{bean.name}</p>
-        {notes && <p className="mt-0.5 truncate text-[11px] text-white/30">{notes}</p>}
+        <p className="truncate text-[15px] font-semibold text-white">{bean.name}</p>
+        {notes && <p className="mt-0.5 truncate text-[12px] text-white/38">{notes}</p>}
       </Link>
-      <p className="shrink-0 mr-2 text-[13px] font-semibold text-white/65">RM {bean.price}</p>
+      <p className="shrink-0 mr-2 text-[14px] font-semibold text-white/70">RM {bean.price}</p>
       <button type="button" onClick={() => onAdd(bean)}
         className="shrink-0 rounded-full bg-[#c8922a]/10 border border-[#c8922a]/30 px-3.5 py-1.5 text-[11px] font-semibold text-[#c8922a] transition hover:bg-[#c8922a] hover:text-[#0e0c09]">
         + Add
@@ -390,8 +390,8 @@ export default function ProductDetail() {
                             className="group flex items-center gap-2 rounded-[12px] border border-white/[0.06] px-4 py-3 transition hover:border-white/[0.12] hover:bg-[#1c1814]">
                             <ChevronLeft size={14} className="shrink-0 text-white/28 transition group-hover:text-white" />
                             <div className="min-w-0">
-                              <p className="text-[9px] uppercase tracking-[0.14em] text-white/26">Prev</p>
-                              <p className="truncate text-[12px] font-semibold text-white/70 group-hover:text-white">{previousBean.name}</p>
+                              <p className="text-[10px] uppercase tracking-[0.14em] text-white/34">Prev</p>
+                              <p className="truncate text-[13px] font-semibold text-white/75 group-hover:text-white">{previousBean.name}</p>
                             </div>
                           </Link>
                         : <div />
@@ -400,8 +400,8 @@ export default function ProductDetail() {
                         <Link to={`/coffee/${nextBean.slug}`}
                           className="group flex items-center justify-end gap-2 rounded-[12px] border border-white/[0.06] px-4 py-3 text-right transition hover:border-white/[0.12] hover:bg-[#1c1814]">
                           <div className="min-w-0">
-                            <p className="text-[9px] uppercase tracking-[0.14em] text-white/26">Next</p>
-                            <p className="truncate text-[12px] font-semibold text-white/70 group-hover:text-white">{nextBean.name}</p>
+                            <p className="text-[10px] uppercase tracking-[0.14em] text-white/34">Next</p>
+                            <p className="truncate text-[13px] font-semibold text-white/75 group-hover:text-white">{nextBean.name}</p>
                           </div>
                           <ChevronRight size={14} className="shrink-0 text-white/28 transition group-hover:text-white" />
                         </Link>
@@ -415,7 +415,7 @@ export default function ProductDetail() {
                   <Fade>
                     {/* breadcrumb */}
                     {bean.collection && <Eyebrow>{bean.collection}</Eyebrow>}
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/28">{bean.category}</p>
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/36">{bean.category}</p>
 
                     {/* name */}
                     <h1 className="mt-2 text-[clamp(34px,4.5vw,56px)] font-bold leading-[0.87] tracking-[-0.05em] text-white">
@@ -424,7 +424,7 @@ export default function ProductDetail() {
 
                     {/* tagline */}
                     {bean.tagline &&
-                      <p className="mt-4 text-[15px] leading-[1.85] text-white/50">{bean.tagline}</p>}
+                      <p className="mt-4 text-[16px] leading-[1.85] text-white/55">{bean.tagline}</p>}
 
                     {/* notes — visual pills */}
                     {notes.length > 0 && (
@@ -437,7 +437,7 @@ export default function ProductDetail() {
                   {/* description */}
                   {bean.description && (
                     <Fade delay={60} className="mt-5 border-t border-white/[0.06] pt-5">
-                      <p className="text-[13px] leading-[1.95] text-white/46">{bean.description}</p>
+                      <p className="text-[14px] leading-[1.95] text-white/52">{bean.description}</p>
                     </Fade>
                   )}
 
@@ -456,7 +456,7 @@ export default function ProductDetail() {
                   <Fade delay={100} className="mt-7 border-t border-white/[0.06] pt-6">
                     <div className="flex items-center justify-between gap-4 mb-5">
                       <div>
-                        <p className="text-[10px] uppercase tracking-[0.16em] text-white/28">Price</p>
+                        <p className="text-[11px] uppercase tracking-[0.16em] text-white/32">Price</p>
                         <p className="mt-1 text-[36px] font-bold tracking-[-0.05em] text-white">RM {bean.price}</p>
                       </div>
                       {/* qty stepper desktop */}
@@ -489,7 +489,7 @@ export default function ProductDetail() {
 
                   {/* freshness note */}
                   <Fade delay={120} className="mt-4">
-                    <p className="flex items-center gap-2 text-[11px] text-white/26">
+                    <p className="flex items-center gap-2 text-[12px] text-white/34">
                       <span className="h-1 w-1 rounded-full bg-[#c8922a]/50" />
                       Roasted to order · dispatched within 48 hours
                     </p>
@@ -507,7 +507,7 @@ export default function ProductDetail() {
                     <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       {brewGuideLines.map((line, i) => (
                         <div key={i} className="rounded-[12px] border border-white/[0.05] bg-white/[0.025] p-4">
-                          <p className="text-[13px] leading-[1.8] text-white/58">{line}</p>
+                          <p className="text-[14px] leading-[1.8] text-white/62">{line}</p>
                         </div>
                       ))}
                     </div>
@@ -541,7 +541,7 @@ export default function ProductDetail() {
                         <div>
                           <Eyebrow>Monteblanco Series</Eyebrow>
                           <h2 className="text-[22px] font-bold tracking-[-0.03em] text-white">Explore the full set</h2>
-                          <p className="mt-1.5 text-[13px] text-white/38">Compare the expressions. Order the bundle.</p>
+                          <p className="mt-1.5 text-[14px] text-white/44">Compare the expressions. Order the bundle.</p>
                         </div>
                         <div className="flex flex-wrap gap-2 shrink-0">
                           <Link to="/series/monteblanco" className={G}>View series</Link>
@@ -599,7 +599,7 @@ export default function ProductDetail() {
                 onClick={() => trackWhatsappClick("product_detail_sticky", bean.slug)}
                 className="flex flex-1 items-center justify-between rounded-full bg-[#c8922a] px-5 py-3.5">
                 <span className="text-[13px] font-semibold text-[#0e0c09]">Order on WhatsApp</span>
-                <span className="ml-3 shrink-0 text-[12px] font-bold text-[#0e0c09]/70">
+                <span className="ml-3 shrink-0 text-[13px] font-bold text-[#0e0c09]/70">
                   RM {Number(bean.price) * qty}
                 </span>
               </a>

@@ -50,8 +50,8 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
                 <div key={item.id} className="rounded-[14px] border border-white/[0.06] bg-white/[0.025] p-4">
                   <div className="flex justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-[14px] font-semibold text-white">{item.name}</p>
-                      <p className="text-[11px] text-white/30 mt-0.5">{item.category} · {item.size}</p>
+                      <p className="truncate text-[15px] font-semibold text-white">{item.name}</p>
+                      <p className="text-[13px] text-white/40 mt-0.5">{item.category} · {item.size}</p>
                     </div>
                     <button type="button" onClick={() => onRemove(item.id)} className="text-white/20 transition hover:text-white/60"><X size={13} /></button>
                   </div>
@@ -61,7 +61,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
                       <span className="min-w-6 text-center text-[13px] text-white">{item.quantity}</span>
                       <button type="button" onClick={() => onIncrease(item.id)} className="flex h-7 w-7 items-center justify-center text-white/50 transition hover:text-white">+</button>
                     </div>
-                    <p className="text-[14px] font-semibold text-white">RM {Number(item.price||0)*item.quantity}</p>
+                    <p className="text-[15px] font-semibold text-white">RM {Number(item.price||0)*item.quantity}</p>
                   </div>
                 </div>
               ))
@@ -99,11 +99,11 @@ function SeriesCard({ bean, onAdd }) {
         </div>
       </Link>
       <div className="flex flex-1 flex-col p-5">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-[#c8922a]/60">{bean.category}</p>
+        <p className="text-[11px] uppercase tracking-[0.2em] text-[#c8922a]/70">{bean.category}</p>
         <Link to={`/coffee/${bean.slug}`}>
-          <h3 className="mt-1.5 text-[20px] font-semibold tracking-[-0.02em] text-white leading-tight hover:text-white/80 transition">{bean.name}</h3>
+          <h3 className="mt-1.5 text-[21px] font-semibold tracking-[-0.02em] text-white leading-tight hover:text-white/80 transition">{bean.name}</h3>
         </Link>
-        {notes && <p className="mt-2 text-[12px] text-white/36">{notes}</p>}
+        {notes && <p className="mt-2 text-[13px] text-white/44">{notes}</p>}
         {bean.tagline && <p className="mt-2.5 text-[12px] leading-relaxed text-white/42 line-clamp-2 flex-1">{bean.tagline}</p>}
         <div className="mt-5 flex items-center justify-between border-t border-white/[0.06] pt-4">
           <p className="text-[16px] font-semibold text-white">RM {bean.price}</p>
@@ -192,7 +192,7 @@ export default function MonteblancoSeriesPage() {
                 The Monteblanco<br />
                 <em className="not-italic text-[#c8922a]">Series</em>
               </h1>
-              <p className="mt-5 max-w-[44ch] text-[14px] leading-[1.9] text-white/46">
+              <p className="mt-5 max-w-[44ch] text-[15px] leading-[1.9] text-white/52">
                 Fruit-forward profiles from a single farm. Compare the expressions side by side, or grab the full set in one go.
               </p>
             </div>
@@ -215,8 +215,8 @@ export default function MonteblancoSeriesPage() {
               { title:"Giftable",       body:"The kind of coffee people like to give, bring home, or share." },
             ].map(c => (
               <div key={c.title} className="rounded-[14px] border border-white/[0.06] bg-white/[0.02] p-4">
-                <p className="text-[13px] font-semibold text-white">{c.title}</p>
-                <p className="mt-1.5 text-[12px] leading-[1.75] text-white/38">{c.body}</p>
+                <p className="text-[15px] font-semibold text-white">{c.title}</p>
+                <p className="mt-1.5 text-[13px] leading-[1.8] text-white/46">{c.body}</p>
               </div>
             ))}
           </div>

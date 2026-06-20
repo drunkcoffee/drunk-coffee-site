@@ -120,7 +120,7 @@ function Marquee() {
     <div className="overflow-hidden border-b border-white/[0.05] py-2.5" style={{ background:"rgba(14,12,9,0.6)" }}>
       <div className="flex w-max animate-[marquee_28s_linear_infinite] items-center gap-0">
         {items.map((item, i) => (
-          <span key={i} className="flex items-center gap-4 px-4 text-[10px] uppercase tracking-[0.22em] text-white/28">
+          <span key={i} className="flex items-center gap-4 px-4 text-[11px] uppercase tracking-[0.22em] text-white/32">
             {item}
             <span className="h-1 w-1 rounded-full bg-[#c8922a]/40" />
           </span>
@@ -161,8 +161,8 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
                 <div key={item.id} className="rounded-[14px] border border-white/[0.06] bg-white/[0.025] p-4">
                   <div className="flex justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-[14px] font-semibold text-white">{item.name}</p>
-                      <p className="text-[11px] text-white/30 mt-0.5">{item.category} · {item.size}</p>
+                      <p className="truncate text-[15px] font-semibold text-white">{item.name}</p>
+                      <p className="text-[12px] text-white/34 mt-0.5">{item.category} · {item.size}</p>
                     </div>
                     <button type="button" onClick={() => onRemove(item.id)} className="shrink-0 text-white/20 transition hover:text-white/60" aria-label="Remove"><X size={13} /></button>
                   </div>
@@ -183,8 +183,8 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
         <div className="shrink-0 border-t border-white/[0.07] px-5 pt-4" style={{ paddingBottom:"max(1.5rem,env(safe-area-inset-bottom))" }}>
           <div className="mb-4 flex items-end justify-between">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.16em] text-white/28">Total</p>
-              <p className="mt-0.5 text-[28px] font-bold tracking-[-0.04em] text-white">RM {cartTotal}</p>
+              <p className="text-[11px] uppercase tracking-[0.16em] text-white/30">Total</p>
+              <p className="mt-0.5 text-[30px] font-bold tracking-[-0.04em] text-white">RM {cartTotal}</p>
             </div>
             {cart.length > 0 && (
               <button type="button" onClick={onClear} className="text-[11px] text-white/24 transition hover:text-white/50 pb-1">Clear all</button>
@@ -270,9 +270,9 @@ function SeriesCard({ bean, onOpen, index }) {
           }
         </div>
         <div className="px-5 pb-5 pt-4">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-[#c8922a]/60">{bean.category}</p>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-[#c8922a]/65">{bean.category}</p>
           <h3 className="mt-1.5 text-[18px] font-semibold tracking-[-0.02em] text-white leading-tight">{bean.name}</h3>
-          {bean.tagline && <p className="mt-1.5 text-[12px] leading-relaxed text-white/38 line-clamp-2">{bean.tagline}</p>}
+          {bean.tagline && <p className="mt-1.5 text-[13px] leading-relaxed text-white/44 line-clamp-2">{bean.tagline}</p>}
         </div>
       </button>
     </Fade>
@@ -303,11 +303,11 @@ function FaqItem({ q, a, index }) {
       <div className="border-b border-white/[0.06]">
         <button type="button" onClick={() => setOpen(!open)}
           className="flex w-full items-center justify-between gap-4 py-4 text-left">
-          <span className={cx("text-[14px] font-semibold tracking-[-0.01em] transition duration-200", open ? "text-white" : "text-white/65")}>{q}</span>
+          <span className={cx("text-[15px] font-semibold tracking-[-0.01em] transition duration-200", open ? "text-white" : "text-white/65")}>{q}</span>
           <ChevronDown size={15} className={cx("shrink-0 text-white/28 transition duration-300", open ? "rotate-180 text-[#c8922a]" : "")} />
         </button>
         <div className={cx("overflow-hidden transition-all duration-300", open ? "max-h-40 pb-4" : "max-h-0")}>
-          <p className="text-[13px] leading-[1.8] text-white/46">{a}</p>
+          <p className="text-[14px] leading-[1.8] text-white/52">{a}</p>
         </div>
       </div>
     </Fade>
@@ -449,7 +449,7 @@ export default function HomePage() {
             <div
               className="sticky top-[56px] md:top-[60px] z-40 flex items-center justify-between gap-3 border-b border-[#c8922a]/20 px-4 py-2.5 md:px-6"
               style={{ background: "rgba(200,146,42,0.08)", backdropFilter: "blur(12px)" }}>
-              <p className="text-[12px] text-[#c8922a]/80">
+              <p className="text-[13px] text-[#c8922a]/85">
                 <span className="font-semibold text-[#c8922a]">{cartCount} item{cartCount !== 1 ? "s" : ""}</span>
                 {" "}in your cart — ready to order?
               </p>
@@ -486,7 +486,7 @@ export default function HomePage() {
                 </h1>
               </Fade>
               <Fade delay={120}>
-                <p className="mt-7 max-w-[38ch] text-[15px] leading-[1.9] text-white/48 md:text-[16px]">
+                <p className="mt-7 max-w-[38ch] text-[16px] leading-[1.9] text-white/50 md:text-[17px]">
                   Small-batch specialty coffee roasted in Johor. Sweet, approachable, and made for every day — not just special occasions.
                 </p>
               </Fade>
@@ -512,7 +512,7 @@ export default function HomePage() {
                   ].map(({ n,l }) => (
                     <div key={l} className="flex items-baseline gap-2">
                       <span className="text-[15px] font-semibold text-white">{n}</span>
-                      <span className="text-[10px] text-white/30">{l}</span>
+                      <span className="text-[11px] text-white/34">{l}</span>
                     </div>
                   ))}
                 </div>
@@ -646,8 +646,8 @@ export default function HomePage() {
                       <div className="flex gap-4 rounded-[14px] border border-white/[0.05] bg-white/[0.02] p-4 md:p-5">
                         <span className="mt-0.5 text-[10px] font-bold tracking-[0.14em] text-[#c8922a]/40 shrink-0">{c.n}</span>
                         <div>
-                          <p className="text-[14px] font-semibold tracking-[-0.01em] text-white">{c.title}</p>
-                          <p className="mt-1.5 text-[12px] leading-[1.75] text-white/40">{c.body}</p>
+                          <p className="text-[15px] font-semibold tracking-[-0.01em] text-white">{c.title}</p>
+                          <p className="mt-1.5 text-[13px] leading-[1.8] text-white/48">{c.body}</p>
                         </div>
                       </div>
                     </Fade>
@@ -766,7 +766,7 @@ export default function HomePage() {
                       <h2 className="text-[clamp(26px,3.5vw,48px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">
                         Fresh roast,<br />at scale.
                       </h2>
-                      <p className="mt-5 max-w-[44ch] text-[14px] leading-[1.9] text-white/46">
+                      <p className="mt-5 max-w-[44ch] text-[15px] leading-[1.9] text-white/52">
                         We supply cafés, offices, gift shops, and events across Malaysia. House espresso or seasonal filters — tell us what you need.
                       </p>
 
@@ -778,8 +778,8 @@ export default function HomePage() {
                           {v:"Custom",    l:"Label options"},
                         ].map(({v,l}) => (
                           <div key={l} className="rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-2 flex items-baseline gap-2">
-                            <span className="text-[13px] font-semibold text-white">{v}</span>
-                            <span className="text-[10px] text-white/32">{l}</span>
+                            <span className="text-[14px] font-semibold text-white">{v}</span>
+                            <span className="text-[11px] text-white/40">{l}</span>
                           </div>
                         ))}
                       </div>
@@ -803,8 +803,8 @@ export default function HomePage() {
                         { title:"Gift Sets",       desc:"Packaged for retail or corporate gifting." },
                       ].map(item => (
                         <div key={item.title} className="rounded-[13px] border border-white/[0.06] bg-white/[0.025] p-4">
-                          <p className="text-[13px] font-semibold text-white">{item.title}</p>
-                          <p className="mt-1 text-[12px] leading-relaxed text-white/36">{item.desc}</p>
+                          <p className="text-[14px] font-semibold text-white">{item.title}</p>
+                          <p className="mt-1 text-[13px] leading-relaxed text-white/44">{item.desc}</p>
                         </div>
                       ))}
                     </div>
@@ -850,35 +850,35 @@ export default function HomePage() {
                 {/* brand */}
                 <div>
                   <img src="/logo.png" alt="Drunk Coffee Roasters" className="h-10 object-contain" />
-                  <p className="mt-5 max-w-[260px] text-[13px] leading-[1.9] text-white/34">
+                  <p className="mt-5 max-w-[260px] text-[14px] leading-[1.9] text-white/44">
                     Drunk Coffee Roasters started as a passion for roasting coffees that are sweet, approachable and enjoyable every day.
                   </p>
-                  <p className="mt-2 text-[11px] text-white/20">Based in Johor, Malaysia.</p>
+                  <p className="mt-2 text-[12px] text-white/30">Based in Johor, Malaysia.</p>
                 </div>
 
                 {/* pages */}
                 <div>
-                  <p className="text-[9px] uppercase tracking-[0.24em] text-white/20 mb-4">Pages</p>
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-white/30 mb-4">Pages</p>
                   {[["Shop","#shop"],["Series","#series"],["Why us","#why"],["Wholesale","#wholesale"],["FAQ","#faq"]].map(([l,h]) => (
-                    <a key={l} href={h} className="block py-1.5 text-[13px] text-white/36 transition hover:text-white">{l}</a>
+                    <a key={l} href={h} className="block py-1.5 text-[14px] text-white/44 transition hover:text-white">{l}</a>
                   ))}
                 </div>
 
                 {/* contact */}
                 <div>
-                  <p className="text-[9px] uppercase tracking-[0.24em] text-white/20 mb-4">Find us</p>
-                  <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="block py-1.5 text-[13px] text-white/36 transition hover:text-white">@drunkcoffeeroasters ↗</a>
-                  <span className="block py-1.5 text-[13px] text-white/36">小红书 · {XHS_LABEL}</span>
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-white/30 mb-4">Find us</p>
+                  <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="block py-1.5 text-[14px] text-white/44 transition hover:text-white">@drunkcoffeeroasters ↗</a>
+                  <span className="block py-1.5 text-[14px] text-white/44">小红书 · {XHS_LABEL}</span>
                   <a href={waUrl} target="_blank" rel="noreferrer"
                     onClick={() => trackWhatsappClick("footer","general")}
-                    className="block py-1.5 text-[13px] text-white/36 transition hover:text-white">WhatsApp ↗</a>
-                  <span className="block py-1.5 text-[13px] text-white/36">Johor, Malaysia</span>
+                    className="block py-1.5 text-[14px] text-white/44 transition hover:text-white">WhatsApp ↗</a>
+                  <span className="block py-1.5 text-[14px] text-white/44">Johor, Malaysia</span>
                 </div>
               </div>
 
               {/* bottom bar */}
               <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/[0.05] pt-6 md:flex-row">
-                <p className="text-[11px] text-white/18">© {new Date().getFullYear()} Drunk Coffee Roasters · All rights reserved</p>
+                <p className="text-[12px] text-white/28">© {new Date().getFullYear()} Drunk Coffee Roasters · All rights reserved</p>
                 <div className="flex gap-2.5">
                   <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram"
                     className="flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.07] text-white/22 transition hover:text-white/60">

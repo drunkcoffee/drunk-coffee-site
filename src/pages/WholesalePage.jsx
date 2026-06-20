@@ -1,4 +1,5 @@
-import { ArrowLeft, Instagram } from "lucide-react";
+import { ArrowLeft, ChevronDown, Instagram } from "lucide-react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Seo from "../components/Seo";
 import { trackWhatsappClick } from "../lib/analytics";
@@ -24,8 +25,8 @@ function Eyebrow({ children }) {
 function Chip({ label, value }) {
   return (
     <div className="rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-2 flex items-baseline gap-2">
-      <span className="text-[13px] font-semibold text-white">{value}</span>
-      <span className="text-[10px] text-white/32">{label}</span>
+      <span className="text-[15px] font-semibold text-white">{value}</span>
+      <span className="text-[13px] text-white/44">{label}</span>
     </div>
   );
 }
@@ -33,8 +34,8 @@ function Chip({ label, value }) {
 function InfoRow({ title, body }) {
   return (
     <div className="border-b border-white/[0.06] py-5 grid grid-cols-[120px_1fr] gap-6 md:grid-cols-[160px_1fr]">
-      <p className="text-[11px] uppercase tracking-[0.16em] text-white/30 pt-0.5">{title}</p>
-      <p className="text-[14px] leading-[1.8] text-white/65">{body}</p>
+      <p className="text-[12px] uppercase tracking-[0.16em] text-white/38 pt-0.5">{title}</p>
+      <p className="text-[15px] leading-[1.85] text-white/70">{body}</p>
     </div>
   );
 }
@@ -84,7 +85,7 @@ export default function WholesalePage() {
               Fresh roast,<br />
               <em className="not-italic text-[#c8922a]">at scale.</em>
             </h1>
-            <p className="mt-6 max-w-[44ch] text-[15px] leading-[1.9] text-white/48">
+            <p className="mt-6 max-w-[44ch] text-[16px] leading-[1.9] text-white/52">
               We supply cafés, offices, gift shops, and events across Malaysia. Small-batch roasting — consistent, repeatable, and roasted fresh per order.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
@@ -115,19 +116,24 @@ export default function WholesalePage() {
                 { title:"Gift Sets",       desc:"Packaged for retail gifting or corporate orders. Easy to sell, easy to give." },
               ].map(item => (
                 <div key={item.title} className="rounded-[16px] border border-white/[0.07] bg-[#1c1814] p-5">
-                  <p className="text-[14px] font-semibold text-white">{item.title}</p>
-                  <p className="mt-2 text-[12px] leading-[1.8] text-white/40">{item.desc}</p>
+                  <p className="text-[15px] font-semibold text-white">{item.title}</p>
+                  <p className="mt-2 text-[13px] leading-[1.85] text-white/48">{item.desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* who we work with / how to enquire — clean row layout */}
-          <div className="rounded-[18px] border border-white/[0.07] bg-[#1c1814] overflow-hidden mb-10">
-            <InfoRow title="Suitable for"    body="Cafés, office coffee corners, retail shelves, events, and businesses looking for a dependable coffee offer." />
-            <InfoRow title="What to tell us" body="Your use case, weekly or monthly volume, preferred brew style (espresso / filter / both), and your goal — house blend, retail bags, gifts, or event coffee." />
-            <InfoRow title="How it works"    body="Send a WhatsApp message with your details. We'll guide you through options, pricing, and lead times from there. No forms, no back-and-forth." />
-            <InfoRow title="Why Drunk Coffee" body="Small-batch roasting means more control and better consistency. Approachable profiles that are easy to sell. Direct communication — fast replies, no middleman." />
+          {/* FAQ accordion */}
+          <div className="mb-10">
+            <h2 className="text-[12px] uppercase tracking-[0.22em] text-white/28 mb-4">Common questions</h2>
+            <div className="rounded-[18px] border border-white/[0.07] bg-[#1c1814] px-6">
+              <AccordionItem defaultOpen q="Who do you supply?" a="Cafés, office coffee corners, retail shelves, events, and businesses looking for a dependable coffee offer across Malaysia." />
+              <AccordionItem q="What should I include in my enquiry?" a="Your use case, weekly or monthly volume, preferred brew style (espresso / filter / both), and your goal — house blend, retail bags, gifts, or event coffee." />
+              <AccordionItem q="How does the process work?" a="Send a WhatsApp message with your details. We'll guide you through options, pricing, and lead times from there. No forms, no unnecessary back-and-forth." />
+              <AccordionItem q="Why Drunk Coffee?" a="Small-batch roasting means more control and better consistency. Approachable profiles that are easy to sell. Direct communication — fast replies, no middleman." />
+              <AccordionItem q="Do you do custom labels?" a="Yes — we offer custom label options for retail partners and corporate gifting. Mention it in your enquiry and we'll walk you through what's possible." />
+            </div>
           </div>
 
           {/* final CTA */}
@@ -136,7 +142,7 @@ export default function WholesalePage() {
               style={{ background:"radial-gradient(ellipse at top right,#c8922a,transparent 65%)" }} />
             <div className="relative">
               <p className="text-[18px] font-bold tracking-[-0.02em] text-white">Ready to start?</p>
-              <p className="mt-2 text-[13px] leading-relaxed text-white/44">
+              <p className="mt-2 text-[14px] leading-relaxed text-white/50">
                 Send us your requirements on WhatsApp and we'll get back to you quickly.
               </p>
               <a href={wsUrl} target="_blank" rel="noreferrer"
