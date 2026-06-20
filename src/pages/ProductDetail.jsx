@@ -80,7 +80,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
   if (!open) return null;
   const url = buildCartWhatsAppUrl(cart);
   return (
-    <div className="fixed inset-0 z-[70] flex justify-end">
+    <div className="fixed inset-0 z-[70] flex justify-end" style={{ position: "sticky" }}>
       <button type="button" onClick={onClose} className="absolute inset-0 bg-black/72 backdrop-blur-[8px]" />
       <aside
         className="relative flex w-full max-w-[340px] flex-col border-l border-white/[0.07]"

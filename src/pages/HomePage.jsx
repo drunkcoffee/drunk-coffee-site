@@ -135,7 +135,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
   const url = buildCartWhatsAppUrl(cart);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[70] flex justify-end">
+    <div className="fixed inset-0 z-[70] flex justify-end" style={{ position: "sticky" }}>
       <button type="button" onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-[6px]" aria-label="Close" />
       <aside className="relative flex w-full max-w-[340px] flex-col border-l border-white/[0.07]" style={{ background: "#100e0b", height: "100dvh" }}>
         {/* header */}
@@ -209,7 +209,7 @@ function CoffeeRow({ bean, onOpen, onAdd, index }) {
       <article className="group relative flex items-center gap-4 rounded-[14px] border border-white/[0.05] px-4 py-3.5 transition duration-200 hover:border-white/[0.10] hover:bg-[#1c1814] md:px-5">
         {/* thumbnail */}
         <button type="button" onClick={() => onOpen(bean.slug)} className="shrink-0 rounded-[9px] bg-[#130f0a] overflow-hidden">
-          <div className="h-[64px] w-[64px]">
+          <div className="h-[70px] w-[70px]">
             {img
               ? <img src={img} alt={bean.name} className="h-full w-full object-contain p-2 transition duration-400 group-hover:scale-[1.08]" />
               : <div className="flex h-full items-center justify-center text-[9px] uppercase tracking-widest text-white/16">—</div>
@@ -220,21 +220,21 @@ function CoffeeRow({ bean, onOpen, onAdd, index }) {
         {/* info */}
         <button type="button" onClick={() => onOpen(bean.slug)} className="min-w-0 flex-1 text-left">
           <div className="flex items-center gap-2">
-            <span className="truncate text-[15px] font-semibold tracking-[-0.02em] text-white">{bean.name}</span>
+            <span className="truncate text-[17px] font-semibold tracking-[-0.02em] text-white">{bean.name}</span>
             {bean.badge && <span className="shrink-0 h-1.5 w-1.5 rounded-full bg-[#c8922a]" title={bean.badge} />}
           </div>
-          {notes && <p className="mt-1 truncate text-[11px] text-white/32">{notes}</p>}
+          {notes && <p className="mt-1 truncate text-[13px] text-white/40">{notes}</p>}
         </button>
 
         {/* price */}
         <div className="shrink-0 text-right mr-2">
-          <p className="text-[14px] font-semibold text-white/80">RM {bean.price}</p>
-          <p className="text-[10px] text-white/24 mt-0.5">{bean.category}</p>
+          <p className="text-[16px] font-semibold text-white/85">RM {bean.price}</p>
+          <p className="text-[12px] text-white/32 mt-0.5">{bean.category}</p>
         </div>
 
         {/* add — slides in on hover desktop, always visible mobile */}
         <button type="button" onClick={() => onAdd(bean)} aria-label="Add to cart"
-          className="shrink-0 rounded-full bg-[#c8922a] px-3.5 py-2 text-[11px] font-semibold text-[#0e0c09] transition duration-200 hover:bg-[#d9a23a] active:scale-95 md:translate-x-1.5 md:opacity-0 md:group-hover:translate-x-0 md:group-hover:opacity-100">
+          className="shrink-0 rounded-full bg-[#c8922a] px-4 py-2.5 text-[12px] font-semibold text-[#0e0c09] transition duration-200 hover:bg-[#d9a23a] active:scale-95 md:translate-x-1.5 md:opacity-0 md:group-hover:translate-x-0 md:group-hover:opacity-100">
           + Add
         </button>
       </article>
@@ -536,7 +536,7 @@ export default function HomePage() {
             <div className="mx-auto max-w-2xl px-4 py-14 md:px-6 md:py-20">
               <Fade>
                 <Eyebrow>Coffee menu</Eyebrow>
-                <h2 className="text-[clamp(26px,3.5vw,38px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Our coffees</h2>
+                <h2 className="text-[clamp(28px,3.5vw,42px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Our coffees</h2>
               </Fade>
 
               {/* filter tabs */}
@@ -545,14 +545,14 @@ export default function HomePage() {
                   const active = activeFilter === f;
                   return (
                     <button key={f} type="button" onClick={() => setActiveFilter(f)}
-                      className={cx("relative pb-3 pr-4 text-[12px] uppercase tracking-[0.1em] transition duration-200",
+                      className={cx("relative pb-3 pr-4 text-[13px] uppercase tracking-[0.1em] transition duration-200",
                         active ? "font-semibold text-white" : "text-white/30 hover:text-white/60")}>
                       {f}
                       {active && <span className="absolute bottom-0 left-0 right-4 h-[1.5px] rounded-full bg-[#c8922a]" />}
                     </button>
                   );
                 })}
-                <span className="ml-auto pb-3 text-[11px] text-white/20">
+                <span className="ml-auto pb-3 text-[12px] text-white/30">
                   {filteredBeans.length} available
                 </span>
               </div>
