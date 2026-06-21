@@ -289,6 +289,62 @@ function SeriesCard({ bean, onOpen, index }) {
   );
 }
 
+function HighlightTile({ bean, index, onOpen, onAdd }) {
+  const img = bean?.image || bean?.flavorImage || "";
+  const notes = safeArray(bean?.notes).slice(0, 3);
+  return (
+    <Fade delay={index * 70}>
+      <article className="group overflow-hidden rounded-[22px] bg-[#1a1510] shadow-[0_20px_55px_rgba(0,0,0,0.18)]">
+        <button type="button" onClick={() => onOpen(bean.slug)} className="block w-full text-left">
+          <div className="aspect-[5/4] overflow-hidden bg-[#eadfce] p-5">
+            {img ? <img src={appendImageParams(img, { w: 1100, h: 880, fit: "pad", fm: "webp", q: 84 })} alt={bean.name} className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.04]" loading="lazy" /> : <div className="h-full w-full bg-[#d9cdbb]" />}
+          </div>
+        </button>
+        <div className="p-5 md:p-6">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[#d9ad59]">{bean.process || bean.category}</p>
+          <div className="mt-2 flex items-start justify-between gap-4">
+            <button type="button" onClick={() => onOpen(bean.slug)} className="text-left text-[20px] font-semibold leading-[1.05] tracking-[-0.035em] text-white">{bean.name}</button>
+            <span className="shrink-0 text-[13px] font-semibold text-white/70">RM {bean.price}</span>
+          </div>
+          {notes.length > 0 && <p className="mt-3 text-[13px] leading-relaxed text-white/46">{notes.join(" · ")}</p>}
+          <div className="mt-5 flex items-center justify-between gap-3">
+            <button type="button" onClick={() => onOpen(bean.slug)} className="text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">Explore coffee →</button>
+            <button type="button" onClick={() => onAdd(bean)} className="rounded-full border border-white/14 px-3.5 py-2 text-[11px] font-semibold text-white/76 transition hover:border-white/28 hover:text-white">Add</button>
+          </div>
+        </div>
+      </article>
+    </Fade>
+  );
+}
+
+function PanamaFeature({ bean, onOpen, onAdd }) {
+  if (!bean) return null;
+  const img = bean.image || bean.flavorImage || "";
+  const notes = safeArray(bean.notes).slice(0, 5);
+  return (
+    <section id="panama" className="overflow-hidden bg-[#eadfce] text-[#17120d]">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-14 md:px-6 md:py-20 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:gap-16">
+        <Fade className="order-2 lg:order-1">
+          <Eyebrow>Rare selection</Eyebrow>
+          <p className="text-[11px] uppercase tracking-[0.22em] text-[#6d5231]">Panama · Boquete · Alto Quiel</p>
+          <h2 className="mt-3 max-w-[10ch] text-[clamp(38px,5.2vw,70px)] font-semibold leading-[0.91] tracking-[-0.055em]">{bean.name}</h2>
+          <p className="mt-5 max-w-[43ch] text-[16px] leading-[1.75] text-[#4c3b27]">A luminous, fruit-forward Gesha selected for its tropical clarity and juicy finish. Roasted light-medium for a vivid cup.</p>
+          {notes.length > 0 && <div className="mt-6 flex flex-wrap gap-2">{notes.map((note) => <span key={note} className="rounded-full border border-[#6d5231]/20 px-3 py-1.5 text-[11px] text-[#5a442a]">{note}</span>)}</div>}
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <button type="button" onClick={() => onOpen(bean.slug)} className="rounded-full bg-[#17120d] px-5 py-3 text-[12px] font-semibold text-white transition hover:bg-[#342919]">Discover Panama</button>
+            <button type="button" onClick={() => onAdd(bean)} className="rounded-full border border-[#17120d]/18 px-5 py-3 text-[12px] font-semibold text-[#17120d] transition hover:border-[#17120d]/40">Add · RM {bean.price}</button>
+          </div>
+        </Fade>
+        <Fade delay={90} className="order-1 lg:order-2">
+          <button type="button" onClick={() => onOpen(bean.slug)} className="group block w-full overflow-hidden rounded-[28px] bg-[#d6c4aa] p-5 md:p-8">
+            {img ? <img src={appendImageParams(img, { w: 1500, h: 1300, fit: "pad", fm: "webp", q: 86 })} alt={bean.name} className="aspect-[5/4] w-full object-contain transition duration-700 group-hover:scale-[1.035]" /> : <div className="aspect-[5/4]" />}
+          </button>
+        </Fade>
+      </div>
+    </section>
+  );
+}
+
 // ─── Accordion FAQ item ───────────────────────────────────────────────────────
 // ─── IG tile with error fallback ────────────────────────────────────────────
 function IgTile({ src, alt }) {
@@ -344,6 +400,14 @@ export default function HomePage() {
   const filteredBeans = useMemo(() =>
     activeFilter === "All" ? beans : beans.filter(b => b.category === activeFilter)
   , [beans, activeFilter]);
+
+  const panamaBean = useMemo(() =>
+    beans.find(b => /panama|lamastus|gesha/i.test(`${b.slug} ${b.name} ${b.collection}`))
+  , [beans]);
+
+  const aloBeans = useMemo(() =>
+    beans.filter(b => /\balo\b|ethiopia alo/i.test(`${b.slug} ${b.name} ${b.collection}`))
+  , [beans]);
 
   const bundleBeans = monteblancoBeans.slice(0, 3);
   const bundleUrl   = buildBundleOrderUrl(bundleBeans, "Monteblanco Series");
@@ -541,12 +605,32 @@ export default function HomePage() {
           {/* ══════════════════════════════════════════════════════════
               SHOP — narrow list, flows naturally after hero
           ══════════════════════════════════════════════════════════ */}
+          <PanamaFeature bean={panamaBean} onOpen={openCoffee} onAdd={handleAdd} />
+
+          {aloBeans.length > 0 && (
+            <section id="alo" className="border-t border-white/[0.06] bg-[#100d09]">
+              <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
+                <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+                  <Fade>
+                    <Eyebrow>Ethiopia ALO series</Eyebrow>
+                    <h2 className="max-w-[11ch] text-[clamp(32px,4.5vw,58px)] font-semibold leading-[0.9] tracking-[-0.05em] text-white">Slow dried. High definition.</h2>
+                    <p className="mt-4 max-w-[45ch] text-[15px] leading-[1.8] text-white/46">A small collection of expressive Sidama lots: bright fruit, floral lift, and a clean, elegant finish.</p>
+                  </Fade>
+                  <Fade delay={80}><a href="#shop" className="text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">See full menu →</a></Fade>
+                </div>
+                <div className="mt-9 grid gap-4 md:grid-cols-2">
+                  {aloBeans.slice(0, 2).map((bean, index) => <HighlightTile key={bean.id} bean={bean} index={index} onOpen={openCoffee} onAdd={handleAdd} />)}
+                </div>
+              </div>
+            </section>
+          )}
+
           <Marquee />
           <section id="shop" className="border-t border-white/[0.06]">
             <div className="mx-auto max-w-2xl px-4 py-14 md:px-6 md:py-20">
               <Fade>
-                <Eyebrow>Coffee menu</Eyebrow>
-                <h2 className="text-[clamp(28px,3.5vw,42px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Our coffees</h2>
+                <Eyebrow>The full menu</Eyebrow>
+                <h2 className="text-[clamp(28px,3.5vw,42px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Find your next cup.</h2>
               </Fade>
 
               {/* filter tabs */}
