@@ -145,7 +145,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
   const url = buildCartWhatsAppUrl(cart);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[70] flex justify-end">
+    <div className="fixed inset-0 z-[70] flex justify-end" style={{ position: "sticky" }}>
       <button type="button" onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-[6px]" aria-label="Close" />
       <aside role="dialog" aria-modal="true" aria-label="Shopping cart" className="relative flex w-full max-w-[340px] flex-col border-l border-white/[0.07]" style={{ background: "#100e0b", height: "100dvh" }}>
         {/* header */}
