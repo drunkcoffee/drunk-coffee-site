@@ -269,16 +269,50 @@ export function mapContentfulEntries(data) {
 
 export async function fetchBeansFromContentful() {
   const env = getEnv();
+
   const spaceId = env.VITE_CONTENTFUL_SPACE_ID || "";
   const environment = env.VITE_CONTENTFUL_ENVIRONMENT || "master";
-  const accessToken = env.VITE_CONTENTFUL_DELIVERY_TOKEN || "";
-  const contentType = env.VITE_CONTENTFUL_CONTENT_TYPE || "coffeeBean";
+
+  const accessToken =
+    env.VITE_CONTENTFUL_DELIVERY_TOKEN ||
+    env.VITE_CONTENTFUL_ACCESS_TOKEN ||
+    "";
+
+  const contentType =
+    env.VITE_CONTENTFUL_CONTENT_TYPE ||
+    "drunkCoffeeRoasters";
 
   if (!spaceId || !accessToken) {
     return {
       beans: FALLBACK_BEANS,
       warning:
         "Contentful environment variables are missing. Showing fallback coffee list.",
+    };
+  }
+
+  const endpoint =
+    `https://cdn.contentful.com/spaces/${spaceId}/environments/${environment}/entries` +
+    `?content_type=${contentType}&include=2`;
+
+  const response = await fetch(endpoint, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Contentful request failed with status ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  const mapped = mapContentfulEntries(data)
+    .filter((bean) => bean.active !== false)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+
+  return {
+    beans: mapped.length ? mapped : FALLBACK_BEANS,
+    warning: mapped.length
+      ? ""
+      : "Contentful returned no coffee entries. Showing fallback coffee list.",
     };
   }
 
