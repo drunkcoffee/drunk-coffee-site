@@ -20,6 +20,7 @@ export function trackProductView(bean) {
     item_name: bean.name,
     item_category: bean.category,
     price: bean.price,
+    variant: bean.size,
   });
 }
 
@@ -30,6 +31,7 @@ export function trackAddToCart(bean, source = "") {
     item_name: bean.name,
     item_category: bean.category,
     price: bean.price,
+    variant: bean.size,
     source,
   });
 }

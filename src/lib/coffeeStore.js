@@ -52,6 +52,7 @@ export const FALLBACK_BEANS = [
     collection: "Seasonal Highlight",
     price: 49,
     size: "200g",
+    variants: [{ size: "200g", price: 49 }],
     notes: ["Floral", "Citrus", "Silky Body"],
     tagline: "Floral, silky, and easy to love.",
     description:
@@ -78,6 +79,7 @@ export const FALLBACK_BEANS = [
     collection: "Experimental Fruit",
     price: 59,
     size: "200g",
+    variants: [{ size: "200g", price: 59 }],
     notes: ["Red Wine", "Raisin", "Wine Chocolate"],
     tagline: "Winey fruit with a deeper, expressive finish.",
     description:
@@ -104,6 +106,7 @@ export const FALLBACK_BEANS = [
     collection: "Espresso Lovers",
     price: 49,
     size: "200g",
+    variants: [{ size: "200g", price: 49 }],
     notes: ["Mix Nut", "Chocolate", "Cherry"],
     tagline: "Comforting chocolate sweetness for daily espresso.",
     description:
@@ -137,6 +140,52 @@ export function safeArray(value) {
       .filter(Boolean);
   }
   return [];
+}
+
+function safeJsonArray(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== "string") return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function normalizeVariants(value, fallback = {}) {
+  const variants = safeJsonArray(value)
+    .map((item) => ({
+      size: String(item?.size || "").trim(),
+      price: Number(item?.price),
+    }))
+    .filter((item) => item.size && Number.isFinite(item.price) && item.price >= 0);
+
+  if (variants.length) return variants;
+  return [{
+    size: String(fallback.size || "200g"),
+    price: Number(fallback.price || 0),
+  }];
+}
+
+export function selectBeanVariant(bean, variant) {
+  const selected = variant || bean?.variants?.[0] || {
+    size: bean?.size || "200g",
+    price: Number(bean?.price || 0),
+  };
+  return {
+    ...bean,
+    size: selected.size,
+    price: selected.price,
+    variantId: `${bean.id}:${selected.size}`,
+  };
+}
+
+export function formatBeanPrice(bean) {
+  const variants = bean?.variants || [];
+  const prices = variants.map((variant) => Number(variant.price)).filter(Number.isFinite);
+  const lowest = prices.length ? Math.min(...prices) : Number(bean?.price || 0);
+  return variants.length > 1 ? `From RM ${lowest}` : `RM ${lowest}`;
 }
 
 export function appendImageParams(url, params = {}) {
@@ -234,14 +283,20 @@ export function mapContentfulEntries(data) {
     const notes = safeArray(fields.notes || fields.tastingNotes);
     const bestFor = normalizeAudience(fields.bestfor || fields.bestFor || "", fields.category || "Filter");
 
+    const variants = normalizeVariants(fields.variants, {
+      size: fields.size,
+      price: fields.price,
+    });
+
     return {
       id: item.sys.id,
       slug: normalizeSlug(fields.slug || fields.name || item.sys.id),
       name: fields.name || "Untitled Coffee",
       category: fields.category || "Filter",
       collection: fields.collection || "",
-      price: Number(fields.price || 0),
-      size: fields.size || "200g",
+      price: variants[0].price,
+      size: variants[0].size,
+      variants,
       notes,
       tagline: fields.tagline || inferTagline({
         name: fields.name || "",
@@ -287,32 +342,6 @@ export async function fetchBeansFromContentful() {
       beans: FALLBACK_BEANS,
       warning:
         "Contentful environment variables are missing. Showing fallback coffee list.",
-    };
-  }
-
-  const endpoint =
-    `https://cdn.contentful.com/spaces/${spaceId}/environments/${environment}/entries` +
-    `?content_type=${contentType}&include=2`;
-
-  const response = await fetch(endpoint, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Contentful request failed with status ${response.status}`);
-  }
-
-  const data = await response.json();
-
-  const mapped = mapContentfulEntries(data)
-    .filter((bean) => bean.active !== false)
-    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
-
-  return {
-    beans: mapped.length ? mapped : FALLBACK_BEANS,
-    warning: mapped.length
-      ? ""
-      : "Contentful returned no coffee entries. Showing fallback coffee list.",
     };
   }
 
@@ -471,10 +500,11 @@ export function usePersistentCart() {
 
   function addToCart(bean) {
     setCart((current) => {
-      const existing = current.find((item) => item.id === bean.id);
+      const cartId = bean.variantId || `${bean.id}:${bean.size}`;
+      const existing = current.find((item) => item.id === cartId);
       if (existing) {
         return current.map((item) =>
-          item.id === bean.id
+          item.id === cartId
             ? { ...item, quantity: item.quantity + 1 }
             : item,
         );
@@ -482,7 +512,8 @@ export function usePersistentCart() {
       return [
         ...current,
         {
-          id: bean.id,
+          id: cartId,
+          productId: bean.id,
           name: bean.name,
           price: bean.price,
           size: bean.size,

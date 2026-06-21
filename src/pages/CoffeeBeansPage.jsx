@@ -7,6 +7,7 @@ import {
   appendImageParams,
   buildGeneralWhatsAppUrl,
   cx,
+  formatBeanPrice,
   safeArray,
   useBeans,
 } from "../lib/coffeeStore";
@@ -48,7 +49,7 @@ function BeanRow({ bean }) {
       </div>
       {/* price + category */}
       <div className="shrink-0 text-right">
-        <p className="text-[14px] font-semibold text-white/80">RM {bean.price}</p>
+        <p className="text-[14px] font-semibold text-white/80">{formatBeanPrice(bean)}</p>
         <p className="text-[10px] text-white/24 mt-0.5">{bean.category}</p>
       </div>
       <span className="shrink-0 text-[11px] text-white/24 transition group-hover:text-white/60">→</span>

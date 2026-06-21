@@ -15,6 +15,7 @@ import {
   buildSingleOrderUrl,
   cx,
   safeArray,
+  selectBeanVariant,
   useBeans,
   usePersistentCart,
 } from "../lib/coffeeStore";
@@ -211,8 +212,12 @@ export default function ProductDetail() {
   const [cartOpen, setCartOpen] = useState(false);
   const [toast,    setToast]    = useState("");
   const [qty,      setQty]      = useState(1);
+  const [selectedSize, setSelectedSize] = useState("");
 
   const bean          = useMemo(() => beans.find(b => b.slug === slug), [beans, slug]);
+  const variants      = bean?.variants || [];
+  const selectedVariant = variants.find((variant) => variant.size === selectedSize) || variants[0];
+  const selectedBean  = bean ? selectBeanVariant(bean, selectedVariant) : null;
   const currentIndex  = useMemo(() => beans.findIndex(b => b.slug === slug), [beans, slug]);
   const previousBean  = currentIndex > 0 ? beans[currentIndex - 1] : null;
   const nextBean      = currentIndex >= 0 && currentIndex < beans.length - 1 ? beans[currentIndex + 1] : null;
@@ -242,6 +247,7 @@ export default function ProductDetail() {
     : "Specialty coffee from Drunk Coffee Roasters.";
 
   useEffect(() => { if (bean) trackProductView(bean); }, [bean]);
+  useEffect(() => { setSelectedSize(variants[0]?.size || ""); }, [bean?.id]);
   useEffect(() => { document.body.style.overflow = cartOpen ? "hidden" : ""; return () => { document.body.style.overflow = ""; }; }, [cartOpen]);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(""), 2200); return () => clearTimeout(t); }, [toast]);
   // reset qty on slug change
@@ -290,7 +296,7 @@ export default function ProductDetail() {
           category: bean.category,
           url: `https://drunkcoffeeroasters.com/coffee/${bean.slug}`,
           image: detailImage || undefined,
-          offers: { "@type": "Offer", priceCurrency: "MYR", price: String(bean.price), availability: "https://schema.org/InStock" }
+          offers: { "@type": "Offer", priceCurrency: "MYR", price: String(selectedBean?.price || 0), availability: "https://schema.org/InStock" }
         } : null}
       />
 
@@ -449,15 +455,33 @@ export default function ProductDetail() {
                     <DetailRow label="Brew"      value={getRecommendedBrew(bean)} />
                     <DetailRow label="Best for"  value={getWhoItsFor(bean)}   />
                     {bean.variety && <DetailRow label="Variety" value={bean.variety} />}
-                    <DetailRow label="Size"      value={bean.size}            />
+                    {variants.length === 1 && <DetailRow label="Size" value={selectedBean?.size} />}
                   </Fade>
 
                   {/* ── Price + Qty + CTA (desktop) ── */}
                   <Fade delay={100} className="mt-7 border-t border-white/[0.06] pt-6">
+                    {variants.length > 1 && (
+                      <fieldset className="mb-6">
+                        <legend className="text-[11px] uppercase tracking-[0.16em] text-white/32">Choose size</legend>
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          {variants.map((variant) => {
+                            const active = selectedVariant?.size === variant.size;
+                            return (
+                              <button key={variant.size} type="button" aria-pressed={active}
+                                onClick={() => setSelectedSize(variant.size)}
+                                className={cx("rounded-[14px] border px-4 py-3 text-left transition", active ? "border-[#c8922a] bg-[#c8922a]/10" : "border-white/10 bg-white/[0.025] hover:border-white/24")}>
+                                <span className="block text-[14px] font-semibold text-white">{variant.size}</span>
+                                <span className={cx("mt-0.5 block text-[12px]", active ? "text-[#e0b766]" : "text-white/38")}>RM {variant.price}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </fieldset>
+                    )}
                     <div className="flex items-center justify-between gap-4 mb-5">
                       <div>
                         <p className="text-[11px] uppercase tracking-[0.16em] text-white/32">Price</p>
-                        <p className="mt-1 text-[36px] font-bold tracking-[-0.05em] text-white">RM {bean.price}</p>
+                        <p className="mt-1 text-[36px] font-bold tracking-[-0.05em] text-white">RM {selectedBean?.price}</p>
                       </div>
                       {/* qty stepper desktop */}
                       <div className="hidden items-center gap-1 rounded-full border border-white/10 px-1 py-1 sm:flex">
@@ -473,13 +497,13 @@ export default function ProductDetail() {
                       </div>
                     </div>
                     <div className="hidden flex-col gap-2.5 sm:flex">
-                      <a href={buildSingleOrderUrl(bean)} target="_blank" rel="noreferrer"
-                        onClick={() => trackWhatsappClick("product_detail_order", bean.slug)}
+                      <a href={buildSingleOrderUrl(selectedBean)} target="_blank" rel="noreferrer"
+                        onClick={() => trackWhatsappClick("product_detail_order", selectedBean.slug)}
                         className={cx(P, "w-full justify-center py-3.5 text-[13px]")}>
                         <img src="https://cdn.simpleicons.org/whatsapp/0e0c09" alt="" className="h-3.5 w-3.5" />
-                        Order on WhatsApp · RM {Number(bean.price) * qty}
+                        Order on WhatsApp · RM {Number(selectedBean?.price || 0) * qty}
                       </a>
-                      <button type="button" onClick={() => handleAdd(bean, qty)}
+                      <button type="button" onClick={() => handleAdd(selectedBean, qty)}
                         className={cx(G, "w-full justify-center")}>
                         <ShoppingCart size={13} />
                         Add {qty > 1 ? `${qty}× ` : ""}to cart
@@ -601,12 +625,12 @@ export default function ProductDetail() {
                   <Plus size={11} />
                 </button>
               </div>
-              <a href={buildSingleOrderUrl(bean)} target="_blank" rel="noreferrer"
-                onClick={() => trackWhatsappClick("product_detail_sticky", bean.slug)}
+              <a href={buildSingleOrderUrl(selectedBean)} target="_blank" rel="noreferrer"
+                onClick={() => trackWhatsappClick("product_detail_sticky", selectedBean.slug)}
                 className="flex flex-1 items-center justify-between rounded-full bg-[#c8922a] px-5 py-3.5">
                 <span className="text-[13px] font-semibold text-[#0e0c09]">Order on WhatsApp</span>
                 <span className="ml-3 shrink-0 text-[13px] font-bold text-[#0e0c09]/70">
-                  RM {Number(bean.price) * qty}
+                  RM {Number(selectedBean?.price || 0) * qty}
                 </span>
               </a>
             </div>
