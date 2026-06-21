@@ -81,8 +81,10 @@ function ScrollProgress() {
   useEffect(() => {
     const fn = () => {
       const el = document.documentElement;
-      setPct((el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100);
+      const scrollableHeight = el.scrollHeight - el.clientHeight;
+      setPct(scrollableHeight > 0 ? (el.scrollTop / scrollableHeight) * 100 : 0);
     };
+    fn();
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
@@ -100,6 +102,14 @@ function GlobalStyles() {
   return (
     <style>{`
       @keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
     `}</style>
   );
 }
@@ -135,9 +145,9 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
   const url = buildCartWhatsAppUrl(cart);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[70] flex justify-end" style={{ position: "sticky" }}>
+    <div className="fixed inset-0 z-[70] flex justify-end">
       <button type="button" onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-[6px]" aria-label="Close" />
-      <aside className="relative flex w-full max-w-[340px] flex-col border-l border-white/[0.07]" style={{ background: "#100e0b", height: "100dvh" }}>
+      <aside role="dialog" aria-modal="true" aria-label="Shopping cart" className="relative flex w-full max-w-[340px] flex-col border-l border-white/[0.07]" style={{ background: "#100e0b", height: "100dvh" }}>
         {/* header */}
         <div className="shrink-0 flex items-center justify-between border-b border-white/[0.07] px-5 py-4">
           <div>
@@ -519,7 +529,7 @@ export default function HomePage() {
               </Fade>
 
               {/* scroll cue */}
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-30">
+              <div className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-1 opacity-30 md:flex">
                 <span className="text-[9px] uppercase tracking-[0.2em] text-white">Scroll</span>
                 <svg viewBox="0 0 16 16" className="h-4 w-4 text-white animate-bounce" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M3 6l5 5 5-5" strokeLinecap="round" strokeLinejoin="round"/>

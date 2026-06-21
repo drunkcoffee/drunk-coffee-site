@@ -520,9 +520,15 @@ export default function ProductDetail() {
               ════════════════════════════════════════ */}
               {detailFlavorImage && (
                 <Fade className="mt-6">
-                  <div className="overflow-hidden rounded-[20px] border border-white/[0.07]">
-                    <div className="px-6 pt-5 pb-3"><Eyebrow>Tastes like</Eyebrow></div>
-                    <img src={detailFlavorImage} alt={`${bean.name} flavour`} className="w-full object-cover" />
+                  <div className="overflow-hidden rounded-[24px] border border-white/[0.08] bg-[#17120d] p-2 shadow-[0_24px_70px_rgba(0,0,0,0.2)]">
+                    <div className="flex items-end justify-between gap-4 px-4 pb-3 pt-4 md:px-5">
+                      <Eyebrow>Tastes like</Eyebrow>
+                      <p className="pb-3 text-right text-[10px] uppercase tracking-[0.16em] text-white/30">Flavor visual</p>
+                    </div>
+                    <div className="overflow-hidden rounded-[17px] bg-[#eadfce]">
+                      <img src={detailFlavorImage} alt={`${bean.name} flavour`}
+                        className="aspect-[4/3] w-full object-cover md:aspect-[16/10]" />
+                    </div>
                   </div>
                 </Fade>
               )}

@@ -180,6 +180,20 @@ export function normalizeContentfulImage(asset) {
   }
 }
 
+const FLAVOR_IMAGE_OVERRIDES = {
+  "alo-sidama-g1-natural-slow-dry": "/flavors/alo-sidama-g1-natural-slow-dry.png",
+  "alo-bona-zuria-gute-natural-g1": "/flavors/alo-bona-zuria-gute-natural-g1.png",
+  "panama-lamastus-gesha-alto-quiel-selecto-natural": "/flavors/panama-lamastus-gesha-alto-quiel-selecto-natural.png",
+};
+
+export function normalizeSlug(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export function inferTagline({ name = "", slug = "", category = "", bestFor = "" }) {
   const key = `${name} ${slug}`.toLowerCase();
 
@@ -222,7 +236,7 @@ export function mapContentfulEntries(data) {
 
     return {
       id: item.sys.id,
-      slug: fields.slug || item.sys.id,
+      slug: normalizeSlug(fields.slug || fields.name || item.sys.id),
       name: fields.name || "Untitled Coffee",
       category: fields.category || "Filter",
       collection: fields.collection || "",
@@ -248,7 +262,7 @@ export function mapContentfulEntries(data) {
       sortOrder: Number(fields.sortOrder || 999),
       active: fields.active !== false,
       image: normalizeContentfulImage(asset),
-      flavorImage: normalizeContentfulImage(flavorAsset),
+      flavorImage: normalizeContentfulImage(flavorAsset) || FLAVOR_IMAGE_OVERRIDES[normalizeSlug(fields.slug || fields.name || item.sys.id)] || "",
     };
   });
 }
@@ -283,7 +297,7 @@ export async function fetchBeansFromContentful() {
   const data = await response.json();
   const mapped = mapContentfulEntries(data)
     .filter((bean) => bean.active !== false)
-    .sort((a, b) => a.sortOrder - b.sortOrder);
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
 
   return {
     beans: mapped.length ? mapped : FALLBACK_BEANS,

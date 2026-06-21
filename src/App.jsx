@@ -13,6 +13,7 @@ import ProductDetail         from "./pages/ProductDetail";
 import WholesalePage         from "./pages/WholesalePage";
 import CoffeeBeansPage       from "./pages/CoffeeBeansPage";
 import MonteblancoSeriesPage from "./pages/MonteblancoSeriesPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
   const location = useLocation();
@@ -25,7 +26,7 @@ export default function App() {
         <Route path="/wholesale"              element={<WholesalePage />}         />
         <Route path="/beans"                  element={<CoffeeBeansPage />}       />
         <Route path="/series/monteblanco"     element={<MonteblancoSeriesPage />} />
-        {/* add any other routes you have here */}
+        {<Route path="*" element={<NotFoundPage />} />}
       </Routes>
     </PageTransition>
   );
