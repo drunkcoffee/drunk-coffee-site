@@ -1,7 +1,8 @@
-import { ChevronDown, Instagram, Menu, ShoppingCart, X } from "lucide-react";
+import { ChevronDown, Instagram, Menu, Minus, Plus, ShoppingCart, X } from "lucide-react";
 import BlurImage from "../components/BlurImage";
 import Toast from "../components/Toast";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import Seo from "../components/Seo";
 import { trackAddToCart, trackWhatsappClick } from "../lib/analytics";
@@ -16,6 +17,8 @@ import {
   buildWholesaleWhatsAppUrl,
   cx,
   formatBeanPrice,
+  getDisplayBadges,
+  getGuideMatches,
   safeArray,
   useBeans,
   usePersistentCart,
@@ -119,23 +122,33 @@ function GlobalStyles() {
 const TICKER_ITEMS = [
   "Roasted to order",
   "Johor · Malaysia",
-  "Ships within 48 hrs",
+  "Typical 48 hr dispatch",
   "Filter + Espresso",
   "Small-batch specialty",
-  "WhatsApp ordering",
+  "WhatsApp confirmation",
   "Fresh · Sweet · Approachable",
 ];
 const TRUST_ITEMS = [
-  { title: "Roasted after you order", body: "No stale shelf stock." },
-  { title: "Filter, espresso, gifts", body: "Choose by how you brew." },
-  { title: "WhatsApp checkout", body: "We confirm roast timing before payment." },
+  { title: "Roasted after ordering", body: "Fresh batches, not old shelf stock." },
+  { title: "Easy to choose", body: "Clear notes, brew style, size, and price." },
+  { title: "Confirmed on WhatsApp", body: "We check stock, roast timing, payment, and delivery." },
 ];
 
 const MENU_GUIDES = [
-  { title: "Filter", body: "Lighter, clearer cups for hand brew and daily black coffee." },
-  { title: "Espresso", body: "Comforting, balanced beans for shots and milk drinks." },
-  { title: "Limited", body: "Small seasonal lots with more expressive fruit or florals." },
-  { title: "Gifts", body: "Easy picks for friends, guests, and coffee-loving clients." },
+  { title: "Filter", body: "Cleaner, brighter cups for hand brew and daily black coffee." },
+  { title: "Espresso", body: "Balanced beans for shots, milk drinks, and moka pot." },
+  { title: "Limited", body: "Seasonal lots when you want more fruit, florals, or funk." },
+  { title: "Gifts", body: "Friendly picks for guests, friends, and coffee-loving clients." },
+];
+
+const DRINKING_STYLE_GUIDES = [
+  { label: "Pour Over", body: "Clean, aromatic black coffee." },
+  { label: "Espresso", body: "For shots and short black coffee." },
+  { label: "Americano", body: "Espresso-style coffee with water." },
+  { label: "Latte / Milk Coffee", body: "Sweet cups that hold up with milk." },
+  { label: "Low Acidity", body: "Smoother, gentler daily cups." },
+  { label: "Fruity Coffee", body: "Bright, juicy, expressive flavors." },
+  { label: "Easy Pick", body: "Safe choices when you are unsure." },
 ];
 
 function Marquee() {
@@ -158,10 +171,11 @@ function Marquee() {
 function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onIncrease, onRemove, onClear }) {
   const url = buildCartWhatsAppUrl(cart);
   if (!open) return null;
-  return (
+  if (typeof document === "undefined") return null;
+  return createPortal((
     <div className="fixed inset-0 z-[70] flex justify-end">
       <button type="button" onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-[6px]" aria-label="Close" />
-      <aside role="dialog" aria-modal="true" aria-label="Shopping cart" className="relative flex w-full max-w-[340px] flex-col border-l border-white/[0.07]" style={{ background: "#100e0b", height: "100dvh" }}>
+      <aside role="dialog" aria-modal="true" aria-label="Shopping cart" className="relative z-[80] flex h-dvh max-h-dvh w-full max-w-md flex-col overflow-hidden border-l border-white/[0.07]" style={{ background: "#100e0b" }}>
         {/* header */}
         <div className="shrink-0 flex items-center justify-between border-b border-white/[0.07] px-5 py-4">
           <div>
@@ -221,7 +235,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
         </div>
       </aside>
     </div>
-  );
+  ), document.body);
 }
 
 // ─── Coffee row ───────────────────────────────────────────────────────────────
@@ -229,6 +243,8 @@ function CoffeeRow({ bean, onOpen, onAdd, index }) {
   const img = bean.image ? appendImageParams(bean.image, { w:400, h:400, fit:"pad", fm:"webp", q:78 }) : "";
   const notes = safeArray(bean.notes).slice(0, 3);
   const bestFor = bean.bestFor || bean.category;
+  const meta = [bean.size, bean.category].filter(Boolean).join(" / ");
+  const badges = getDisplayBadges(bean, 3);
   return (
     <Fade delay={index * 28}>
       <article className="group relative flex items-center gap-3 rounded-[14px] border border-white/[0.05] px-3.5 py-3.5 transition duration-200 hover:border-white/[0.10] hover:bg-[#1c1814] sm:gap-4 md:px-5">
@@ -246,16 +262,19 @@ function CoffeeRow({ bean, onOpen, onAdd, index }) {
         <button type="button" onClick={() => onOpen(bean.slug)} className="min-w-0 flex-1 text-left">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="truncate text-[17px] font-semibold tracking-[-0.02em] text-white">{bean.name}</span>
-            {bean.badge && <span className="rounded-full border border-[#c8922a]/25 px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-[#d9ad59]">{bean.badge}</span>}
+            {badges.map((badge) => (
+              <span key={badge} className="rounded-full border border-[#c8922a]/25 px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-[#d9ad59]">{badge}</span>
+            ))}
           </div>
-          {notes.length > 0 && <p className="mt-1 text-[13px] leading-relaxed text-white/46">{notes.join(" / ")}</p>}
-          <p className="mt-1 text-[11px] leading-relaxed text-white/30">{bestFor}</p>
+          {notes.length > 0 && <p className="mt-1 text-[13px] leading-relaxed text-white/52">{notes.join(" / ")}</p>}
+          <p className="mt-1 text-[11px] leading-relaxed text-white/34">Best for: {bestFor}</p>
+          <p className="mt-0.5 text-[11px] leading-relaxed text-white/26 sm:hidden">{formatBeanPrice(bean)} / {meta}</p>
         </button>
 
         {/* price */}
         <div className="hidden shrink-0 text-right mr-1 sm:block">
           <p className="text-[16px] font-semibold text-white/85">{formatBeanPrice(bean)}</p>
-          <p className="text-[12px] text-white/32 mt-0.5">{bean.size} / {bean.category}</p>
+          <p className="text-[12px] text-white/32 mt-0.5">{meta}</p>
         </div>
 
         {/* add — slides in on hover desktop, always visible mobile */}
@@ -324,9 +343,10 @@ function HighlightTile({ bean, index, onOpen, onAdd }) {
             <span className="shrink-0 text-[13px] font-semibold text-white/70">{formatBeanPrice(bean)}</span>
           </div>
           {notes.length > 0 && <p className="mt-3 text-[13px] leading-relaxed text-white/46">{notes.join(" · ")}</p>}
-          <p className="mt-2 text-[12px] leading-relaxed text-white/32">{bean.size} / {bestFor}</p>
+          <p className="mt-2 text-[12px] leading-relaxed text-white/34">Best for: {bestFor}</p>
+          <p className="mt-0.5 text-[12px] leading-relaxed text-white/28">{bean.size} / {bean.category}</p>
           <div className="mt-5 flex items-center justify-between gap-3">
-            <button type="button" onClick={() => onOpen(bean.slug)} className="text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">View details →</button>
+            <button type="button" onClick={() => onOpen(bean.slug)} className="text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">View tasting notes</button>
             <button type="button" onClick={() => onAdd(bean)} className="rounded-full border border-white/14 px-3.5 py-2 text-[11px] font-semibold text-white/76 transition hover:border-white/28 hover:text-white">Add to cart</button>
           </div>
         </div>
@@ -409,15 +429,17 @@ export default function HomePage() {
   const [cartOpen,     setCartOpen]     = useState(false);
   const [navOpen,      setNavOpen]      = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
+  const [activeGuide,  setActiveGuide]  = useState("");
   const [toast,        setToast]        = useState("");
 
   const monteblancoBeans = useMemo(() =>
     beans.filter(b => [b.name,b.origin,b.collection].filter(Boolean).some(v => String(v).toLowerCase().includes("monteblanco")))
   , [beans]);
 
-  const filteredBeans = useMemo(() =>
-    activeFilter === "All" ? beans : beans.filter(b => b.category === activeFilter)
-  , [beans, activeFilter]);
+  const filteredBeans = useMemo(() => {
+    const categoryFiltered = activeFilter === "All" ? beans : beans.filter(b => b.category === activeFilter);
+    return activeGuide ? categoryFiltered.filter((bean) => getGuideMatches(bean, activeGuide)) : categoryFiltered;
+  }, [beans, activeFilter, activeGuide]);
 
   const panamaBean = useMemo(() =>
     beans.find(b => /panama|lamastus|gesha/i.test(`${b.slug} ${b.name} ${b.collection}`))
@@ -451,7 +473,7 @@ export default function HomePage() {
     <>
       <Seo
         title="Drunk Coffee Roasters | Specialty Coffee Roaster in Malaysia"
-        description="Small-batch specialty coffee roasted in Johor, Malaysia. Sweet, approachable, and made for every day."
+        description="Fresh-roasted specialty coffee beans from Johor, Malaysia. Shop filter, espresso, limited lots, and gifts with WhatsApp order confirmation."
         url="/"
         image="https://drunkcoffeeroasters.com/og-default.jpg"
         imageAlt="Drunk Coffee Roasters — Specialty Coffee from Johor, Malaysia"
@@ -555,7 +577,7 @@ export default function HomePage() {
           {/* ══════════════════════════════════════════════════════════
               HERO
           ══════════════════════════════════════════════════════════ */}
-          <section className="relative flex min-h-[94svh] flex-col overflow-hidden">
+          <section className="relative flex min-h-[88svh] flex-col overflow-hidden md:min-h-[94svh]">
             {/* bg */}
             <div className="absolute inset-0">
               <img src="/hero-coffee.jpg" alt="" className="h-full w-full object-cover opacity-25" fetchPriority="high" />
@@ -565,7 +587,7 @@ export default function HomePage() {
             <div className="absolute right-0 top-0 h-[80vh] w-[55vw] opacity-[0.08]"
               style={{ background:"radial-gradient(ellipse at 80% 10%,#c8922a,transparent 60%)" }} />
 
-            <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col justify-end px-4 pb-14 pt-24 md:px-6 md:pb-20">
+            <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col justify-end px-4 pb-12 pt-20 md:px-6 md:pb-20 md:pt-24">
               <Fade>
                 <Eyebrow>Johor · Malaysia · Est. 2023</Eyebrow>
               </Fade>
@@ -579,16 +601,16 @@ export default function HomePage() {
               </Fade>
               <Fade delay={120}>
                 <p className="mt-7 max-w-[38ch] text-[16px] leading-[1.9] text-white/50 md:text-[17px]">
-                  Fresh-roasted specialty coffee for filter, espresso, and gifts. Pick a bag, send the cart on WhatsApp, and we confirm the roast schedule.
+                  Fresh-roasted specialty coffee for filter, espresso, and gifts. Choose a bag, send your cart on WhatsApp, and we confirm stock, roast timing, and delivery.
                 </p>
               </Fade>
               <Fade delay={180}>
                 <div className="mt-8 flex flex-wrap gap-3">
-                  <a href="#shop" className={P}>Choose your coffee</a>
+                  <a href="#shop" className={P}>Shop fresh coffee</a>
                   <a href={waUrl} target="_blank" rel="noreferrer"
                     onClick={() => trackWhatsappClick("hero","general")} className={G}>
                     <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="" className="h-3.5 w-3.5 opacity-40" />
-                    Ask for a recommendation
+                    Help me choose
                   </a>
                 </div>
               </Fade>
@@ -608,6 +630,9 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
+                <p className="mt-4 text-[11px] uppercase tracking-[0.16em] text-white/34">
+                  Roasted in Segamat · Specialty Coffee · HB Best Batch Roaster Contest 2026 3rd Place
+                </p>
               </Fade>
 
               {/* scroll cue */}
@@ -624,7 +649,7 @@ export default function HomePage() {
               SHOP — narrow list, flows naturally after hero
           ══════════════════════════════════════════════════════════ */}
           <section className="border-y border-white/[0.06] bg-[#100d09]">
-            <div className="mx-auto grid max-w-7xl gap-3 px-4 py-5 md:grid-cols-3 md:px-6">
+              <div className="mx-auto grid max-w-7xl gap-2.5 px-4 py-4 md:grid-cols-3 md:gap-3 md:px-6 md:py-5">
               {TRUST_ITEMS.map((item) => (
                 <div key={item.title} className="rounded-[14px] border border-white/[0.05] bg-white/[0.025] px-4 py-3">
                   <p className="text-[13px] font-semibold text-white">{item.title}</p>
@@ -634,33 +659,50 @@ export default function HomePage() {
             </div>
           </section>
 
-          <PanamaFeature bean={panamaBean} onOpen={openCoffee} onAdd={handleAdd} />
+          <section className="border-b border-white/[0.06] bg-[#0f0d0a]">
+            <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16">
+              <Fade>
+                <Eyebrow>Help me choose</Eyebrow>
+                <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                  <div>
+                    <h2 className="text-[clamp(28px,3.5vw,44px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Shop by drinking style.</h2>
+                    <p className="mt-4 max-w-[48ch] text-[14px] leading-[1.8] text-white/44">Pick how you drink coffee and we will narrow the menu like a barista would.</p>
+                  </div>
+                  {activeGuide && (
+                    <button type="button" onClick={() => setActiveGuide("")} className="self-start text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">
+                      Show all coffees
+                    </button>
+                  )}
+                </div>
+              </Fade>
 
-          {aloBeans.length > 0 && (
-            <section id="alo" className="border-t border-white/[0.06] bg-[#100d09]">
-              <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
-                <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-                  <Fade>
-                    <Eyebrow>Ethiopia ALO series</Eyebrow>
-                    <h2 className="max-w-[11ch] text-[clamp(32px,4.5vw,58px)] font-semibold leading-[0.9] tracking-[-0.05em] text-white">Slow dried. High definition.</h2>
-                    <p className="mt-4 max-w-[45ch] text-[15px] leading-[1.8] text-white/46">A small collection of expressive Sidama lots: bright fruit, floral lift, and a clean, elegant finish.</p>
-                  </Fade>
-                  <Fade delay={80}><a href="#shop" className="text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">See full menu →</a></Fade>
-                </div>
-                <div className="mt-9 grid gap-4 md:grid-cols-2">
-                  {aloBeans.slice(0, 2).map((bean, index) => <HighlightTile key={bean.id} bean={bean} index={index} onOpen={openCoffee} onAdd={handleAdd} />)}
-                </div>
+              <div className="mt-7 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                {DRINKING_STYLE_GUIDES.map((guide, index) => {
+                  const active = activeGuide === guide.label;
+                  return (
+                    <Fade key={guide.label} delay={index * 35}>
+                      <button type="button" onClick={() => setActiveGuide(active ? "" : guide.label)}
+                        className={cx("h-full w-full rounded-[14px] border p-4 text-left transition",
+                          active ? "border-[#c8922a] bg-[#c8922a]/10" : "border-white/[0.06] bg-white/[0.025] hover:border-white/[0.14] hover:bg-white/[0.04]")}>
+                        <p className="text-[14px] font-semibold text-white">{guide.label}</p>
+                        <p className="mt-1.5 text-[12px] leading-relaxed text-white/42">{guide.body}</p>
+                      </button>
+                    </Fade>
+                  );
+                })}
               </div>
-            </section>
-          )}
+            </div>
+          </section>
 
           <Marquee />
           <section id="shop" className="border-t border-white/[0.06]">
-            <div className="mx-auto max-w-2xl px-4 py-14 md:px-6 md:py-20">
+            <div className="mx-auto max-w-2xl px-4 py-12 md:px-6 md:py-20">
               <Fade>
                 <Eyebrow>The full menu</Eyebrow>
-                <h2 className="text-[clamp(28px,3.5vw,42px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Choose by brew, mood, or gift.</h2>
-                <p className="mt-4 max-w-[42ch] text-[14px] leading-[1.8] text-white/42">Each coffee shows tasting notes, best use, bag size, and price so you can decide quickly.</p>
+                <h2 className="text-[clamp(28px,3.5vw,42px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Start with how you brew.</h2>
+                <p className="mt-4 max-w-[42ch] text-[14px] leading-[1.8] text-white/42">
+                  {activeGuide ? `Showing coffees that suit ${activeGuide.toLowerCase()}.` : "Compare tasting notes, best use, bag size, and price before opening a product page."}
+                </p>
               </Fade>
 
               <div className="mt-7 grid gap-2 sm:grid-cols-2">
@@ -695,9 +737,15 @@ export default function HomePage() {
               <div className="mt-3 flex flex-col gap-1.5">
                 {loading
                   ? Array.from({length:4}).map((_,i) => <SkeletonRow key={i} />)
-                  : filteredBeans.map((bean,i) => (
+                  : filteredBeans.length > 0 ? filteredBeans.map((bean,i) => (
                       <CoffeeRow key={bean.id} bean={bean} onOpen={openCoffee} onAdd={handleAdd} index={i} />
-                    ))
+                    )) : (
+                      <div className="rounded-[14px] border border-white/[0.06] bg-white/[0.025] p-5 text-center">
+                        <p className="text-[14px] font-semibold text-white">No exact match in this filter.</p>
+                        <p className="mt-1 text-[12px] leading-relaxed text-white/38">Try clearing the drinking style or switching the brew filter.</p>
+                        <button type="button" onClick={() => { setActiveGuide(""); setActiveFilter("All"); }} className="mt-4 text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">Show all coffees</button>
+                      </div>
+                    )
                 }
               </div>
             </div>
@@ -706,6 +754,26 @@ export default function HomePage() {
           {/* ══════════════════════════════════════════════════════════
               SERIES — editorial layout, not a product grid
           ══════════════════════════════════════════════════════════ */}
+          <PanamaFeature bean={panamaBean} onOpen={openCoffee} onAdd={handleAdd} />
+
+          {aloBeans.length > 0 && (
+            <section id="alo" className="border-t border-white/[0.06] bg-[#100d09]">
+              <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
+                <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+                  <Fade>
+                    <Eyebrow>Ethiopia ALO series</Eyebrow>
+                    <h2 className="max-w-[11ch] text-[clamp(32px,4.5vw,58px)] font-semibold leading-[0.9] tracking-[-0.05em] text-white">Slow dried. High definition.</h2>
+                    <p className="mt-4 max-w-[45ch] text-[15px] leading-[1.8] text-white/46">Two expressive Sidama lots for drinkers who like bright fruit, floral lift, and a clean finish.</p>
+                  </Fade>
+                  <Fade delay={80}><a href="#shop" className="text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">Back to full menu</a></Fade>
+                </div>
+                <div className="mt-9 grid gap-4 md:grid-cols-2">
+                  {aloBeans.slice(0, 2).map((bean, index) => <HighlightTile key={bean.id} bean={bean} index={index} onOpen={openCoffee} onAdd={handleAdd} />)}
+                </div>
+              </div>
+            </section>
+          )}
+
           <section id="series" className="border-t border-white/[0.06] overflow-hidden">
             <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
               <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
@@ -788,6 +856,18 @@ export default function HomePage() {
                 </div>
               </div>
 
+              <Fade className="mt-8">
+                <div className="rounded-[18px] border border-white/[0.06] bg-white/[0.025] p-5 md:p-6">
+                  <Eyebrow>Brand story</Eyebrow>
+                  <p className="max-w-[68ch] text-[15px] leading-[1.85] text-white/56">
+                    Drunk Coffee Roasters is a specialty coffee roastery based in Segamat, focused on roasting coffees that are clear, sweet, and practical for daily brewing.
+                  </p>
+                  <p className="mt-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#d9ad59]/80">
+                    HB Best Batch Roaster Contest 2026 — 3rd Place
+                  </p>
+                </div>
+              </Fade>
+
               {/* reviews */}
               <div className="mt-14 grid gap-4 md:grid-cols-3">
                 {[
@@ -842,7 +922,7 @@ export default function HomePage() {
               <div className="flex flex-col gap-5 mb-8 md:flex-row md:items-end md:justify-between">
                 <Fade>
                   <Eyebrow>Instagram</Eyebrow>
-                  <h2 className="text-[clamp(26px,3.5vw,44px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Follow the process</h2>
+                  <h2 className="text-[clamp(26px,3.5vw,44px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Follow our roasting journey on Instagram</h2>
                 </Fade>
                 <Fade delay={60}>
                   <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer"
@@ -954,15 +1034,15 @@ export default function HomePage() {
             <div className="mx-auto max-w-2xl px-4 py-14 md:px-6 md:py-20">
               <Fade>
                 <Eyebrow>FAQ</Eyebrow>
-                <h2 className="text-[clamp(26px,3.5vw,38px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Good to know</h2>
+                <h2 className="text-[clamp(26px,3.5vw,38px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Before you order</h2>
               </Fade>
               <div className="mt-8">
                 {[
-                  { q:"How do I place an order?",      a:"Add coffees to cart, then send the order on WhatsApp. We'll confirm stock, roast timing, payment, and delivery there." },
-                  { q:"When will my coffee ship?",     a:"Most orders pack and ship within 1-3 working days, depending on roast schedule and order volume." },
+                  { q:"How do I place an order?",      a:"Add coffees to cart, send the order on WhatsApp, and we confirm stock, roast timing, payment, and delivery there." },
+                  { q:"When will my coffee ship?",     a:"Most orders are packed within 1-3 working days, depending on the roast schedule and order volume." },
                   { q:"Filter or espresso — which?",   a:"Choose Filter for cleaner black coffee and hand brew. Choose Espresso for shots, milk drinks, and a fuller daily cup." },
-                  { q:"Is the coffee roasted fresh?",  a:"Yes. We roast in small batches after orders land, so your bag is not sitting as old shelf stock." },
-                  { q:"Do you do gifts or wholesale?", a:"Yes. Message us for gift sets, office coffee, events, cafes, retail, or custom quantities." },
+                  { q:"Is the coffee roasted fresh?",  a:"Yes. We roast in small batches after orders come in, so your bag is not sitting as old shelf stock." },
+                  { q:"Can I order gifts or wholesale coffee?", a:"Yes. Message us for gift sets, office coffee, events, cafes, retail, or custom quantities." },
                 ].map((f,i) => <FaqItem key={f.q} q={f.q} a={f.a} index={i} />)}
               </div>
             </div>
@@ -984,9 +1064,9 @@ export default function HomePage() {
                 <div>
                   <img src="/logo.png" alt="Drunk Coffee Roasters" className="h-10 object-contain" />
                   <p className="mt-5 max-w-[260px] text-[14px] leading-[1.9] text-white/44">
-                    Drunk Coffee Roasters started as a passion for roasting coffees that are sweet, approachable and enjoyable every day.
+                    Drunk Coffee Roasters is a specialty coffee roastery based in Segamat, focused on coffees that are clear, sweet, and practical for daily brewing.
                   </p>
-                  <p className="mt-2 text-[12px] text-white/30">Based in Johor, Malaysia.</p>
+                  <p className="mt-2 text-[12px] text-white/30">HB Best Batch Roaster Contest 2026 — 3rd Place.</p>
                 </div>
 
                 {/* pages */}

@@ -8,6 +8,7 @@ import {
   buildGeneralWhatsAppUrl,
   cx,
   formatBeanPrice,
+  getDisplayBadges,
   safeArray,
   useBeans,
 } from "../lib/coffeeStore";
@@ -30,6 +31,8 @@ function BeanRow({ bean }) {
   const img = bean.image ? appendImageParams(bean.image, { w:400, h:400, fit:"pad", fm:"webp", q:78 }) : "";
   const notes = safeArray(bean.notes).slice(0, 3);
   const bestFor = bean.bestFor || bean.category;
+  const meta = [bean.size, bean.category].filter(Boolean).join(" / ");
+  const badges = getDisplayBadges(bean, 3);
   return (
     <Link to={`/coffee/${bean.slug}`}
       className="group flex items-center gap-3 rounded-[14px] border border-white/[0.05] px-3.5 py-3.5 transition duration-200 hover:border-white/[0.12] hover:bg-[#1c1814] sm:gap-4 md:px-5">
@@ -44,15 +47,18 @@ function BeanRow({ bean }) {
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="truncate text-[15px] font-semibold tracking-[-0.02em] text-white">{bean.name}</span>
-          {bean.badge && <span className="rounded-full border border-[#c8922a]/25 px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-[#d9ad59]">{bean.badge}</span>}
+          {badges.map((badge) => (
+            <span key={badge} className="rounded-full border border-[#c8922a]/25 px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-[#d9ad59]">{badge}</span>
+          ))}
         </div>
-        {notes.length > 0 && <p className="mt-1 text-[12px] leading-relaxed text-white/42">{notes.join(" / ")}</p>}
-        <p className="mt-1 text-[11px] leading-relaxed text-white/28">{bestFor}</p>
+        {notes.length > 0 && <p className="mt-1 text-[12px] leading-relaxed text-white/50">{notes.join(" / ")}</p>}
+        <p className="mt-1 text-[11px] leading-relaxed text-white/34">Best for: {bestFor}</p>
+        <p className="mt-0.5 text-[11px] leading-relaxed text-white/26 sm:hidden">{formatBeanPrice(bean)} / {meta}</p>
       </div>
       {/* price + category */}
       <div className="hidden shrink-0 text-right sm:block">
         <p className="text-[14px] font-semibold text-white/80">{formatBeanPrice(bean)}</p>
-        <p className="text-[10px] text-white/24 mt-0.5">{bean.size} / {bean.category}</p>
+        <p className="text-[10px] text-white/24 mt-0.5">{meta}</p>
       </div>
       <span className="shrink-0 text-[11px] text-white/24 transition group-hover:text-white/60">→</span>
     </Link>
@@ -86,7 +92,7 @@ export default function CoffeeBeansPage() {
     <>
       <Seo
         title="Coffee Beans Malaysia | Drunk Coffee Roasters"
-        description="Browse specialty coffee beans from Drunk Coffee Roasters. Freshly roasted filter and espresso coffees in Malaysia."
+        description="Browse fresh-roasted specialty coffee beans from Drunk Coffee Roasters in Malaysia, including filter, espresso, limited lots, and gift-friendly picks."
         url="/beans"
       />
 
@@ -123,7 +129,7 @@ export default function CoffeeBeansPage() {
         <main className="mx-auto max-w-2xl px-4 py-14 md:px-6 md:py-20">
           <Eyebrow>Coffee menu</Eyebrow>
           <h1 className="text-[clamp(32px,5vw,52px)] font-bold leading-[0.9] tracking-[-0.045em] text-white">
-            Choose your coffee
+            Shop coffee beans
           </h1>
           <p className="mt-4 mb-8 max-w-[42ch] text-[14px] leading-[1.8] text-white/42">
             Browse by brew style. Each row shows tasting notes, best use, bag size, and price before you open the detail page.

@@ -1,5 +1,6 @@
-import { ArrowLeft, Instagram, ShoppingCart, X } from "lucide-react";
+import { ArrowLeft, Instagram, Minus, Plus, ShoppingCart, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import Seo from "../components/Seo";
 import { trackAddToCart, trackWhatsappClick } from "../lib/analytics";
@@ -31,11 +32,12 @@ function Eyebrow({ children }) {
 // shared cart drawer
 function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onIncrease, onRemove, onClear }) {
   if (!open) return null;
+  if (typeof document === "undefined") return null;
   const url = buildCartWhatsAppUrl(cart);
-  return (
+  return createPortal((
     <div className="fixed inset-0 z-[70] flex justify-end">
       <button type="button" onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-[6px]" />
-      <aside className="relative flex h-full w-full max-w-[340px] flex-col border-l border-white/[0.07]" style={{ background:"#100e0b" }}>
+      <aside role="dialog" aria-modal="true" aria-label="Shopping cart" className="relative z-[80] flex h-dvh max-h-dvh w-full max-w-md flex-col overflow-hidden border-l border-white/[0.07]" style={{ background:"#100e0b" }}>
         <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4">
           <div>
             <p className="text-[17px] font-semibold text-white">Your cart</p>
@@ -82,7 +84,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
         </div>
       </aside>
     </div>
-  );
+  ), document.body);
 }
 
 function SeriesCard({ bean, onAdd }) {

@@ -3,6 +3,7 @@ import BlurImage from "../components/BlurImage";
 import Toast from "../components/Toast";
 import { Lightbox, useLightbox } from "../components/Lightbox";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Seo from "../components/Seo";
 import { trackAddToCart, trackProductView, trackWhatsappClick } from "../lib/analytics";
@@ -14,6 +15,13 @@ import {
   buildGeneralWhatsAppUrl,
   buildSingleOrderUrl,
   cx,
+  getBestForLabels,
+  getBuyThisIf,
+  getConfidenceLevel,
+  getDisplayBadges,
+  getSimilarBeans,
+  getSkipThisIf,
+  getTasteStyles,
   safeArray,
   selectBeanVariant,
   useBeans,
@@ -79,13 +87,17 @@ function NotePill({ note }) {
 // ─── Cart Drawer ──────────────────────────────────────────────────────────────
 function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onIncrease, onRemove, onClear }) {
   if (!open) return null;
+  if (typeof document === "undefined") return null;
   const url = buildCartWhatsAppUrl(cart);
-  return (
+  return createPortal((
     <div className="fixed inset-0 z-[70] flex justify-end">
       <button type="button" onClick={onClose} className="absolute inset-0 bg-black/72 backdrop-blur-[8px]" />
       <aside
-        className="relative flex w-full max-w-[340px] flex-col border-l border-white/[0.07]"
-        style={{ background: "#100e0b", height: "100dvh" }}>
+        role="dialog"
+        aria-modal="true"
+        aria-label="Shopping cart"
+        className="relative z-[80] flex h-dvh max-h-dvh w-full max-w-md flex-col overflow-hidden border-l border-white/[0.07]"
+        style={{ background: "#100e0b" }}>
         <div className="shrink-0 flex items-center justify-between border-b border-white/[0.07] px-5 py-4">
           <div>
             <p className="text-[17px] font-semibold tracking-[-0.02em] text-white">Your cart</p>
@@ -149,13 +161,14 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
         </div>
       </aside>
     </div>
-  );
+  ), document.body);
 }
 
 // ─── Related coffee row ────────────────────────────────────────────────────────
 function RelatedRow({ bean, onAdd }) {
   const img = bean?.image ? appendImageParams(bean.image, { w: 300, h: 300, fit: "pad", fm: "webp", q: 76 }) : "";
   const notes = safeArray(bean.notes).slice(0, 2).join(" · ");
+  const badges = getDisplayBadges(bean, 2);
   return (
     <div className="group flex items-center gap-4 rounded-[13px] border border-white/[0.05] px-4 py-3 transition hover:border-white/[0.10] hover:bg-[#1c1814]">
       <Link to={`/coffee/${bean.slug}`}
@@ -171,6 +184,7 @@ function RelatedRow({ bean, onAdd }) {
       <Link to={`/coffee/${bean.slug}`} className="min-w-0 flex-1">
         <p className="truncate text-[15px] font-semibold text-white">{bean.name}</p>
         {notes && <p className="mt-0.5 truncate text-[12px] text-white/38">{notes}</p>}
+        {badges.length > 0 && <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[#d9ad59]/75">{badges.join(" / ")}</p>}
       </Link>
       <p className="shrink-0 mr-2 text-[14px] font-semibold text-white/70">RM {bean.price}</p>
       <button type="button" onClick={() => onAdd(bean)}
@@ -184,12 +198,12 @@ function RelatedRow({ bean, onAdd }) {
 // ─── Utility fns ──────────────────────────────────────────────────────────────
 function getRecommendedBrew(bean) {
   if (!bean) return "";
-  return bean.category === "Espresso" ? "Espresso · Milk drinks · Black" : "V60 · Orea · AeroPress";
+  return bean.category === "Espresso" ? "Espresso / Americano / Latte or milk coffee" : "Pour Over / French Press / Black Coffee";
 }
 function getWhoItsFor(bean) {
   if (!bean) return "";
   const notes = safeArray(bean.notes).join(", ").toLowerCase();
-  if (bean.category === "Espresso") return "Best for a reliable everyday cup — especially espresso or milk-based drinks.";
+  if (bean.category === "Espresso") return "Best for a reliable everyday cup, especially espresso or milk-based drinks.";
   if (notes.includes("floral")) return "Best for lighter, tea-like cups with fragrance and lift.";
   if (["mango", "berry", "apple", "fruit", "orange"].some(n => notes.includes(n)))
     return "Best for brighter, fruit-forward coffees with expressive character.";
@@ -216,7 +230,7 @@ export default function ProductDetail() {
   const currentIndex  = useMemo(() => beans.findIndex(b => b.slug === slug), [beans, slug]);
   const previousBean  = currentIndex > 0 ? beans[currentIndex - 1] : null;
   const nextBean      = currentIndex >= 0 && currentIndex < beans.length - 1 ? beans[currentIndex + 1] : null;
-  const relatedBeans  = useMemo(() => !bean ? [] : beans.filter(b => b.slug !== bean.slug && b.category === bean.category).slice(0, 3), [beans, bean]);
+  const relatedBeans  = useMemo(() => getSimilarBeans(bean, beans, 3), [beans, bean]);
   const monteblancoBeans = useMemo(() =>
     beans.filter(b => [b.name, b.origin, b.collection].filter(Boolean).some(v => String(v).toLowerCase().includes("monteblanco")))
   , [beans]);
@@ -230,6 +244,11 @@ export default function ProductDetail() {
   const detailImage       = bean?.image       ? appendImageParams(bean.image,       { w: 1800, h: 1800, fit: "pad", fm: "webp", q: 86 }) : "";
   const detailFlavorImage = bean?.flavorImage ? appendImageParams(bean.flavorImage, { w: 1600, h: 1600, fit: "pad", fm: "webp", q: 86 }) : "";
   const notes             = safeArray(bean?.notes);
+  const bestForLabels     = bean ? getBestForLabels(bean) : [];
+  const tasteStyles       = bean ? getTasteStyles(bean) : [];
+  const confidenceLevel   = bean ? getConfidenceLevel(bean) : "";
+  const buyThisIf         = bean ? getBuyThisIf(bean) : "";
+  const skipThisIf        = bean ? getSkipThisIf(bean) : "";
 
   // Lightbox — must come after detailImage is declared
   const lightboxImages = detailImage ? [{ src: detailImage, alt: bean?.name || "" }] : [];
@@ -237,7 +256,7 @@ export default function ProductDetail() {
 
   const notesForSeo = notes.join(", ");
   const productDescription = bean
-    ? `Shop ${bean.name} from Drunk Coffee Roasters. ${bean.tagline ? `${bean.tagline}. ` : ""}${notesForSeo ? `Notes: ${notesForSeo}. ` : ""}Freshly roasted in Malaysia.`
+    ? `Shop ${bean.name} from Drunk Coffee Roasters. ${bean.tagline ? `${bean.tagline}. ` : ""}${notesForSeo ? `Notes: ${notesForSeo}. ` : ""}Fresh-roasted specialty coffee beans in Malaysia.`
     : "Specialty coffee from Drunk Coffee Roasters.";
 
   useEffect(() => { if (bean) trackProductView(bean); }, [bean]);
@@ -330,7 +349,7 @@ export default function ProductDetail() {
         </header>
 
         {/* ── MAIN ── */}
-        <main className="mx-auto max-w-6xl px-4 pb-32 pt-10 md:px-6 md:pb-16 md:pt-14">
+        <main className="mx-auto max-w-6xl px-4 pb-32 pt-8 md:px-6 md:pb-16 md:pt-14">
           {error && <p className="mb-6 text-[12px] text-amber-300">{error}</p>}
 
           {loading ? (
@@ -347,7 +366,7 @@ export default function ProductDetail() {
               {/* ════════════════════════════════════════
                   PRODUCT HERO — sticky image left
               ════════════════════════════════════════ */}
-              <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+              <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-start lg:gap-10">
 
                 {/* ── Image panel — sticky on desktop, click to lightbox ── */}
                 <Fade className="lg:sticky lg:top-[68px]">
@@ -432,12 +451,44 @@ export default function ProductDetail() {
                         {notes.map(n => <NotePill key={n} note={n} />)}
                       </div>
                     )}
+
+                    <div className="mt-5 rounded-[18px] border border-white/[0.07] bg-white/[0.025] p-4 md:p-5">
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-[#c8922a]/70">Buyer guidance</p>
+                      <div className="mt-4 grid gap-4">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-[0.14em] text-white/32">Best for</p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {bestForLabels.map((label) => <NotePill key={label} note={label} />)}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[11px] uppercase tracking-[0.14em] text-white/32">Taste style</p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {tasteStyles.map((label) => <NotePill key={label} note={label} />)}
+                          </div>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="rounded-[14px] border border-white/[0.05] bg-black/10 p-4">
+                            <p className="text-[11px] uppercase tracking-[0.14em] text-white/32">Buy this if</p>
+                            <p className="mt-1.5 text-[13px] leading-relaxed text-white/66">{buyThisIf}</p>
+                          </div>
+                          <div className="rounded-[14px] border border-white/[0.05] bg-black/10 p-4">
+                            <p className="text-[11px] uppercase tracking-[0.14em] text-white/32">Skip this if</p>
+                            <p className="mt-1.5 text-[13px] leading-relaxed text-white/56">{skipThisIf}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
+                          <p className="text-[11px] uppercase tracking-[0.14em] text-white/32">Confidence level</p>
+                          <span className="rounded-full border border-[#c8922a]/25 bg-[#c8922a]/10 px-3.5 py-1.5 text-[12px] font-semibold text-[#d9ad59]">{confidenceLevel}</span>
+                        </div>
+                      </div>
+                    </div>
                   </Fade>
 
                   {/* description */}
                   {bean.description && (
                     <Fade delay={60} className="mt-5 border-t border-white/[0.06] pt-5">
-                      <p className="text-[14px] leading-[1.95] text-white/52">{bean.description}</p>
+                      <p className="text-[15px] leading-[1.9] text-white/58">{bean.description}</p>
                     </Fade>
                   )}
 
@@ -507,10 +558,15 @@ export default function ProductDetail() {
 
                   {/* freshness note */}
                   <Fade delay={120} className="mt-4">
-                    <p className="flex items-center gap-2 text-[12px] text-white/34">
-                      <span className="h-1 w-1 rounded-full bg-[#c8922a]/50" />
-                      Roasted to order · dispatched within 48 hours
-                    </p>
+                    <div className="space-y-1.5">
+                      <p className="flex items-center gap-2 text-[12px] text-white/34">
+                        <span className="h-1 w-1 rounded-full bg-[#c8922a]/50" />
+                        Roasted to order · dispatched within 48 hours
+                      </p>
+                      <p className="text-[12px] leading-relaxed text-white/30">
+                        Roasted by Drunk Coffee Roasters, Segamat. Awarded 3rd Place in HB Best Batch Roaster Contest 2026.
+                      </p>
+                    </div>
                   </Fade>
                 </div>
               </div>
@@ -573,7 +629,7 @@ export default function ProductDetail() {
                 <Fade className="mt-8">
                   <div className="mb-4 flex items-center gap-3">
                     <span className="h-px w-4 bg-[#c8922a]/40" />
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-white/26">You may also like</p>
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-white/26">If you like this style, you may also like</p>
                   </div>
                   <div className="flex flex-col gap-2">
                     {relatedBeans.map(item => <RelatedRow key={item.id} bean={item} onAdd={handleAdd} />)}

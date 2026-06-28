@@ -190,6 +190,179 @@ export function formatBeanPrice(bean) {
   return variants.length > 1 ? `From RM ${lowest}` : `RM ${lowest}`;
 }
 
+function beanText(bean) {
+  return [
+    bean?.name,
+    bean?.category,
+    bean?.collection,
+    bean?.tagline,
+    bean?.description,
+    bean?.origin,
+    bean?.process,
+    bean?.roast,
+    bean?.badge,
+    bean?.bestFor,
+    ...safeArray(bean?.notes),
+  ].filter(Boolean).join(" ").toLowerCase();
+}
+
+function fieldArray(value) {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (typeof value === "string") {
+    return value
+      .split(/[,/|]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+export function getTasteStyles(bean) {
+  const explicit = fieldArray(bean?.tasteStyle || bean?.tasteStyles);
+  if (explicit.length) return explicit.slice(0, 4);
+
+  const text = beanText(bean);
+  const styles = [];
+  const add = (label, tests) => {
+    if (tests.some((test) => text.includes(test))) styles.push(label);
+  };
+
+  add("Fruity", ["fruit", "berry", "mango", "orange", "apple", "peach", "grape", "tropical", "citrus"]);
+  add("Floral", ["floral", "flower", "jasmine", "rose"]);
+  add("Chocolatey", ["chocolate", "cacao", "cocoa", "mocha"]);
+  add("Nutty", ["nut", "almond", "hazelnut", "peanut"]);
+  add("Sweet", ["sweet", "caramel", "honey", "sugar", "molasses"]);
+  add("Low Acid", ["low acid", "low-acid", "smooth", "mellow"]);
+  add("Bright", ["bright", "citrus", "sparkling", "juicy"]);
+  add("Heavy Body", ["heavy body", "full body", "full-bodied", "creamy", "syrupy"]);
+  add("Clean", ["clean", "washed", "clear", "clarity"]);
+  add("Funky", ["funky", "anaerobic", "experimental", "ferment"]);
+  add("Winey", ["wine", "winey", "grape"]);
+
+  if (styles.length) return [...new Set(styles)].slice(0, 4);
+  return bean?.category === "Espresso" ? ["Chocolatey", "Sweet"] : ["Clean", "Sweet"];
+}
+
+export function getBestForLabels(bean) {
+  const explicit = fieldArray(bean?.bestForLabels || bean?.bestFor);
+  const allowed = ["Pour Over", "French Press", "Espresso", "Americano", "Latte / Milk Coffee", "Cold Brew", "Black Coffee"];
+  const normalized = explicit
+    .map((label) => allowed.find((allowedLabel) => allowedLabel.toLowerCase() === label.toLowerCase()) || label)
+    .filter((label) => allowed.includes(label));
+  if (normalized.length) return [...new Set(normalized)].slice(0, 5);
+
+  const text = beanText(bean);
+  const isEspresso = bean?.category === "Espresso" || text.includes("espresso");
+  const isLowAcid = text.includes("low acid") || text.includes("smooth") || text.includes("mellow");
+  const isCold = text.includes("cold brew");
+
+  const labels = isEspresso
+    ? ["Espresso", "Americano", "Latte / Milk Coffee"]
+    : ["Pour Over", "Black Coffee"];
+
+  if (!isEspresso && (text.includes("body") || text.includes("chocolate") || isLowAcid)) labels.push("French Press");
+  if (isCold || isLowAcid || text.includes("chocolate")) labels.push("Cold Brew");
+
+  return [...new Set(labels)].slice(0, 5);
+}
+
+export function getConfidenceLevel(bean) {
+  if (bean?.confidenceLevel) return bean.confidenceLevel;
+  if (bean?.customerType) {
+    return bean.customerType === "Curious Drinkers" ? "For Curious Drinkers" : bean.customerType;
+  }
+
+  const text = beanText(bean);
+  if (text.includes("limited") || text.includes("gesha") || text.includes("anaerobic") || text.includes("wine") || text.includes("funk")) {
+    return "For Advanced Coffee Lovers";
+  }
+  if (text.includes("floral") || text.includes("fruit") || text.includes("bright") || text.includes("experimental")) {
+    return "For Curious Drinkers";
+  }
+  return "Easy Pick";
+}
+
+export function getDisplayBadges(bean, limit = 4) {
+  const bestFor = getBestForLabels(bean);
+  const tastes = getTasteStyles(bean);
+  const badgeLabel = (label) => {
+    if (label === "Latte / Milk Coffee") return "MILK COFFEE";
+    if (label === "Low Acid") return "LOW ACID";
+    return label.toUpperCase();
+  };
+  const badges = [
+    bean?.category === "Espresso" ? "ESPRESSO" : "FILTER",
+    ...bestFor.map(badgeLabel),
+    ...tastes.map(badgeLabel),
+  ];
+
+  if (getConfidenceLevel(bean) === "Easy Pick") badges.push("EASY PICK");
+  if (String(bean?.badge || "").toLowerCase().includes("limited") || beanText(bean).includes("limited")) badges.push("LIMITED RELEASE");
+
+  return [...new Set(badges)].slice(0, limit);
+}
+
+export function getBuyThisIf(bean) {
+  if (bean?.buyThisIf) return bean.buyThisIf;
+
+  const tastes = getTasteStyles(bean).map((style) => style.toLowerCase());
+  const bestFor = getBestForLabels(bean);
+  const drink = bestFor.includes("Latte / Milk Coffee")
+    ? "milk coffee and espresso-style drinks"
+    : bestFor.includes("Black Coffee")
+      ? "black coffee"
+      : bestFor[0]?.toLowerCase() || "coffee";
+
+  return `Buy this if you enjoy ${tastes.slice(0, 3).join(", ")} ${drink}.`;
+}
+
+export function getSkipThisIf(bean) {
+  if (bean?.skipThisIf) return bean.skipThisIf;
+
+  const tastes = getTasteStyles(bean);
+  if (tastes.includes("Bright") || tastes.includes("Fruity") || tastes.includes("Winey")) {
+    return "Skip this if you prefer low-acid, chocolatey, heavy-bodied coffee.";
+  }
+  if (bean?.category === "Espresso") {
+    return "Skip this if you want a light, floral pour-over as your main cup.";
+  }
+  return "Skip this if you want a bold espresso roast for milk drinks.";
+}
+
+export function getGuideMatches(bean, guide) {
+  const bestFor = getBestForLabels(bean);
+  const tastes = getTasteStyles(bean);
+  const confidence = getConfidenceLevel(bean);
+  const text = beanText(bean);
+
+  if (guide === "Pour Over") return bestFor.includes("Pour Over");
+  if (guide === "Espresso") return bestFor.includes("Espresso");
+  if (guide === "Americano") return bestFor.includes("Americano");
+  if (guide === "Latte / Milk Coffee") return bestFor.includes("Latte / Milk Coffee");
+  if (guide === "Low Acidity") return tastes.includes("Low Acid") || text.includes("smooth") || bean?.category === "Espresso";
+  if (guide === "Fruity Coffee") return tastes.some((style) => ["Fruity", "Bright", "Winey", "Floral"].includes(style));
+  if (guide === "Easy Pick") return confidence === "Easy Pick";
+  return false;
+}
+
+export function getSimilarBeans(bean, beans, limit = 3) {
+  if (!bean) return [];
+  const baseBestFor = getBestForLabels(bean);
+  const baseTaste = getTasteStyles(bean);
+  return beans
+    .filter((item) => item.slug !== bean.slug)
+    .map((item) => {
+      const bestForScore = getBestForLabels(item).filter((label) => baseBestFor.includes(label)).length * 2;
+      const tasteScore = getTasteStyles(item).filter((label) => baseTaste.includes(label)).length;
+      const categoryScore = item.category === bean.category ? 2 : 0;
+      return { item, score: bestForScore + tasteScore + categoryScore };
+    })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ item }) => item);
+}
+
 export function appendImageParams(url, params = {}) {
   if (!url) return "";
   try {
@@ -235,6 +408,7 @@ const FLAVOR_IMAGE_OVERRIDES = {
   "alo-sidama-g1-natural-slow-dry": "/flavors/alo-sidama-g1-natural-slow-dry.png",
   "alo-bona-zuria-gute-natural-g1": "/flavors/alo-bona-zuria-gute-natural-g1.png",
   "panama-lamastus-gesha-alto-quiel-selecto-natural": "/flavors/panama-lamastus-gesha-alto-quiel-selecto-natural.png",
+  "meranti-liberica-g1": "/flavors/meranti-liberica-g1.png",
 };
 
 export function normalizeSlug(value) {
@@ -267,6 +441,24 @@ export function normalizeAudience(value, category = "") {
     : "Filter brewing · daily cup";
 }
 
+function parseBuyerGuidance(value = "") {
+  const text = String(value || "");
+  if (!text.includes("Buyer Guidance")) return {};
+
+  const readLine = (label) => {
+    const match = text.match(new RegExp(`${label}:\\s*([^\\n]+)`, "i"));
+    return match?.[1]?.trim() || "";
+  };
+
+  return {
+    bestForLabels: readLine("Best For"),
+    tasteStyle: readLine("Taste Style"),
+    buyThisIf: readLine("Buy This If"),
+    skipThisIf: readLine("Skip This If"),
+    confidenceLevel: readLine("Confidence Level"),
+  };
+}
+
 export function mapContentfulEntries(data) {
   const items = Array.isArray(data?.items) ? data.items : [];
   const includes = Array.isArray(data?.includes?.Asset)
@@ -286,6 +478,7 @@ export function mapContentfulEntries(data) {
     const flavorAsset = flavorImageId ? assetMap[flavorImageId] : null;
     const notes = safeArray(fields.notes || fields.tastingNotes);
     const bestFor = normalizeAudience(fields.bestfor || fields.bestFor || "", fields.category || "Filter");
+    const buyerGuidance = parseBuyerGuidance(fields.brewguide || "");
 
     const variants = normalizeVariants(fields.variants, {
       size: fields.size,
@@ -317,6 +510,11 @@ export function mapContentfulEntries(data) {
       featured: Boolean(fields.featured),
       badge: fields.badge || "",
       bestFor,
+      bestForLabels: fields.bestForLabels || fields.bestForList || fields.bestforList || buyerGuidance.bestForLabels || "",
+      tasteStyle: fields.tasteStyle || fields.tasteStyles || buyerGuidance.tasteStyle || "",
+      buyThisIf: fields.buyThisIf || buyerGuidance.buyThisIf || "",
+      skipThisIf: fields.skipThisIf || buyerGuidance.skipThisIf || "",
+      confidenceLevel: fields.confidenceLevel || fields.customerType || buyerGuidance.confidenceLevel || "",
       wholesaleAvailable: Boolean(fields.wholesaleAvailable),
       sortOrder: Number(fields.sortOrder || 999),
       active: fields.active !== false,
