@@ -38,3 +38,76 @@ a {
 button {
   font: inherit;
 }
+
+/* Temporary presentation for the reusable coffee-label SVG. */
+.label-preview {
+  --kraft-dark: #6d442c;
+  box-sizing: border-box;
+  position: relative;
+  display: grid;
+  min-height: 100svh;
+  place-content: center;
+  gap: 1.25rem;
+  overflow: hidden;
+  padding: 2rem;
+  background: #aa7754;
+  color: #f6eedc;
+}
+
+.label-preview__paper {
+  position: absolute;
+  inset: 0;
+  opacity: .42;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(17deg, rgba(60, 34, 20, .08) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(106deg, rgba(255, 241, 201, .11) 0 1px, transparent 1px 8px);
+}
+
+.label-preview__bag {
+  position: relative;
+  width: min(78vw, 560px);
+  aspect-ratio: .76;
+  display: grid;
+  place-items: center;
+  padding: clamp(1.2rem, 4vw, 2.2rem);
+  background: linear-gradient(102deg, #8b5b3a, #bd8a60 46%, #825136);
+  box-shadow: 0 24px 55px rgba(49, 28, 16, .35), inset 0 0 48px rgba(66, 35, 17, .2);
+}
+
+.label-preview__bag::before {
+  content: "";
+  position: absolute;
+  top: 6%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(56, 31, 17, .35);
+}
+
+.label-preview__label {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 6px 12px rgba(55, 33, 18, .18);
+}
+
+.label-preview__caption {
+  position: relative;
+  margin: 0;
+  text-align: center;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 480px) {
+  .label-preview {
+    padding: 1.25rem;
+  }
+
+  .label-preview__bag {
+    width: min(88vw, 390px);
+  }
+}

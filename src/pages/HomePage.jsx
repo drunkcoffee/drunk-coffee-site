@@ -15,6 +15,7 @@ import {
   buildGeneralWhatsAppUrl,
   buildWholesaleWhatsAppUrl,
   cx,
+  formatBeanPrice,
   safeArray,
   useBeans,
   usePersistentCart,
@@ -124,6 +125,19 @@ const TICKER_ITEMS = [
   "WhatsApp ordering",
   "Fresh · Sweet · Approachable",
 ];
+const TRUST_ITEMS = [
+  { title: "Roasted after you order", body: "No stale shelf stock." },
+  { title: "Filter, espresso, gifts", body: "Choose by how you brew." },
+  { title: "WhatsApp checkout", body: "We confirm roast timing before payment." },
+];
+
+const MENU_GUIDES = [
+  { title: "Filter", body: "Lighter, clearer cups for hand brew and daily black coffee." },
+  { title: "Espresso", body: "Comforting, balanced beans for shots and milk drinks." },
+  { title: "Limited", body: "Small seasonal lots with more expressive fruit or florals." },
+  { title: "Gifts", body: "Easy picks for friends, guests, and coffee-loving clients." },
+];
+
 function Marquee() {
   const items = [...TICKER_ITEMS, ...TICKER_ITEMS]; // double for seamless loop
   return (
@@ -145,7 +159,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
   const url = buildCartWhatsAppUrl(cart);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[70] flex justify-end" style={{ position: "sticky" }}>
+    <div className="fixed inset-0 z-[70] flex justify-end">
       <button type="button" onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-[6px]" aria-label="Close" />
       <aside role="dialog" aria-modal="true" aria-label="Shopping cart" className="relative flex w-full max-w-[340px] flex-col border-l border-white/[0.07]" style={{ background: "#100e0b", height: "100dvh" }}>
         {/* header */}
@@ -213,10 +227,11 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
 // ─── Coffee row ───────────────────────────────────────────────────────────────
 function CoffeeRow({ bean, onOpen, onAdd, index }) {
   const img = bean.image ? appendImageParams(bean.image, { w:400, h:400, fit:"pad", fm:"webp", q:78 }) : "";
-  const notes = safeArray(bean.notes).slice(0, 3).join(" · ");
+  const notes = safeArray(bean.notes).slice(0, 3);
+  const bestFor = bean.bestFor || bean.category;
   return (
     <Fade delay={index * 28}>
-      <article className="group relative flex items-center gap-4 rounded-[14px] border border-white/[0.05] px-4 py-3.5 transition duration-200 hover:border-white/[0.10] hover:bg-[#1c1814] md:px-5">
+      <article className="group relative flex items-center gap-3 rounded-[14px] border border-white/[0.05] px-3.5 py-3.5 transition duration-200 hover:border-white/[0.10] hover:bg-[#1c1814] sm:gap-4 md:px-5">
         {/* thumbnail */}
         <button type="button" onClick={() => onOpen(bean.slug)} className="shrink-0 rounded-[9px] bg-[#130f0a] overflow-hidden">
           <div className="h-[70px] w-[70px]">
@@ -229,23 +244,24 @@ function CoffeeRow({ bean, onOpen, onAdd, index }) {
 
         {/* info */}
         <button type="button" onClick={() => onOpen(bean.slug)} className="min-w-0 flex-1 text-left">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="truncate text-[17px] font-semibold tracking-[-0.02em] text-white">{bean.name}</span>
-            {bean.badge && <span className="shrink-0 h-1.5 w-1.5 rounded-full bg-[#c8922a]" title={bean.badge} />}
+            {bean.badge && <span className="rounded-full border border-[#c8922a]/25 px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-[#d9ad59]">{bean.badge}</span>}
           </div>
-          {notes && <p className="mt-1 truncate text-[13px] text-white/40">{notes}</p>}
+          {notes.length > 0 && <p className="mt-1 text-[13px] leading-relaxed text-white/46">{notes.join(" / ")}</p>}
+          <p className="mt-1 text-[11px] leading-relaxed text-white/30">{bestFor}</p>
         </button>
 
         {/* price */}
-        <div className="shrink-0 text-right mr-2">
-          <p className="text-[16px] font-semibold text-white/85">RM {bean.price}</p>
-          <p className="text-[12px] text-white/32 mt-0.5">{bean.category}</p>
+        <div className="hidden shrink-0 text-right mr-1 sm:block">
+          <p className="text-[16px] font-semibold text-white/85">{formatBeanPrice(bean)}</p>
+          <p className="text-[12px] text-white/32 mt-0.5">{bean.size} / {bean.category}</p>
         </div>
 
         {/* add — slides in on hover desktop, always visible mobile */}
         <button type="button" onClick={() => onAdd(bean)} aria-label="Add to cart"
-          className="shrink-0 rounded-full bg-[#c8922a] px-4 py-2.5 text-[12px] font-semibold text-[#0e0c09] transition duration-200 hover:bg-[#d9a23a] active:scale-95 md:translate-x-1.5 md:opacity-0 md:group-hover:translate-x-0 md:group-hover:opacity-100">
-          + Add
+          className="shrink-0 rounded-full bg-[#c8922a] px-3.5 py-2.5 text-[12px] font-semibold text-[#0e0c09] transition duration-200 hover:bg-[#d9a23a] active:scale-95 md:translate-x-1.5 md:opacity-0 md:group-hover:translate-x-0 md:group-hover:opacity-100">
+          Add
         </button>
       </article>
     </Fade>
@@ -292,6 +308,7 @@ function SeriesCard({ bean, onOpen, index }) {
 function HighlightTile({ bean, index, onOpen, onAdd }) {
   const img = bean?.image || bean?.flavorImage || "";
   const notes = safeArray(bean?.notes).slice(0, 3);
+  const bestFor = bean?.bestFor || bean?.category;
   return (
     <Fade delay={index * 70}>
       <article className="group overflow-hidden rounded-[22px] bg-[#1a1510] shadow-[0_20px_55px_rgba(0,0,0,0.18)]">
@@ -304,12 +321,13 @@ function HighlightTile({ bean, index, onOpen, onAdd }) {
           <p className="text-[10px] uppercase tracking-[0.2em] text-[#d9ad59]">{bean.process || bean.category}</p>
           <div className="mt-2 flex items-start justify-between gap-4">
             <button type="button" onClick={() => onOpen(bean.slug)} className="text-left text-[20px] font-semibold leading-[1.05] tracking-[-0.035em] text-white">{bean.name}</button>
-            <span className="shrink-0 text-[13px] font-semibold text-white/70">RM {bean.price}</span>
+            <span className="shrink-0 text-[13px] font-semibold text-white/70">{formatBeanPrice(bean)}</span>
           </div>
           {notes.length > 0 && <p className="mt-3 text-[13px] leading-relaxed text-white/46">{notes.join(" · ")}</p>}
+          <p className="mt-2 text-[12px] leading-relaxed text-white/32">{bean.size} / {bestFor}</p>
           <div className="mt-5 flex items-center justify-between gap-3">
-            <button type="button" onClick={() => onOpen(bean.slug)} className="text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">Explore coffee →</button>
-            <button type="button" onClick={() => onAdd(bean)} className="rounded-full border border-white/14 px-3.5 py-2 text-[11px] font-semibold text-white/76 transition hover:border-white/28 hover:text-white">Add</button>
+            <button type="button" onClick={() => onOpen(bean.slug)} className="text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">View details →</button>
+            <button type="button" onClick={() => onAdd(bean)} className="rounded-full border border-white/14 px-3.5 py-2 text-[11px] font-semibold text-white/76 transition hover:border-white/28 hover:text-white">Add to cart</button>
           </div>
         </div>
       </article>
@@ -328,11 +346,11 @@ function PanamaFeature({ bean, onOpen, onAdd }) {
           <Eyebrow>Rare selection</Eyebrow>
           <p className="text-[11px] uppercase tracking-[0.22em] text-[#6d5231]">Panama · Boquete · Alto Quiel</p>
           <h2 className="mt-3 max-w-[10ch] text-[clamp(38px,5.2vw,70px)] font-semibold leading-[0.91] tracking-[-0.055em]">{bean.name}</h2>
-          <p className="mt-5 max-w-[43ch] text-[16px] leading-[1.75] text-[#4c3b27]">A luminous, fruit-forward Gesha selected for its tropical clarity and juicy finish. Roasted light-medium for a vivid cup.</p>
+          <p className="mt-5 max-w-[43ch] text-[16px] leading-[1.75] text-[#4c3b27]">A luminous, fruit-forward Gesha for drinkers who want a memorable filter cup: tropical clarity, juicy sweetness, and a clean finish.</p>
           {notes.length > 0 && <div className="mt-6 flex flex-wrap gap-2">{notes.map((note) => <span key={note} className="rounded-full border border-[#6d5231]/20 px-3 py-1.5 text-[11px] text-[#5a442a]">{note}</span>)}</div>}
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <button type="button" onClick={() => onOpen(bean.slug)} className="rounded-full bg-[#17120d] px-5 py-3 text-[12px] font-semibold text-white transition hover:bg-[#342919]">Discover Panama</button>
-            <button type="button" onClick={() => onAdd(bean)} className="rounded-full border border-[#17120d]/18 px-5 py-3 text-[12px] font-semibold text-[#17120d] transition hover:border-[#17120d]/40">Add · RM {bean.price}</button>
+            <button type="button" onClick={() => onOpen(bean.slug)} className="rounded-full bg-[#17120d] px-5 py-3 text-[12px] font-semibold text-white transition hover:bg-[#342919]">View tasting notes</button>
+            <button type="button" onClick={() => onAdd(bean)} className="rounded-full border border-[#17120d]/18 px-5 py-3 text-[12px] font-semibold text-[#17120d] transition hover:border-[#17120d]/40">Add to cart · {formatBeanPrice(bean)}</button>
           </div>
         </Fade>
         <Fade delay={90} className="order-1 lg:order-2">
@@ -561,16 +579,16 @@ export default function HomePage() {
               </Fade>
               <Fade delay={120}>
                 <p className="mt-7 max-w-[38ch] text-[16px] leading-[1.9] text-white/50 md:text-[17px]">
-                  Small-batch specialty coffee roasted in Johor. Sweet, approachable, and made for every day — not just special occasions.
+                  Fresh-roasted specialty coffee for filter, espresso, and gifts. Pick a bag, send the cart on WhatsApp, and we confirm the roast schedule.
                 </p>
               </Fade>
               <Fade delay={180}>
                 <div className="mt-8 flex flex-wrap gap-3">
-                  <a href="#shop" className={P}>Shop coffees</a>
+                  <a href="#shop" className={P}>Choose your coffee</a>
                   <a href={waUrl} target="_blank" rel="noreferrer"
                     onClick={() => trackWhatsappClick("hero","general")} className={G}>
                     <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="" className="h-3.5 w-3.5 opacity-40" />
-                    Order on WhatsApp
+                    Ask for a recommendation
                   </a>
                 </div>
               </Fade>
@@ -579,9 +597,9 @@ export default function HomePage() {
               <Fade delay={240}>
                 <div className="mt-14 flex flex-wrap gap-x-7 gap-y-3 border-t border-white/[0.06] pt-6">
                   {[
-                    { n:"100%",   l:"Roasted to order" },
-                    { n:"48 hr",  l:"Dispatch time"    },
-                    { n:"MY · SG",l:"Ships to"         },
+                    { n:"100%",   l:"Roasted fresh" },
+                    { n:"48 hr",  l:"Typical dispatch" },
+                    { n:"MY / SG",l:"Ships to" },
                     { n:"Filter + Espresso", l:"Brew styles" },
                   ].map(({ n,l }) => (
                     <div key={l} className="flex items-baseline gap-2">
@@ -605,6 +623,17 @@ export default function HomePage() {
           {/* ══════════════════════════════════════════════════════════
               SHOP — narrow list, flows naturally after hero
           ══════════════════════════════════════════════════════════ */}
+          <section className="border-y border-white/[0.06] bg-[#100d09]">
+            <div className="mx-auto grid max-w-7xl gap-3 px-4 py-5 md:grid-cols-3 md:px-6">
+              {TRUST_ITEMS.map((item) => (
+                <div key={item.title} className="rounded-[14px] border border-white/[0.05] bg-white/[0.025] px-4 py-3">
+                  <p className="text-[13px] font-semibold text-white">{item.title}</p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-white/40">{item.body}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <PanamaFeature bean={panamaBean} onOpen={openCoffee} onAdd={handleAdd} />
 
           {aloBeans.length > 0 && (
@@ -630,8 +659,18 @@ export default function HomePage() {
             <div className="mx-auto max-w-2xl px-4 py-14 md:px-6 md:py-20">
               <Fade>
                 <Eyebrow>The full menu</Eyebrow>
-                <h2 className="text-[clamp(28px,3.5vw,42px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Find your next cup.</h2>
+                <h2 className="text-[clamp(28px,3.5vw,42px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Choose by brew, mood, or gift.</h2>
+                <p className="mt-4 max-w-[42ch] text-[14px] leading-[1.8] text-white/42">Each coffee shows tasting notes, best use, bag size, and price so you can decide quickly.</p>
               </Fade>
+
+              <div className="mt-7 grid gap-2 sm:grid-cols-2">
+                {MENU_GUIDES.map((item) => (
+                  <div key={item.title} className="rounded-[14px] border border-white/[0.05] bg-white/[0.025] p-4">
+                    <p className="text-[13px] font-semibold text-white">{item.title}</p>
+                    <p className="mt-1.5 text-[12px] leading-relaxed text-white/42">{item.body}</p>
+                  </div>
+                ))}
+              </div>
 
               {/* filter tabs */}
               <div className="mt-7 flex items-center gap-1 border-b border-white/[0.06]">
@@ -731,10 +770,10 @@ export default function HomePage() {
 
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 lg:gap-3">
                   {[
-                    { n:"01", title:"Roasted to order",     body:"No warehouse stock. We roast each batch after your order, so you get peak freshness every time." },
-                    { n:"02", title:"48-hr dispatch",        body:"Most orders packed and shipped within 48 hours. Fast, without cutting corners on the roast." },
-                    { n:"03", title:"Transparent sourcing",  body:"Origin, process, tasting notes — you know exactly what you're drinking and where it came from." },
-                    { n:"04", title:"Zero-friction ordering",body:"Cart → WhatsApp → done. No accounts, no complexity. Just coffee." },
+                    { n:"01", title:"Roasted to order",     body:"We roast in small batches after orders land, then confirm timing before your coffee ships." },
+                    { n:"02", title:"Fast dispatch",        body:"Most orders are packed and shipped within 48 hours, depending on roast schedule and volume." },
+                    { n:"03", title:"Clear product notes",  body:"Origin, process, tasting notes, size, and best use are visible before you add a bag." },
+                    { n:"04", title:"Simple WhatsApp ordering",body:"Build a cart, send it on WhatsApp, and we confirm availability, payment, and delivery there." },
                   ].map((c,i) => (
                     <Fade key={c.n} delay={i*50}>
                       <div className="flex gap-4 rounded-[14px] border border-white/[0.05] bg-white/[0.02] p-4 md:p-5">
@@ -919,11 +958,11 @@ export default function HomePage() {
               </Fade>
               <div className="mt-8">
                 {[
-                  { q:"How do I place an order?",      a:"Add coffees to cart, then send through WhatsApp. We'll confirm availability and roasting schedule there." },
-                  { q:"When will my coffee ship?",     a:"Most orders pack and ship within 1–3 working days depending on roast schedule and volume." },
-                  { q:"Filter or espresso — which?",   a:"Every coffee is labelled by brew style and best use so you can choose without guessing." },
-                  { q:"Do you do wholesale?",          a:"Yes — cafés, offices, events, retail. Hit the wholesale section above or message us directly." },
-                  { q:"Do you ship outside Malaysia?", a:"We currently ship to Malaysia and Singapore. DM us on WhatsApp if you're elsewhere and we'll see what we can do." },
+                  { q:"How do I place an order?",      a:"Add coffees to cart, then send the order on WhatsApp. We'll confirm stock, roast timing, payment, and delivery there." },
+                  { q:"When will my coffee ship?",     a:"Most orders pack and ship within 1-3 working days, depending on roast schedule and order volume." },
+                  { q:"Filter or espresso — which?",   a:"Choose Filter for cleaner black coffee and hand brew. Choose Espresso for shots, milk drinks, and a fuller daily cup." },
+                  { q:"Is the coffee roasted fresh?",  a:"Yes. We roast in small batches after orders land, so your bag is not sitting as old shelf stock." },
+                  { q:"Do you do gifts or wholesale?", a:"Yes. Message us for gift sets, office coffee, events, cafes, retail, or custom quantities." },
                 ].map((f,i) => <FaqItem key={f.q} q={f.q} a={f.a} index={i} />)}
               </div>
             </div>

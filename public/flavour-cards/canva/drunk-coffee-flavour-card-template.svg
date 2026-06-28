@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" viewBox="0 0 1080 1350" width="1080" height="1350" role="img" aria-labelledby="title desc">
+  <title id="title">Drunk Coffee Roasters — editable flavour card master</title>
+  <desc id="desc">A 4:5 coffee flavour card with a replaceable artwork or photo placeholder and readable live text.</desc>
+  <defs><linearGradient id="kraft" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#C4956E"/><stop offset="1" stop-color="#8A5436"/></linearGradient></defs>
+  <!-- In Canva, replace this full 1080 × 680 area with one image frame; keep its 27:17 crop ratio. -->
+  <g id="artwork-photo-placeholder" inkscape:label="01 ARTWORK / PHOTO PLACEHOLDER">
+    <rect width="1080" height="680" fill="url(#kraft)"/>
+    <rect x="56" y="56" width="968" height="568" rx="3" fill="none" stroke="#F5E9D5" stroke-width="2" stroke-dasharray="11 11" opacity=".8"/>
+    <path d="M188 535 410 324l142 126 128-102 212 187" fill="none" stroke="#F5E9D5" stroke-width="9" opacity=".72"/>
+    <circle cx="738" cy="236" r="43" fill="none" stroke="#F5E9D5" stroke-width="9" opacity=".72"/>
+    <text x="540" y="566" text-anchor="middle" fill="#F9EEDA" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="3">ARTWORK / PHOTO PLACEHOLDER</text>
+    <text x="540" y="598" text-anchor="middle" fill="#F9EEDA" font-family="Arial, Helvetica, sans-serif" font-size="13" letter-spacing="1.2">REPLACE WITH ILLUSTRATION, ORIGIN, CHERRIES, BREWING OR PRODUCT IMAGE</text>
+  </g>
+  <g id="information-panel" inkscape:label="02 Information Panel">
+    <rect y="680" width="1080" height="670" fill="#F7EFDD"/>
+    <path d="M72 728H1008" stroke="#9E7050" stroke-width="2"/>
+  </g>
+  <g id="brand" inkscape:label="03 Brand" fill="#2E2019">
+    <text x="540" y="784" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="50" font-weight="700" letter-spacing="6">DRUNK</text>
+    <text x="540" y="816" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" letter-spacing="3.2">COFFEE ROASTERS</text>
+  </g>
+  <g id="coffee-copy" inkscape:label="04 Editable Coffee Copy" fill="#2E2019">
+    <text x="540" y="910" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="88" font-weight="700">Arsi G1</text>
+    <text x="540" y="956" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" letter-spacing="3">ETHIOPIA</text>
+    <text x="540" y="992" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22">Daye Bensa West</text>
+    <text x="540" y="1037" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" letter-spacing="1.7">HEIRLOOM · WASHED</text>
+    <path d="M210 1068H870" stroke="#A77B5A" stroke-width="2"/>
+    <text x="540" y="1128" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="40" font-weight="700">Floral · Citrus · Berries</text>
+    <text x="540" y="1178" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22">A clean and floral Ethiopian washed coffee with bright citrus,</text>
+    <text x="540" y="1208" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22">soft berries and a tea-like finish.</text>
+    <text x="540" y="1263" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" letter-spacing="1.2">BEST FOR  ·  FILTER / V60 / SWITCH</text>
+    <text x="540" y="1302" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19">15g coffee · 240g water · 90–92°C</text>
+  </g>
+</svg>

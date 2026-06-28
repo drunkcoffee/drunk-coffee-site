@@ -127,6 +127,8 @@ export const FALLBACK_BEANS = [
   },
 ];
 
+const visibleFallbackBeans = FALLBACK_BEANS.filter((bean) => bean.active !== false);
+
 export function cx(...parts) {
   return parts.filter(Boolean).join(" ");
 }
@@ -266,11 +268,13 @@ export function normalizeAudience(value, category = "") {
 }
 
 export function mapContentfulEntries(data) {
-  const items = data?.items || [];
-  const includes = data?.includes?.Asset || [];
+  const items = Array.isArray(data?.items) ? data.items : [];
+  const includes = Array.isArray(data?.includes?.Asset)
+    ? data.includes.Asset
+    : [];
 
   const assetMap = includes.reduce((acc, asset) => {
-    acc[asset.sys.id] = asset;
+    if (asset?.sys?.id) acc[asset.sys.id] = asset;
     return acc;
   }, {});
 
@@ -339,7 +343,7 @@ export async function fetchBeansFromContentful() {
 
   if (!spaceId || !accessToken) {
     return {
-      beans: FALLBACK_BEANS,
+      beans: visibleFallbackBeans,
       warning:
         "Contentful environment variables are missing. Showing fallback coffee list.",
     };
@@ -363,10 +367,10 @@ export async function fetchBeansFromContentful() {
     .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
 
   return {
-    beans: mapped.length ? mapped : FALLBACK_BEANS,
+    beans: mapped.length ? mapped : visibleFallbackBeans,
     warning: mapped.length
       ? ""
-      : "Contentful returned no coffee entries. Showing fallback coffee list.",
+      : "Contentful returned no active coffee entries. Showing fallback coffee list.",
   };
 }
 
@@ -383,8 +387,13 @@ export function badgeClasses(badge) {
   return map[badge] || "border border-white/12 bg-white/[0.05] text-white/74";
 }
 
-export function buildSingleOrderUrl(bean) {
-  const message = `Hi Drunk Coffee Roasters,\n\nI would like to order:\n\n${bean.name} (${bean.size})\nCategory: ${bean.category}\nPrice: RM ${bean.price}\n\nPlease share availability and roasting lead time.\nThank you.`;
+export function buildSingleOrderUrl(bean, quantity = 1) {
+  const name = String(bean?.name || "Coffee").trim() || "Coffee";
+  const size = String(bean?.size || "Standard size").trim() || "Standard size";
+  const category = String(bean?.category || "Coffee").trim() || "Coffee";
+  const price = Number.isFinite(Number(bean?.price)) ? Number(bean.price) : 0;
+  const orderQuantity = Math.max(1, Number.parseInt(quantity, 10) || 1);
+  const message = `Hi Drunk Coffee Roasters,\n\nI would like to order:\n\n${name} (${size}) x${orderQuantity}\nCategory: ${category}\nPrice: RM ${price * orderQuantity}\n\nPlease share availability and roasting lead time.\nThank you.`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
@@ -431,7 +440,7 @@ export function buildWholesaleWhatsAppUrl() {
 }
 
 export function useBeans() {
-  const [beans, setBeans] = useState(FALLBACK_BEANS);
+  const [beans, setBeans] = useState(visibleFallbackBeans);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -449,7 +458,7 @@ export function useBeans() {
       } catch (err) {
         console.error(err);
         if (isMounted) {
-          setBeans(FALLBACK_BEANS);
+          setBeans(visibleFallbackBeans);
           setError(
             "Could not load Contentful content. Showing fallback coffee list.",
           );

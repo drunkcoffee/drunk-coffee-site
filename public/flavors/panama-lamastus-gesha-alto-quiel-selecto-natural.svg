@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Lamastus Gesha flavour map</title><desc id="desc">Tropical fruit, raspberry, mango, passion fruit and melon.</desc>
+  <defs><radialGradient id="g" cx="50%" cy="45%"><stop stop-color="#322116"/><stop offset="1" stop-color="#0e0c09"/></radialGradient></defs>
+  <rect width="1080" height="1080" fill="url(#g)"/><circle cx="540" cy="540" r="286" fill="none" stroke="#c8922a" stroke-opacity=".32" stroke-width="2"/><circle cx="540" cy="540" r="190" fill="#17120d" stroke="#c8922a" stroke-opacity=".7" stroke-width="2"/>
+  <g fill="none" stroke="#c8922a" stroke-width="3" opacity=".78"><path d="M243 344c-65 26-75 105-25 143 50-20 65-95 25-143Z"/><path d="M819 338c70 22 86 105 36 151-55-23-77-102-36-151Z"/><path d="M199 718c79-49 157 3 144 79-64 26-134-15-144-79Z"/><path d="M815 718c74-40 142 12 123 79-69 23-126-22-123-79Z"/><path d="M501 184c-39 59 0 117 58 112 34-55 5-108-58-112Z"/></g>
+  <g font-family="Arial, sans-serif" fill="#f8f2e8" text-anchor="middle"><text x="540" y="472" font-size="22" letter-spacing="8" fill="#c8922a">PANAMA · BOQUETE · ALTO QUIEL</text><text x="540" y="530" font-size="44" font-weight="700">LAMASTUS GESHA</text><text x="540" y="568" font-size="18" letter-spacing="5" fill="#d8c7ad">SELECTO NATURAL · GESHA</text><text x="540" y="646" font-size="20" letter-spacing="2">TROPICAL FRUIT · RASPBERRY · MANGO</text><text x="540" y="680" font-size="20" letter-spacing="2">PASSION FRUIT · MELON · JUICY FINISH</text></g>
+  <text x="540" y="964" fill="#c8922a" font-family="Arial, sans-serif" font-size="16" letter-spacing="7" text-anchor="middle">DRUNK COFFEE ROASTERS · FLAVOUR MAP</text>
+</svg>

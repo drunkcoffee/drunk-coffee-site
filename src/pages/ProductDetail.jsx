@@ -81,7 +81,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
   if (!open) return null;
   const url = buildCartWhatsAppUrl(cart);
   return (
-    <div className="fixed inset-0 z-[70] flex justify-end" style={{ position: "sticky" }}>
+    <div className="fixed inset-0 z-[70] flex justify-end">
       <button type="button" onClick={onClose} className="absolute inset-0 bg-black/72 backdrop-blur-[8px]" />
       <aside
         className="relative flex w-full max-w-[340px] flex-col border-l border-white/[0.07]"
@@ -195,11 +195,6 @@ function getWhoItsFor(bean) {
     return "Best for brighter, fruit-forward coffees with expressive character.";
   return "Best for a clean, balanced cup that is easy to enjoy and repeat.";
 }
-function formatBrewGuide(text) {
-  if (!text) return [];
-  return String(text).split("\n").map(l => l.trim()).filter(Boolean);
-}
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // PAGE
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -234,7 +229,6 @@ export default function ProductDetail() {
 
   const detailImage       = bean?.image       ? appendImageParams(bean.image,       { w: 1800, h: 1800, fit: "pad", fm: "webp", q: 86 }) : "";
   const detailFlavorImage = bean?.flavorImage ? appendImageParams(bean.flavorImage, { w: 1600, h: 1600, fit: "pad", fm: "webp", q: 86 }) : "";
-  const brewGuideLines    = formatBrewGuide(bean?.brewguide);
   const notes             = safeArray(bean?.notes);
 
   // Lightbox — must come after detailImage is declared
@@ -336,7 +330,7 @@ export default function ProductDetail() {
         </header>
 
         {/* ── MAIN ── */}
-        <main className="mx-auto max-w-6xl px-4 pb-28 pt-10 md:px-6 md:pb-16 md:pt-14">
+        <main className="mx-auto max-w-6xl px-4 pb-32 pt-10 md:px-6 md:pb-16 md:pt-14">
           {error && <p className="mb-6 text-[12px] text-amber-300">{error}</p>}
 
           {loading ? (
@@ -497,8 +491,8 @@ export default function ProductDetail() {
                       </div>
                     </div>
                     <div className="hidden flex-col gap-2.5 sm:flex">
-                      <a href={buildSingleOrderUrl(selectedBean)} target="_blank" rel="noreferrer"
-                        onClick={() => trackWhatsappClick("product_detail_order", selectedBean.slug)}
+                      <a href={buildSingleOrderUrl(selectedBean, qty)} target="_blank" rel="noreferrer"
+                        onClick={() => trackWhatsappClick("product_detail_order", selectedBean?.slug || bean.slug)}
                         className={cx(P, "w-full justify-center py-3.5 text-[13px]")}>
                         <img src="https://cdn.simpleicons.org/whatsapp/0e0c09" alt="" className="h-3.5 w-3.5" />
                         Order on WhatsApp · RM {Number(selectedBean?.price || 0) * qty}
@@ -520,24 +514,6 @@ export default function ProductDetail() {
                   </Fade>
                 </div>
               </div>
-
-              {/* ════════════════════════════════════════
-                  BREW GUIDE
-              ════════════════════════════════════════ */}
-              {brewGuideLines.length > 0 && (
-                <Fade className="mt-10">
-                  <div className="rounded-[20px] border border-white/[0.07] bg-[#1c1814] p-6 md:p-8">
-                    <Eyebrow>Brew guide</Eyebrow>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                      {brewGuideLines.map((line, i) => (
-                        <div key={i} className="rounded-[12px] border border-white/[0.05] bg-white/[0.025] p-4">
-                          <p className="text-[14px] leading-[1.8] text-white/62">{line}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </Fade>
-              )}
 
               {/* ════════════════════════════════════════
                   FLAVOR IMAGE
@@ -625,8 +601,8 @@ export default function ProductDetail() {
                   <Plus size={11} />
                 </button>
               </div>
-              <a href={buildSingleOrderUrl(selectedBean)} target="_blank" rel="noreferrer"
-                onClick={() => trackWhatsappClick("product_detail_sticky", selectedBean.slug)}
+              <a href={buildSingleOrderUrl(selectedBean, qty)} target="_blank" rel="noreferrer"
+                onClick={() => trackWhatsappClick("product_detail_sticky", selectedBean?.slug || bean.slug)}
                 className="flex flex-1 items-center justify-between rounded-full bg-[#c8922a] px-5 py-3.5">
                 <span className="text-[13px] font-semibold text-[#0e0c09]">Order on WhatsApp</span>
                 <span className="ml-3 shrink-0 text-[13px] font-bold text-[#0e0c09]/70">

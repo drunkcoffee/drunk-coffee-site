@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" viewBox="0 0 1000 1000" width="3000" height="3000" role="img" aria-labelledby="label-title label-description">
+  <title id="label-title">Drunk Coffee Roasters — Fazendal Pinhal</title>
+  <desc id="label-description">Editable square coffee label for Canva reference and print.</desc>
+
+  <!-- Text remains live text. Canva font matches: Georgia → Cormorant Garamond; Arial → Montserrat. -->
+  <g id="background" inkscape:label="01 Background">
+    <rect width="1000" height="1000" fill="#F6EEDC"/>
+    <rect x="42" y="42" width="916" height="916" rx="4" fill="none" stroke="#5A3826" stroke-width="2"/>
+  </g>
+
+  <g id="brand" inkscape:label="02 Brand" fill="#2E2019">
+    <text x="500" y="142" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="61" font-weight="700" letter-spacing="8">DRUNK</text>
+    <text x="500" y="182" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" letter-spacing="4.5">COFFEE ROASTERS</text>
+  </g>
+
+  <g id="coffee-name" inkscape:label="03 Coffee Name" fill="#2E2019">
+    <text x="500" y="317" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="92" font-weight="700" letter-spacing="-3">Fazendal</text>
+    <text x="500" y="407" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="92" font-weight="700" letter-spacing="-3">Pinhal</text>
+    <line x1="333" y1="463" x2="667" y2="463" stroke="#9B7155" stroke-width="2"/>
+  </g>
+
+  <g id="origin" inkscape:label="04 Origin" fill="#2E2019">
+    <text x="500" y="535" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" letter-spacing="3.5">ORIGIN</text>
+    <text x="500" y="579" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="37" font-weight="700">Brazil</text>
+    <text x="500" y="615" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" letter-spacing=".4">Mantiqueira de Minas, Minas Gerais</text>
+  </g>
+
+  <g id="coffee-details" inkscape:label="05 Variety and Process" fill="#2E2019">
+    <text x="500" y="688" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="1.8">YELLOW BOURBON · NATURAL</text>
+  </g>
+
+  <g id="tasting-notes" inkscape:label="06 Tasting Notes" fill="#2E2019">
+    <text x="500" y="772" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" letter-spacing="3.5">TASTING NOTES</text>
+    <text x="500" y="817" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="31" font-weight="700">Milk Chocolate · Caramel · Honey</text>
+  </g>
+
+  <g id="footer" inkscape:label="07 Footer" fill="#2E2019">
+    <text x="105" y="904" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" letter-spacing="1.4">ROAST DATE:</text>
+    <line x1="266" y1="898" x2="515" y2="898" stroke="#5A3826" stroke-width="1.5"/>
+    <text x="895" y="904" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" letter-spacing="2.5">SPECIALTY COFFEE</text>
+  </g>
+</svg>

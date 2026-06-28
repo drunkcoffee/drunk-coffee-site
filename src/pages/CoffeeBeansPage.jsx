@@ -28,10 +28,11 @@ function Eyebrow({ children }) {
 
 function BeanRow({ bean }) {
   const img = bean.image ? appendImageParams(bean.image, { w:400, h:400, fit:"pad", fm:"webp", q:78 }) : "";
-  const notes = safeArray(bean.notes).slice(0, 3).join(" · ");
+  const notes = safeArray(bean.notes).slice(0, 3);
+  const bestFor = bean.bestFor || bean.category;
   return (
     <Link to={`/coffee/${bean.slug}`}
-      className="group flex items-center gap-4 rounded-[14px] border border-white/[0.05] px-4 py-3.5 transition duration-200 hover:border-white/[0.12] hover:bg-[#1c1814] md:px-5">
+      className="group flex items-center gap-3 rounded-[14px] border border-white/[0.05] px-3.5 py-3.5 transition duration-200 hover:border-white/[0.12] hover:bg-[#1c1814] sm:gap-4 md:px-5">
       {/* thumbnail */}
       <div className="shrink-0 rounded-[9px] bg-[#130f0a] overflow-hidden h-[64px] w-[64px]">
         {img
@@ -41,16 +42,17 @@ function BeanRow({ bean }) {
       </div>
       {/* info */}
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="truncate text-[15px] font-semibold tracking-[-0.02em] text-white">{bean.name}</span>
-          {bean.badge && <span className="shrink-0 h-1.5 w-1.5 rounded-full bg-[#c8922a]" />}
+          {bean.badge && <span className="rounded-full border border-[#c8922a]/25 px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-[#d9ad59]">{bean.badge}</span>}
         </div>
-        {notes && <p className="mt-1 truncate text-[11px] text-white/32">{notes}</p>}
+        {notes.length > 0 && <p className="mt-1 text-[12px] leading-relaxed text-white/42">{notes.join(" / ")}</p>}
+        <p className="mt-1 text-[11px] leading-relaxed text-white/28">{bestFor}</p>
       </div>
       {/* price + category */}
-      <div className="shrink-0 text-right">
+      <div className="hidden shrink-0 text-right sm:block">
         <p className="text-[14px] font-semibold text-white/80">{formatBeanPrice(bean)}</p>
-        <p className="text-[10px] text-white/24 mt-0.5">{bean.category}</p>
+        <p className="text-[10px] text-white/24 mt-0.5">{bean.size} / {bean.category}</p>
       </div>
       <span className="shrink-0 text-[11px] text-white/24 transition group-hover:text-white/60">→</span>
     </Link>
@@ -112,7 +114,7 @@ export default function CoffeeBeansPage() {
               <a href={waUrl} target="_blank" rel="noreferrer"
                 onClick={() => trackWhatsappClick("beans_page_header","general")}
                 className={cx(G, "hidden md:inline-flex text-[11px] px-4 py-2")}>
-                Order now
+                Ask for help choosing
               </a>
             </div>
           </div>
@@ -120,9 +122,12 @@ export default function CoffeeBeansPage() {
 
         <main className="mx-auto max-w-2xl px-4 py-14 md:px-6 md:py-20">
           <Eyebrow>Coffee menu</Eyebrow>
-          <h1 className="text-[clamp(32px,5vw,52px)] font-bold leading-[0.9] tracking-[-0.045em] text-white mb-8">
-            All coffees
+          <h1 className="text-[clamp(32px,5vw,52px)] font-bold leading-[0.9] tracking-[-0.045em] text-white">
+            Choose your coffee
           </h1>
+          <p className="mt-4 mb-8 max-w-[42ch] text-[14px] leading-[1.8] text-white/42">
+            Browse by brew style. Each row shows tasting notes, best use, bag size, and price before you open the detail page.
+          </p>
 
           {/* filter tabs */}
           <div className="flex items-center gap-1 border-b border-white/[0.06] mb-4">
@@ -152,11 +157,11 @@ export default function CoffeeBeansPage() {
           {/* bottom CTA */}
           {!loading && (
             <div className="mt-12 text-center">
-              <p className="text-[13px] text-white/36 mb-4">Can't decide? Order via WhatsApp and we'll help you choose.</p>
+              <p className="text-[13px] text-white/36 mb-4">Not sure which coffee fits your brew setup? Message us and we'll recommend one.</p>
               <a href={waUrl} target="_blank" rel="noreferrer"
                 onClick={() => trackWhatsappClick("beans_page_bottom","general")} className={P}>
                 <img src="https://cdn.simpleicons.org/whatsapp/0e0c09" alt="" className="h-3.5 w-3.5" />
-                Chat with us
+                Get a recommendation
               </a>
             </div>
           )}
