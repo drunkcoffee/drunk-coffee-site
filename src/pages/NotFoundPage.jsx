@@ -76,7 +76,7 @@ export default function NotFoundPage() {
 
   const SUGGESTIONS = [
     { label: "Shop coffees",         href: "/#shop"         },
-    { label: "Monteblanco Series",   href: "/series/monteblanco" },
+    { label: "Bundles",              href: "/#series"       },
     { label: "Wholesale",            href: "/wholesale"     },
   ];
 
@@ -138,7 +138,7 @@ export default function NotFoundPage() {
                 <Link key={s.href} to={s.href}
                   className="flex items-center justify-between rounded-[12px] border border-white/[0.06] px-4 py-3 text-left transition hover:border-white/[0.14] hover:bg-[#1c1814]">
                   <span className="text-[13px] text-white/60">{s.label}</span>
-                  <span className="text-[12px] text-white/24">→</span>
+                  <span className="text-[12px] text-white/24">View</span>
                 </Link>
               ))}
             </div>

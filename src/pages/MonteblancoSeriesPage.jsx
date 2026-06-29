@@ -11,6 +11,9 @@ import {
   buildCartWhatsAppUrl,
   buildGeneralWhatsAppUrl,
   cx,
+  formatBeanPrice,
+  formatPackagePrice,
+  getPackageSizeSummary,
   safeArray,
   useBeans,
   usePersistentCart,
@@ -53,17 +56,17 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
                   <div className="flex justify-between gap-3">
                     <div className="min-w-0">
                       <p className="truncate text-[15px] font-semibold text-white">{item.name}</p>
-                      <p className="text-[13px] text-white/40 mt-0.5">{item.category} · {item.size}</p>
+                      <p className="text-[13px] text-white/40 mt-0.5">{item.category} / {[item.size, item.packageLabel].filter(Boolean).join(" ")}</p>
                     </div>
                     <button type="button" onClick={() => onRemove(item.id)} className="text-white/20 transition hover:text-white/60"><X size={13} /></button>
                   </div>
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex items-center gap-1 rounded-full border border-white/10 px-1">
-                      <button type="button" onClick={() => onDecrease(item.id)} className="flex h-7 w-7 items-center justify-center text-white/50 transition hover:text-white">−</button>
+                      <button type="button" onClick={() => onDecrease(item.id)} className="flex h-7 w-7 items-center justify-center text-white/50 transition hover:text-white">-</button>
                       <span className="min-w-6 text-center text-[13px] text-white">{item.quantity}</span>
                       <button type="button" onClick={() => onIncrease(item.id)} className="flex h-7 w-7 items-center justify-center text-white/50 transition hover:text-white">+</button>
                     </div>
-                    <p className="text-[15px] font-semibold text-white">RM {Number(item.price||0)*item.quantity}</p>
+                    <p className="text-[15px] font-semibold text-white">{formatPackagePrice(item, item.quantity)}</p>
                   </div>
                 </div>
               ))
@@ -89,7 +92,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
 
 function SeriesCard({ bean, onAdd }) {
   const img = bean?.image ? appendImageParams(bean.image, { w:1000, h:1000, fit:"pad", fm:"webp", q:82 }) : "";
-  const notes = safeArray(bean.notes).slice(0,3).join(" · ");
+  const notes = safeArray(bean.notes).slice(0,3).join(" / ");
   return (
     <article className="group flex flex-col overflow-hidden rounded-[18px] border border-white/[0.07] bg-[#1c1814] transition duration-300 hover:-translate-y-1 hover:border-white/[0.14]">
       <Link to={`/coffee/${bean.slug}`} className="block">
@@ -108,7 +111,10 @@ function SeriesCard({ bean, onAdd }) {
         {notes && <p className="mt-2 text-[13px] text-white/44">{notes}</p>}
         {bean.tagline && <p className="mt-2.5 text-[12px] leading-relaxed text-white/42 line-clamp-2 flex-1">{bean.tagline}</p>}
         <div className="mt-5 flex items-center justify-between border-t border-white/[0.06] pt-4">
-          <p className="text-[16px] font-semibold text-white">RM {bean.price}</p>
+          <div>
+            <p className="text-[16px] font-semibold text-white">{formatBeanPrice(bean)}</p>
+            <p className="mt-0.5 text-[11px] text-white/30">{getPackageSizeSummary(bean)}</p>
+          </div>
           <button type="button" onClick={() => onAdd(bean)} className={cx(P,"px-4 py-2 text-[11px]")}>+ Add</button>
         </div>
       </div>

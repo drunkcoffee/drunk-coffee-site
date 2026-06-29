@@ -1,14 +1,14 @@
 /**
- * Toast.jsx — animated slide-up notification
- * 
+ * Toast.jsx -animated slide-up notification
+ *
  * Usage:
  *   import Toast from "../components/Toast";
- *   
+ *
  *   const [toast, setToast] = useState("");
  *   // trigger: setToast("Item added"); auto-clears after 2.2s
- *   
+ *
  *   <Toast message={toast} />
- * 
+ *
  * The component handles its own enter/exit animation.
  * Pass an empty string to hide it.
  */

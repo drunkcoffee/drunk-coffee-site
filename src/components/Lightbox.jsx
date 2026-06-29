@@ -1,21 +1,21 @@
 /**
  * Lightbox.jsx
- * 
+ *
  * Full-screen image viewer with:
  *   - Fade + scale open/close animation
  *   - Click outside / ESC / swipe down to close
  *   - Pinch-to-zoom (mobile)
  *   - Previous / Next navigation
  *   - Keyboard arrow navigation
- * 
+ *
  * Usage (single image):
  *   import { useLightbox, Lightbox } from "./components/Lightbox";
- * 
+ *
  *   const { open, lightboxProps } = useLightbox([{ src: img, alt: bean.name }]);
- * 
+ *
  *   <button onClick={() => open(0)}><img src={img} /></button>
  *   <Lightbox {...lightboxProps} />
- * 
+ *
  * Usage (gallery):
  *   const images = beans.map(b => ({ src: b.image, alt: b.name }));
  *   const { open, lightboxProps } = useLightbox(images);
@@ -26,8 +26,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
-
-// ─── Hook ─────────────────────────────────────────────────────────────────────
 export function useLightbox(images = []) {
   const [index,  setIndex]  = useState(null); // null = closed
   const [visible, setVisible] = useState(false);
@@ -49,8 +47,6 @@ export function useLightbox(images = []) {
     lightboxProps: { images, index, visible, onClose: close, onPrev: prev, onNext: next },
   };
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 export function Lightbox({ images = [], index, visible, onClose, onPrev, onNext }) {
   const overlayRef  = useRef(null);
   const touchStart  = useRef(null);
@@ -81,7 +77,7 @@ export function Lightbox({ images = [], index, visible, onClose, onPrev, onNext 
     return () => { document.body.style.overflow = ""; };
   }, [visible]);
 
-  // Touch swipe — swipe down closes, swipe left/right navigates
+  // Touch swipe -swipe down closes, swipe left/right navigates
   function onTouchStart(e) {
     touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
   }

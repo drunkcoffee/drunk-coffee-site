@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 export const WHATSAPP_NUMBER = "601127060012";
 export const INSTAGRAM_URL = "https://instagram.com/drunkcoffeeroasters";
 export const XHS_LABEL = "Drunkcoffeeroasters";
-export const FILTERS = ["All", "Filter", "Espresso"];
+export const FILTERS = ["All Coffee", "Espresso Friendly", "Pour Over", "Bundles", "Limited Release"];
 
 export const LIGHT_BUTTON_STYLE = { color: "#151515" };
 export const APP_BG = "bg-[#0d0d0b] text-[#f3eee3]";
@@ -22,7 +22,7 @@ export const HOW_TO_ORDER_STEPS = [
   {
     step: "01",
     title: "Browse the menu",
-    body: "Pick your coffees — filter, espresso, or both. Check tasting notes and roast profiles.",
+    body: "Pick your coffees - filter, espresso, or both. Check tasting notes and roast profiles.",
   },
   {
     step: "02",
@@ -58,13 +58,13 @@ export const FALLBACK_BEANS = [
     description:
       "A clean and expressive blend that feels festive, floral, and easy to enjoy.",
     roast: "Light",
-    origin: "Ethiopia Hambella Guji Goro · China Yunnan Lan Chang",
+    origin: "Ethiopia Hambella Guji Goro / China Yunnan Lan Chang",
     process: "Washed + Anaerobic Natural Blend",
     variety: "",
-    brewguide: `15g coffee\n240g water\n2:30 - 2:45\nMedium grind\n92-93°C`,
+    brewguide: `15g coffee\n240g water\n2:30 - 2:45\nMedium grind\n92-93 C`,
     featured: true,
     badge: "Seasonal",
-    bestFor: "Clean filter · daily brew",
+    bestFor: "Clean filter",
     wholesaleAvailable: true,
     sortOrder: 1,
     active: true,
@@ -88,10 +88,10 @@ export const FALLBACK_BEANS = [
     origin: "China Yunnan",
     process: "Anaerobic Natural",
     variety: "",
-    brewguide: `15g coffee\n240g water\n2:30 - 2:45\nMedium grind\n92-93°C`,
+    brewguide: `15g coffee\n240g water\n2:30 - 2:45\nMedium grind\n92-93 C`,
     featured: true,
     badge: "Limited",
-    bestFor: "Fruity filter · adventurous cup",
+    bestFor: "Fruity filter / adventurous cup",
     wholesaleAvailable: true,
     sortOrder: 2,
     active: true,
@@ -112,13 +112,14 @@ export const FALLBACK_BEANS = [
     description:
       "Comforting espresso blend built for daily milk drinks and approachable black coffee.",
     roast: "Medium",
-    origin: "Brazil Fazendal Pinhal · Colombia Supremo",
+    origin: "Brazil Fazendal Pinhal / Colombia Supremo",
     process: "Washed + Natural Blend",
     variety: "",
-    brewguide: `18g in\n36-40g out\n28-32 seconds\n92-93°C`,
+    brewguide: `18g in\n36-40g out\n28-32 seconds\n92-93 C`,
     featured: false,
     badge: "Best Seller",
-    bestFor: "Espresso · milk drinks · daily use",
+    bestFor: "Espresso Friendly / Milk Coffee / Daily Brew",
+    espressoUse: "Espresso Friendly",
     wholesaleAvailable: true,
     sortOrder: 3,
     active: true,
@@ -127,7 +128,11 @@ export const FALLBACK_BEANS = [
   },
 ];
 
-const visibleFallbackBeans = FALLBACK_BEANS.filter((bean) => bean.active !== false);
+const STANDARD_PACKAGE_OPTIONS = [
+  { size: "100g", label: "Trial Pack" },
+  { size: "200g", label: "Daily Bag" },
+  { size: "1kg", label: "Value Bag" },
+];
 
 export function cx(...parts) {
   return parts.filter(Boolean).join(" ");
@@ -155,17 +160,40 @@ function safeJsonArray(value) {
   }
 }
 
+function packageLabelForSize(size, fallback = "") {
+  const standard = STANDARD_PACKAGE_OPTIONS.find((option) => option.size === size);
+  return String(fallback || standard?.label || "").trim();
+}
+
+export function isPackageAvailable(option) {
+  return option?.price !== null && option?.price !== "" && Number.isFinite(Number(option?.price));
+}
+
+export function formatPackagePrice(option, quantity = 1) {
+  if (!isPackageAvailable(option)) return "Ask for availability";
+  return `RM${Number(option.price) * Math.max(1, Number.parseInt(quantity, 10) || 1)}`;
+}
+
+function parseNumericPrice(value) {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  const match = String(value).replace(/,/g, "").match(/\d+(?:\.\d+)?/);
+  return match ? Number(match[0]) : null;
+}
+
 export function normalizeVariants(value, fallback = {}) {
   const variants = safeJsonArray(value)
     .map((item) => ({
       size: String(item?.size || "").trim(),
-      price: Number(item?.price),
+      label: packageLabelForSize(String(item?.size || "").trim(), item?.label),
+      price: item?.price === null ? null : Number(item?.price),
     }))
-    .filter((item) => item.size && Number.isFinite(item.price) && item.price >= 0);
+    .filter((item) => item.size && (item.price === null || (Number.isFinite(item.price) && item.price >= 0)));
 
   if (variants.length) return variants;
   return [{
     size: String(fallback.size || "200g"),
+    label: packageLabelForSize(String(fallback.size || "200g")),
     price: Number(fallback.price || 0),
   }];
 }
@@ -173,21 +201,77 @@ export function normalizeVariants(value, fallback = {}) {
 export function selectBeanVariant(bean, variant) {
   const selected = variant || bean?.variants?.[0] || {
     size: bean?.size || "200g",
+    label: packageLabelForSize(bean?.size || "200g"),
     price: Number(bean?.price || 0),
   };
   return {
     ...bean,
     size: selected.size,
+    packageLabel: selected.label || packageLabelForSize(selected.size),
     price: selected.price,
     variantId: `${bean.id}:${selected.size}`,
   };
 }
 
 export function formatBeanPrice(bean) {
+  const lowest = getLowestBeanPrice(bean);
+  if (!Number.isFinite(lowest)) return "Ask for availability";
+  return `From RM${lowest}`;
+}
+
+export function formatAddToCartPrice(bean) {
+  const lowest = getLowestBeanPrice(bean);
+  if (!Number.isFinite(lowest)) return "Ask for availability";
+
+  const numericPrices = (bean?.variants || [])
+    .map((variant) => parseNumericPrice(variant?.price))
+    .filter(Number.isFinite);
+  const uniquePrices = new Set(numericPrices);
+
+  return uniquePrices.size > 1 ? `from RM${lowest}` : `RM${lowest}`;
+}
+
+export function getLowestBeanPrice(bean) {
   const variants = bean?.variants || [];
-  const prices = variants.map((variant) => Number(variant.price)).filter(Number.isFinite);
-  const lowest = prices.length ? Math.min(...prices) : Number(bean?.price || 0);
-  return variants.length > 1 ? `From RM ${lowest}` : `RM ${lowest}`;
+  const variantPrices = variants
+    .map((variant) => parseNumericPrice(variant?.price))
+    .filter(Number.isFinite);
+  if (variantPrices.length) return Math.min(...variantPrices);
+
+  const fallbackPrice = parseNumericPrice(bean?.price);
+  return Number.isFinite(fallbackPrice) ? fallbackPrice : Number.POSITIVE_INFINITY;
+}
+
+function sortBeansByLowestPrice(beans) {
+  return [...beans].sort((a, b) => {
+    const priceDelta = getLowestBeanPrice(a) - getLowestBeanPrice(b);
+    return priceDelta || a.name.localeCompare(b.name);
+  });
+}
+
+const visibleFallbackBeans = sortBeansByLowestPrice(
+  FALLBACK_BEANS.filter((bean) => bean.active !== false),
+);
+
+export function formatPackageLabel(option) {
+  const label = option?.label || packageLabelForSize(option?.size || "");
+  return [option?.size, label].filter(Boolean).join(" ");
+}
+
+export function getPackageSizeSummary(bean) {
+  const variants = bean?.variants?.length ? bean.variants : normalizeVariants(null, bean);
+  return variants.map((variant) => variant.size).filter(Boolean).join(" / ");
+}
+
+export function getSimplePositioning(bean) {
+  const labels = getBestForLabels(bean);
+  if (getEspressoUse(bean) === "Espresso Friendly") return "Espresso Friendly";
+  if (labels.includes("Daily Brew")) return "Daily Brew";
+  if (labels.includes("Milk Coffee")) return "Great with milk";
+  if (labels.includes("French Press")) return "Fuller home brew";
+  if (labels.includes("Pour Over")) return "Clean pour over";
+  if (labels.includes("Limited Release")) return "Limited Release";
+  return getConfidenceLevel(bean);
 }
 
 function beanText(bean) {
@@ -245,25 +329,65 @@ export function getTasteStyles(bean) {
 
 export function getBestForLabels(bean) {
   const explicit = fieldArray(bean?.bestForLabels || bean?.bestFor);
-  const allowed = ["Pour Over", "French Press", "Espresso", "Americano", "Latte / Milk Coffee", "Cold Brew", "Black Coffee"];
+  const allowed = ["Pour Over", "Espresso Friendly", "Milk Coffee", "French Press", "Daily Brew", "Limited Release"];
+  const aliasMap = {
+    espresso: "Espresso Friendly",
+    "espresso friendly": "Espresso Friendly",
+    "latte / milk coffee": "Milk Coffee",
+    latte: "Milk Coffee",
+    "milk drinks": "Milk Coffee",
+    "black coffee": "Daily Brew",
+    americano: "Daily Brew",
+    "cold brew": "Pour Over",
+    chemex: "Pour Over",
+  };
   const normalized = explicit
-    .map((label) => allowed.find((allowedLabel) => allowedLabel.toLowerCase() === label.toLowerCase()) || label)
+    .map((label) => aliasMap[label.toLowerCase()] || allowed.find((allowedLabel) => allowedLabel.toLowerCase() === label.toLowerCase()) || label)
     .filter((label) => allowed.includes(label));
   if (normalized.length) return [...new Set(normalized)].slice(0, 5);
 
   const text = beanText(bean);
   const isEspresso = bean?.category === "Espresso" || text.includes("espresso");
+  const isLimited = text.includes("limited") || text.includes("gesha") || text.includes("competition");
   const isLowAcid = text.includes("low acid") || text.includes("smooth") || text.includes("mellow");
   const isCold = text.includes("cold brew");
 
   const labels = isEspresso
-    ? ["Espresso", "Americano", "Latte / Milk Coffee"]
-    : ["Pour Over", "Black Coffee"];
+    ? ["Espresso Friendly", "Milk Coffee", "Daily Brew"]
+    : ["Pour Over", "Daily Brew"];
 
   if (!isEspresso && (text.includes("body") || text.includes("chocolate") || isLowAcid)) labels.push("French Press");
-  if (isCold || isLowAcid || text.includes("chocolate")) labels.push("Cold Brew");
+  if (isCold || isLowAcid || text.includes("chocolate")) labels.push("Pour Over");
+  if (isLimited) labels.push("Limited Release");
 
   return [...new Set(labels)].slice(0, 5);
+}
+
+export function getEspressoUse(bean) {
+  const value = String(bean?.espressoUse || "").trim();
+  if (value) return value;
+
+  const text = beanText(bean);
+  if (getBestForLabels(bean).includes("Espresso Friendly")) return "Espresso Friendly";
+  if (text.includes("gesha") || text.includes("competition") || text.includes("rare")) return "Not recommended";
+  if (text.includes("fruit") || text.includes("ferment") || text.includes("anaerobic") || text.includes("natural")) {
+    return "Possible but bright";
+  }
+  return "";
+}
+
+export function getEspressoUseDescription(bean) {
+  const value = getEspressoUse(bean);
+  if (value === "Espresso Friendly") return "Recommended for espresso and milk coffee.";
+  if (value.toLowerCase().includes("possible")) return "Possible, but expect a brighter and more expressive cup.";
+  if (value === "Not recommended") return "Not recommended for espresso; best enjoyed as filter coffee.";
+  return value;
+}
+
+export function getDisplayCategory(bean) {
+  if (getEspressoUse(bean) === "Espresso Friendly") return "Espresso Friendly";
+  if (getBestForLabels(bean).includes("Limited Release")) return "Limited Release";
+  return bean?.category || "Coffee";
 }
 
 export function getConfidenceLevel(bean) {
@@ -291,7 +415,7 @@ export function getDisplayBadges(bean, limit = 4) {
     return label.toUpperCase();
   };
   const badges = [
-    bean?.category === "Espresso" ? "ESPRESSO" : "FILTER",
+    getEspressoUse(bean) === "Espresso Friendly" ? "ESPRESSO FRIENDLY" : "POUR OVER",
     ...bestFor.map(badgeLabel),
     ...tastes.map(badgeLabel),
   ];
@@ -307,10 +431,8 @@ export function getBuyThisIf(bean) {
 
   const tastes = getTasteStyles(bean).map((style) => style.toLowerCase());
   const bestFor = getBestForLabels(bean);
-  const drink = bestFor.includes("Latte / Milk Coffee")
-    ? "milk coffee and espresso-style drinks"
-    : bestFor.includes("Black Coffee")
-      ? "black coffee"
+  const drink = bestFor.includes("Milk Coffee")
+      ? "milk coffee and espresso-style drinks"
       : bestFor[0]?.toLowerCase() || "coffee";
 
   return `Buy this if you enjoy ${tastes.slice(0, 3).join(", ")} ${drink}.`;
@@ -336,13 +458,23 @@ export function getGuideMatches(bean, guide) {
   const text = beanText(bean);
 
   if (guide === "Pour Over") return bestFor.includes("Pour Over");
-  if (guide === "Espresso") return bestFor.includes("Espresso");
-  if (guide === "Americano") return bestFor.includes("Americano");
-  if (guide === "Latte / Milk Coffee") return bestFor.includes("Latte / Milk Coffee");
+  if (guide === "Espresso Friendly") return getEspressoUse(bean) === "Espresso Friendly";
+  if (guide === "Milk Coffee") return bestFor.includes("Milk Coffee");
+  if (guide === "French Press") return bestFor.includes("French Press");
+  if (guide === "Daily Brew") return bestFor.includes("Daily Brew");
+  if (guide === "Limited Release") return bestFor.includes("Limited Release") || text.includes("limited");
+  if (guide === "Americano") return bestFor.includes("Pour Over");
+  if (guide === "Latte / Milk Coffee") return bestFor.includes("Milk Coffee");
   if (guide === "Low Acidity") return tastes.includes("Low Acid") || text.includes("smooth") || bean?.category === "Espresso";
   if (guide === "Fruity Coffee") return tastes.some((style) => ["Fruity", "Bright", "Winey", "Floral"].includes(style));
   if (guide === "Easy Pick") return confidence === "Easy Pick";
   return false;
+}
+
+export function getProductFilterMatches(bean, filter) {
+  if (filter === "All" || filter === "All Coffee") return true;
+  if (filter === "Bundles") return beanText(bean).includes("bundle");
+  return getGuideMatches(bean, filter);
 }
 
 export function getSimilarBeans(bean, beans, limit = 3) {
@@ -407,6 +539,7 @@ export function normalizeContentfulImage(asset) {
 const FLAVOR_IMAGE_OVERRIDES = {
   "alo-sidama-g1-natural-slow-dry": "/flavors/alo-sidama-g1-natural-slow-dry.png",
   "alo-bona-zuria-gute-natural-g1": "/flavors/alo-bona-zuria-gute-natural-g1.png",
+  "colombia-finca-milan-niu": "/flavors/colombia-finca-milan-niu.png",
   "panama-lamastus-gesha-alto-quiel-selecto-natural": "/flavors/panama-lamastus-gesha-alto-quiel-selecto-natural.png",
   "meranti-liberica-g1": "/flavors/meranti-liberica-g1.png",
 };
@@ -427,18 +560,18 @@ export function inferTagline({ name = "", slug = "", category = "", bestFor = ""
   if (key.includes("orange blossom")) return "Floral, light and elegant.";
   if (key.includes("spring bloom")) return "Floral, silky, and easy to love.";
   if (key.includes("lan chang")) return "Winey fruit with a deeper, expressive finish.";
-  if (key.includes("south blend")) return "Comforting chocolate sweetness for daily espresso.";
+  if (key.includes("south blend")) return "Comforting chocolate sweetness for milk coffee and daily brewing.";
 
   if (bestFor) return `Built for ${bestFor.toLowerCase()}.`;
-  if (category === "Espresso") return "Built for balanced shots and milk drinks.";
+  if (category === "Espresso") return "Espresso Friendly for balanced shots and milk drinks.";
   return "Roasted for clarity, sweetness, and an easy daily cup.";
 }
 
 export function normalizeAudience(value, category = "") {
   if (value) return value;
   return category === "Espresso"
-    ? "Espresso · milk drinks"
-    : "Filter brewing · daily cup";
+    ? "Espresso Friendly / Milk Coffee"
+    : "Pour Over / Daily Brew";
 }
 
 function parseBuyerGuidance(value = "") {
@@ -456,6 +589,8 @@ function parseBuyerGuidance(value = "") {
     buyThisIf: readLine("Buy This If"),
     skipThisIf: readLine("Skip This If"),
     confidenceLevel: readLine("Confidence Level"),
+    altitude: readLine("Altitude"),
+    espressoUse: readLine("Espresso Use"),
   };
 }
 
@@ -472,22 +607,25 @@ export function mapContentfulEntries(data) {
 
   return items.map((item) => {
     const fields = item.fields || {};
+    const slug = normalizeSlug(fields.slug || fields.name || item.sys.id);
     const imageId = fields.image?.sys?.id;
+    const image2Id = fields.image2?.sys?.id;
     const flavorImageId = fields.flavorImage?.sys?.id || fields.flavourImage?.sys?.id;
     const asset = imageId ? assetMap[imageId] : null;
+    const image2Asset = image2Id ? assetMap[image2Id] : null;
     const flavorAsset = flavorImageId ? assetMap[flavorImageId] : null;
     const notes = safeArray(fields.notes || fields.tastingNotes);
     const bestFor = normalizeAudience(fields.bestfor || fields.bestFor || "", fields.category || "Filter");
     const buyerGuidance = parseBuyerGuidance(fields.brewguide || "");
 
-    const variants = normalizeVariants(fields.variants, {
+    const variants = normalizeVariants(fields.packageOptions || fields.variants, {
       size: fields.size,
       price: fields.price,
     });
 
     return {
       id: item.sys.id,
-      slug: normalizeSlug(fields.slug || fields.name || item.sys.id),
+      slug,
       name: fields.name || "Untitled Coffee",
       category: fields.category || "Filter",
       collection: fields.collection || "",
@@ -506,6 +644,7 @@ export function mapContentfulEntries(data) {
       origin: fields.origin || "",
       process: fields.process || "",
       variety: fields.variety || "",
+      altitude: fields.altitude || buyerGuidance.altitude || "",
       brewguide: fields.brewguide || "",
       featured: Boolean(fields.featured),
       badge: fields.badge || "",
@@ -515,11 +654,12 @@ export function mapContentfulEntries(data) {
       buyThisIf: fields.buyThisIf || buyerGuidance.buyThisIf || "",
       skipThisIf: fields.skipThisIf || buyerGuidance.skipThisIf || "",
       confidenceLevel: fields.confidenceLevel || fields.customerType || buyerGuidance.confidenceLevel || "",
+      espressoUse: fields.espressoUse || buyerGuidance.espressoUse || "",
       wholesaleAvailable: Boolean(fields.wholesaleAvailable),
       sortOrder: Number(fields.sortOrder || 999),
       active: fields.active !== false,
-      image: normalizeContentfulImage(asset),
-      flavorImage: normalizeContentfulImage(flavorAsset) || FLAVOR_IMAGE_OVERRIDES[normalizeSlug(fields.slug || fields.name || item.sys.id)] || "",
+      image: normalizeContentfulImage(image2Asset) || normalizeContentfulImage(asset) || FLAVOR_IMAGE_OVERRIDES[slug] || "",
+      flavorImage: normalizeContentfulImage(flavorAsset) || normalizeContentfulImage(image2Asset) || FLAVOR_IMAGE_OVERRIDES[slug] || "",
     };
   });
 }
@@ -562,7 +702,10 @@ export async function fetchBeansFromContentful() {
   const data = await response.json();
   const mapped = mapContentfulEntries(data)
     .filter((bean) => bean.active !== false)
-    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+    .sort((a, b) => {
+      const priceDelta = getLowestBeanPrice(a) - getLowestBeanPrice(b);
+      return priceDelta || a.name.localeCompare(b.name);
+    });
 
   return {
     beans: mapped.length ? mapped : visibleFallbackBeans,
@@ -588,10 +731,13 @@ export function badgeClasses(badge) {
 export function buildSingleOrderUrl(bean, quantity = 1) {
   const name = String(bean?.name || "Coffee").trim() || "Coffee";
   const size = String(bean?.size || "Standard size").trim() || "Standard size";
+  const label = String(bean?.packageLabel || packageLabelForSize(size)).trim();
   const category = String(bean?.category || "Coffee").trim() || "Coffee";
-  const price = Number.isFinite(Number(bean?.price)) ? Number(bean.price) : 0;
   const orderQuantity = Math.max(1, Number.parseInt(quantity, 10) || 1);
-  const message = `Hi Drunk Coffee Roasters,\n\nI would like to order:\n\n${name} (${size}) x${orderQuantity}\nCategory: ${category}\nPrice: RM ${price * orderQuantity}\n\nPlease share availability and roasting lead time.\nThank you.`;
+  const available = isPackageAvailable(bean);
+  const message = available
+    ? `Hi Drunk Coffee Roasters,\n\nI would like to order:\n\n${name} - ${formatPackageLabel({ size, label })} - ${formatPackagePrice(bean)}\nQuantity: ${orderQuantity}\nCategory: ${category}\nTotal: ${formatPackagePrice(bean, orderQuantity)}\n\nPlease share availability and roasting lead time.\nThank you.`
+    : `Hi Drunk Coffee Roasters,\n\nI would like to ask about ${size} availability for ${name}.\n\nPlease share availability and roasting lead time.\nThank you.`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
@@ -616,8 +762,8 @@ export function buildCartWhatsAppUrl(cart) {
       ? `Hi Drunk Coffee Roasters,\n\nI would like to place an order:\n\n${cart
           .map(
             (item, index) =>
-              `${index + 1}. ${item.name} (${item.size}) x${item.quantity}\nRM ${
-                Number(item.price || 0) * item.quantity
+              `${index + 1}. ${item.name} (${[item.size, item.packageLabel].filter(Boolean).join(" ")}) x${item.quantity}\n${
+                formatPackagePrice(item, item.quantity)
               }`,
           )
           .join("\n\n")}\n\nTotal: RM ${cartTotal}\n\nPlease confirm availability and roasting lead time.\nThank you.`
@@ -724,6 +870,7 @@ export function usePersistentCart() {
           name: bean.name,
           price: bean.price,
           size: bean.size,
+          packageLabel: bean.packageLabel || packageLabelForSize(bean.size),
           category: bean.category,
           quantity: 1,
         },

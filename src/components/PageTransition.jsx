@@ -1,11 +1,11 @@
 /**
  * PageTransition.jsx
- * 
+ *
  * Usage: wrap your <Routes> in App.jsx
- * 
+ *
  *   import { PageTransition } from "./components/PageTransition";
  *   import { useLocation } from "react-router-dom";
- * 
+ *
  *   function App() {
  *     const location = useLocation();
  *     return (
@@ -23,7 +23,7 @@ import { useEffect, useRef, useState } from "react";
 
 // How long the exit animation plays before the new page renders (ms)
 const EXIT_DURATION = 180;
-// How long the enter animation plays (ms) — controlled via CSS
+// How long the enter animation plays (ms) -controlled via CSS
 const ENTER_DURATION = 420;
 
 export function PageTransition({ children, locationKey }) {
@@ -85,9 +85,9 @@ export function PageTransition({ children, locationKey }) {
 }
 
 /**
- * RouteLink — a <Link> that plays a tiny amber flash on click
+ * RouteLink -a <Link> that plays a tiny amber flash on click
  * Drop-in replacement for react-router Link in nav/cards
- * 
+ *
  * Usage: import { RouteLink } from "./components/PageTransition";
  *        <RouteLink to="/coffee/xxx">View</RouteLink>
  */

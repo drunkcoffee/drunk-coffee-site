@@ -8,8 +8,6 @@ import {
   buildWholesaleWhatsAppUrl,
   cx,
 } from "../lib/coffeeStore";
-
-// ─── tokens ──────────────────────────────────────────────────────────────────
 const P = "inline-flex items-center gap-2 rounded-full bg-[#c8922a] px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-[#0e0c09] transition hover:bg-[#d9a23a] active:scale-[0.97]";
 const G = "inline-flex items-center gap-2 rounded-full border border-white/12 px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-white/60 transition hover:border-white/24 hover:text-white active:scale-[0.97]";
 
@@ -48,7 +46,7 @@ export default function WholesalePage() {
     <>
       <Seo
         title="Wholesale Coffee Supply Malaysia | Drunk Coffee Roasters"
-        description="Wholesale coffee supply for cafés, offices, events, and retail partners in Malaysia."
+        description="Wholesale coffee supply for cafes, offices, events, and retail partners in Malaysia."
         url="/wholesale"
         jsonLd={{ "@context":"https://schema.org","@type":"Service",name:"Wholesale Coffee Supply",provider:{"@type":"Organization",name:"Drunk Coffee Roasters"},areaServed:"Malaysia" }}
       />
@@ -86,7 +84,7 @@ export default function WholesalePage() {
               <em className="not-italic text-[#c8922a]">at scale.</em>
             </h1>
             <p className="mt-6 max-w-[44ch] text-[16px] leading-[1.9] text-white/52">
-              We supply cafés, offices, gift shops, and events across Malaysia. Small-batch roasting — consistent, repeatable, and roasted fresh per order.
+              We supply cafes, offices, gift shops, and events across Malaysia. Small-batch roasting - consistent, repeatable, and roasted fresh per order.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <a href={wsUrl} target="_blank" rel="noreferrer"
@@ -101,9 +99,9 @@ export default function WholesalePage() {
           {/* stat chips */}
           <div className="flex flex-wrap gap-2.5 mb-12">
             <Chip value="Min. 1 kg"    label="Starting order" />
-            <Chip value="2–5 days"     label="Lead time"      />
+            <Chip value="2- days"     label="Lead time"      />
             <Chip value="Custom"       label="Label options"  />
-            <Chip value="MY · SG"      label="Ships to"       />
+            <Chip value="MY / SG"      label="Ships to"       />
           </div>
 
           {/* what we supply */}
@@ -111,7 +109,7 @@ export default function WholesalePage() {
             <h2 className="text-[11px] uppercase tracking-[0.22em] text-white/28 mb-5">What we supply</h2>
             <div className="grid gap-3 sm:grid-cols-3">
               {[
-                { title:"House Espresso", desc:"Balanced and consistent — works black or with milk. Repeatable for daily service." },
+                { title:"House Espresso", desc:"Balanced and consistent -works black or with milk. Repeatable for daily service." },
                 { title:"Seasonal Filter", desc:"Expressive and rotating. For menus that want character without complexity." },
                 { title:"Gift Sets",       desc:"Packaged for retail gifting or corporate orders. Easy to sell, easy to give." },
               ].map(item => (
@@ -123,16 +121,16 @@ export default function WholesalePage() {
             </div>
           </div>
 
-          {/* who we work with / how to enquire — clean row layout */}
+          {/* who we work with / how to enquire -clean row layout */}
           {/* FAQ accordion */}
           <div className="mb-10">
             <h2 className="text-[12px] uppercase tracking-[0.22em] text-white/28 mb-4">Common questions</h2>
             <div className="rounded-[18px] border border-white/[0.07] bg-[#1c1814] px-6">
-              <AccordionItem defaultOpen q="Who do you supply?" a="Cafés, office coffee corners, retail shelves, events, and businesses looking for a dependable coffee offer across Malaysia." />
-              <AccordionItem q="What should I include in my enquiry?" a="Your use case, weekly or monthly volume, preferred brew style (espresso / filter / both), and your goal — house blend, retail bags, gifts, or event coffee." />
+              <AccordionItem defaultOpen q="Who do you supply?" a="cafes, office coffee corners, retail shelves, events, and businesses looking for a dependable coffee offer across Malaysia." />
+              <AccordionItem q="What should I include in my enquiry?" a="Your use case, weekly or monthly volume, preferred brew style (espresso / filter / both), and your goal -house blend, retail bags, gifts, or event coffee." />
               <AccordionItem q="How does the process work?" a="Send a WhatsApp message with your details. We'll guide you through options, pricing, and lead times from there. No forms, no unnecessary back-and-forth." />
-              <AccordionItem q="Why Drunk Coffee?" a="Small-batch roasting means more control and better consistency. Approachable profiles that are easy to sell. Direct communication — fast replies, no middleman." />
-              <AccordionItem q="Do you do custom labels?" a="Yes — we offer custom label options for retail partners and corporate gifting. Mention it in your enquiry and we'll walk you through what's possible." />
+              <AccordionItem q="Why Drunk Coffee?" a="Small-batch roasting means more control and better consistency. Approachable profiles that are easy to sell. Direct communication -fast replies, no middleman." />
+              <AccordionItem q="Do you do custom labels?" a="Yes -we offer custom label options for retail partners and corporate gifting. Mention it in your enquiry and we'll walk you through what's possible." />
             </div>
           </div>
 

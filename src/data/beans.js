@@ -11,7 +11,7 @@ export const beans = [
     description:
       "A clean and expressive blend that feels festive, floral, and easy to enjoy.",
     roast: "Light",
-    origin: "Ethiopia Hambella Guji Goro · China Yunnan Lan Chang",
+    origin: "Ethiopia Hambella Guji Goro / China Yunnan Lan Chang",
     process: "Washed + Anaerobic Natural Blend",
     image: "/hero-coffee.jpg",
   },
@@ -43,7 +43,7 @@ export const beans = [
     description:
       "Comforting espresso blend built for daily milk drinks and approachable black coffee.",
     roast: "Medium",
-    origin: "Brazil Fazendal Pinhal · Colombia Supremo",
+    origin: "Brazil Fazendal Pinhal / Colombia Supremo",
     process: "Washed + Natural Blend",
     image: "/hero-coffee.jpg",
   },

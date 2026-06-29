@@ -11,34 +11,33 @@ import {
   INSTAGRAM_URL,
   XHS_LABEL,
   appendImageParams,
-  buildBundleOrderUrl,
   buildCartWhatsAppUrl,
   buildGeneralWhatsAppUrl,
   buildWholesaleWhatsAppUrl,
   cx,
   formatBeanPrice,
+  formatAddToCartPrice,
   getDisplayBadges,
+  getDisplayCategory,
   getGuideMatches,
+  getPackageSizeSummary,
+  getProductFilterMatches,
+  getSimplePositioning,
+  formatPackagePrice,
   safeArray,
   useBeans,
   usePersistentCart,
 } from "../lib/coffeeStore";
-
-// ─── Tokens ──────────────────────────────────────────────────────────────────
 const AMBER    = "#c8922a";
 const DARK     = "#0e0c09";
 
 const P = "inline-flex items-center gap-2 rounded-full bg-[#c8922a] px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-[#0e0c09] transition duration-150 hover:bg-[#d9a23a] active:scale-[0.97]";
 const G = "inline-flex items-center gap-2 rounded-full border border-white/12 px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-white/60 transition duration-150 hover:border-white/24 hover:text-white active:scale-[0.97]";
-
-// ─── IG posts — add more entries as you post ─────────────────────────────────
 // To add a post: copy an entry, update src (filename in /public/ig/) and url (IG post link)
 const IG_POSTS = [
   { src: "/ig/ig-1.jpg", alt: "Drunk Coffee Roasters", url: "https://www.instagram.com/p/DUHs7jOEojf/" },
   { src: "/ig/ig-2.jpg", alt: "Drunk Coffee Roasters", url: "https://www.instagram.com/p/DUHs7jOEojf/" },
 ];
-
-// ─── Utilities ────────────────────────────────────────────────────────────────
 function useInView(threshold = 0.08) {
   const ref = useRef(null);
   const [v, setV] = useState(false);
@@ -98,10 +97,6 @@ function ScrollProgress() {
     </div>
   );
 }
-
-
-
-// ─── Global keyframes (injected once) ────────────────────────────────────────
 function GlobalStyles() {
   return (
     <style>{`
@@ -117,16 +112,14 @@ function GlobalStyles() {
     `}</style>
   );
 }
-
-// ─── Marquee ticker ───────────────────────────────────────────────────────────
 const TICKER_ITEMS = [
   "Roasted to order",
-  "Johor · Malaysia",
+  "Johor / Malaysia",
   "Typical 48 hr dispatch",
-  "Filter + Espresso",
+  "Filter + Espresso Friendly",
   "Small-batch specialty",
   "WhatsApp confirmation",
-  "Fresh · Sweet · Approachable",
+  "Fresh / Sweet / Approachable",
 ];
 const TRUST_ITEMS = [
   { title: "Roasted after ordering", body: "Fresh batches, not old shelf stock." },
@@ -136,19 +129,19 @@ const TRUST_ITEMS = [
 
 const MENU_GUIDES = [
   { title: "Filter", body: "Cleaner, brighter cups for hand brew and daily black coffee." },
-  { title: "Espresso", body: "Balanced beans for shots, milk drinks, and moka pot." },
+  { title: "Espresso Friendly", body: "Balanced beans for shots, milk drinks, and moka pot." },
   { title: "Limited", body: "Seasonal lots when you want more fruit, florals, or funk." },
   { title: "Gifts", body: "Friendly picks for guests, friends, and coffee-loving clients." },
 ];
 
 const DRINKING_STYLE_GUIDES = [
   { label: "Pour Over", body: "Clean, aromatic black coffee." },
-  { label: "Espresso", body: "For shots and short black coffee." },
-  { label: "Americano", body: "Espresso-style coffee with water." },
-  { label: "Latte / Milk Coffee", body: "Sweet cups that hold up with milk." },
-  { label: "Low Acidity", body: "Smoother, gentler daily cups." },
+  { label: "Espresso Friendly", body: "For shots, milk drinks, and moka pot." },
+  { label: "Milk Coffee", body: "Sweet cups that hold up with milk." },
+  { label: "French Press", body: "Fuller-bodied home brews." },
+  { label: "Daily Brew", body: "Easy coffee for repeat drinking." },
+  { label: "Limited Release", body: "Small lots for expressive cups." },
   { label: "Fruity Coffee", body: "Bright, juicy, expressive flavors." },
-  { label: "Easy Pick", body: "Safe choices when you are unsure." },
 ];
 
 function Marquee() {
@@ -166,8 +159,6 @@ function Marquee() {
     </div>
   );
 }
-
-// ─── Cart Drawer ──────────────────────────────────────────────────────────────
 function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onIncrease, onRemove, onClear }) {
   const url = buildCartWhatsAppUrl(cart);
   if (!open) return null;
@@ -200,17 +191,17 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
                   <div className="flex justify-between gap-3">
                     <div className="min-w-0">
                       <p className="truncate text-[15px] font-semibold text-white">{item.name}</p>
-                      <p className="text-[12px] text-white/34 mt-0.5">{item.category} · {item.size}</p>
+                      <p className="text-[12px] text-white/34 mt-0.5">{getDisplayCategory(item)} - {[item.size, item.packageLabel].filter(Boolean).join(" ")}</p>
                     </div>
                     <button type="button" onClick={() => onRemove(item.id)} className="shrink-0 text-white/20 transition hover:text-white/60" aria-label="Remove"><X size={13} /></button>
                   </div>
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex items-center gap-1 rounded-full border border-white/10 px-1">
-                      <button type="button" onClick={() => onDecrease(item.id)} className="flex h-7 w-7 items-center justify-center text-white/50 transition hover:text-white">−</button>
+                      <button type="button" onClick={() => onDecrease(item.id)} className="flex h-7 w-7 items-center justify-center text-white/50 transition hover:text-white">-</button>
                       <span className="min-w-6 text-center text-[13px] text-white">{item.quantity}</span>
                       <button type="button" onClick={() => onIncrease(item.id)} className="flex h-7 w-7 items-center justify-center text-white/50 transition hover:text-white">+</button>
                     </div>
-                    <p className="text-[14px] font-semibold text-white">RM {Number(item.price||0)*item.quantity}</p>
+                    <p className="text-[14px] font-semibold text-white">{formatPackagePrice(item, item.quantity)}</p>
                   </div>
                 </div>
               ))
@@ -237,13 +228,11 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
     </div>
   ), document.body);
 }
-
-// ─── Coffee row ───────────────────────────────────────────────────────────────
 function CoffeeRow({ bean, onOpen, onAdd, index }) {
   const img = bean.image ? appendImageParams(bean.image, { w:400, h:400, fit:"pad", fm:"webp", q:78 }) : "";
   const notes = safeArray(bean.notes).slice(0, 3);
-  const bestFor = bean.bestFor || bean.category;
-  const meta = [bean.size, bean.category].filter(Boolean).join(" / ");
+  const positioning = getSimplePositioning(bean);
+  const packageSummary = getPackageSizeSummary(bean);
   const badges = getDisplayBadges(bean, 3);
   return (
     <Fade delay={index * 28}>
@@ -253,7 +242,7 @@ function CoffeeRow({ bean, onOpen, onAdd, index }) {
           <div className="h-[70px] w-[70px]">
             {img
               ? <img src={img} alt={bean.name} className="h-full w-full object-contain p-2 transition duration-400 group-hover:scale-[1.08]" />
-              : <div className="flex h-full items-center justify-center text-[9px] uppercase tracking-widest text-white/16">—</div>
+              : <div className="flex h-full items-center justify-center text-[9px] uppercase tracking-widest text-white/16">-</div>
             }
           </div>
         </button>
@@ -267,17 +256,17 @@ function CoffeeRow({ bean, onOpen, onAdd, index }) {
             ))}
           </div>
           {notes.length > 0 && <p className="mt-1 text-[13px] leading-relaxed text-white/52">{notes.join(" / ")}</p>}
-          <p className="mt-1 text-[11px] leading-relaxed text-white/34">Best for: {bestFor}</p>
-          <p className="mt-0.5 text-[11px] leading-relaxed text-white/26 sm:hidden">{formatBeanPrice(bean)} / {meta}</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-white/34">{positioning}</p>
+          <p className="mt-0.5 text-[11px] leading-relaxed text-white/26 sm:hidden">{formatBeanPrice(bean)} / {packageSummary}</p>
         </button>
 
         {/* price */}
         <div className="hidden shrink-0 text-right mr-1 sm:block">
           <p className="text-[16px] font-semibold text-white/85">{formatBeanPrice(bean)}</p>
-          <p className="text-[12px] text-white/32 mt-0.5">{meta}</p>
+          <p className="text-[12px] text-white/32 mt-0.5">{packageSummary}</p>
         </div>
 
-        {/* add — slides in on hover desktop, always visible mobile */}
+
         <button type="button" onClick={() => onAdd(bean)} aria-label="Add to cart"
           className="shrink-0 rounded-full bg-[#c8922a] px-3.5 py-2.5 text-[12px] font-semibold text-[#0e0c09] transition duration-200 hover:bg-[#d9a23a] active:scale-95 md:translate-x-1.5 md:opacity-0 md:group-hover:translate-x-0 md:group-hover:opacity-100">
           Add
@@ -286,8 +275,6 @@ function CoffeeRow({ bean, onOpen, onAdd, index }) {
     </Fade>
   );
 }
-
-// ─── Skeleton rows ────────────────────────────────────────────────────────────
 function SkeletonRow() {
   return (
     <div className="flex items-center gap-4 rounded-[14px] border border-white/[0.05] px-4 py-3.5">
@@ -300,8 +287,6 @@ function SkeletonRow() {
     </div>
   );
 }
-
-// ─── Series card ──────────────────────────────────────────────────────────────
 function SeriesCard({ bean, onOpen, index }) {
   const img = bean?.image ? appendImageParams(bean.image, { w:800, h:800, fit:"pad", fm:"webp", q:80 }) : "";
   return (
@@ -311,11 +296,11 @@ function SeriesCard({ bean, onOpen, index }) {
         <div className="aspect-square overflow-hidden flex items-center justify-center p-8">
           {img
             ? <BlurImage src={img} alt={bean.name} className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.06]" />
-            : <div className="flex h-full w-full items-center justify-center bg-[#130f0a] text-[10px] uppercase tracking-widest text-white/16">Soon</div>
+              : <div className="flex h-full items-center justify-center text-[9px] uppercase tracking-widest text-white/16">-</div>
           }
         </div>
         <div className="px-5 pb-5 pt-4">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-[#c8922a]/65">{bean.category}</p>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-[#c8922a]/65">{getDisplayCategory(bean)}</p>
           <h3 className="mt-1.5 text-[18px] font-semibold tracking-[-0.02em] text-white leading-tight">{bean.name}</h3>
           {bean.tagline && <p className="mt-1.5 text-[13px] leading-relaxed text-white/44 line-clamp-2">{bean.tagline}</p>}
         </div>
@@ -327,7 +312,8 @@ function SeriesCard({ bean, onOpen, index }) {
 function HighlightTile({ bean, index, onOpen, onAdd }) {
   const img = bean?.image || bean?.flavorImage || "";
   const notes = safeArray(bean?.notes).slice(0, 3);
-  const bestFor = bean?.bestFor || bean?.category;
+  const positioning = getSimplePositioning(bean);
+  const packageSummary = getPackageSizeSummary(bean);
   return (
     <Fade delay={index * 70}>
       <article className="group overflow-hidden rounded-[22px] bg-[#1a1510] shadow-[0_20px_55px_rgba(0,0,0,0.18)]">
@@ -337,17 +323,17 @@ function HighlightTile({ bean, index, onOpen, onAdd }) {
           </div>
         </button>
         <div className="p-5 md:p-6">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-[#d9ad59]">{bean.process || bean.category}</p>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[#d9ad59]">{bean.process || getDisplayCategory(bean)}</p>
           <div className="mt-2 flex items-start justify-between gap-4">
             <button type="button" onClick={() => onOpen(bean.slug)} className="text-left text-[20px] font-semibold leading-[1.05] tracking-[-0.035em] text-white">{bean.name}</button>
             <span className="shrink-0 text-[13px] font-semibold text-white/70">{formatBeanPrice(bean)}</span>
           </div>
-          {notes.length > 0 && <p className="mt-3 text-[13px] leading-relaxed text-white/46">{notes.join(" · ")}</p>}
-          <p className="mt-2 text-[12px] leading-relaxed text-white/34">Best for: {bestFor}</p>
-          <p className="mt-0.5 text-[12px] leading-relaxed text-white/28">{bean.size} / {bean.category}</p>
+          {notes.length > 0 && <p className="mt-3 text-[13px] leading-relaxed text-white/46">{notes.join(" / ")}</p>}
+          <p className="mt-2 text-[12px] leading-relaxed text-white/34">{positioning}</p>
+          <p className="mt-0.5 text-[12px] leading-relaxed text-white/28">{packageSummary}</p>
           <div className="mt-5 flex items-center justify-between gap-3">
             <button type="button" onClick={() => onOpen(bean.slug)} className="text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">View tasting notes</button>
-            <button type="button" onClick={() => onAdd(bean)} className="rounded-full border border-white/14 px-3.5 py-2 text-[11px] font-semibold text-white/76 transition hover:border-white/28 hover:text-white">Add to cart</button>
+            <button type="button" onClick={() => onAdd(bean)} className="rounded-full border border-white/14 px-3.5 py-2 text-[11px] font-semibold text-white/76 transition hover:border-white/28 hover:text-white">Add to cart {formatAddToCartPrice(bean)}</button>
           </div>
         </div>
       </article>
@@ -364,13 +350,13 @@ function PanamaFeature({ bean, onOpen, onAdd }) {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-14 md:px-6 md:py-20 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:gap-16">
         <Fade className="order-2 lg:order-1">
           <Eyebrow>Rare selection</Eyebrow>
-          <p className="text-[11px] uppercase tracking-[0.22em] text-[#6d5231]">Panama · Boquete · Alto Quiel</p>
+          <p className="text-[11px] uppercase tracking-[0.22em] text-[#6d5231]">Panama / Boquete / Alto Quiel</p>
           <h2 className="mt-3 max-w-[10ch] text-[clamp(38px,5.2vw,70px)] font-semibold leading-[0.91] tracking-[-0.055em]">{bean.name}</h2>
           <p className="mt-5 max-w-[43ch] text-[16px] leading-[1.75] text-[#4c3b27]">A luminous, fruit-forward Gesha for drinkers who want a memorable filter cup: tropical clarity, juicy sweetness, and a clean finish.</p>
           {notes.length > 0 && <div className="mt-6 flex flex-wrap gap-2">{notes.map((note) => <span key={note} className="rounded-full border border-[#6d5231]/20 px-3 py-1.5 text-[11px] text-[#5a442a]">{note}</span>)}</div>}
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <button type="button" onClick={() => onOpen(bean.slug)} className="rounded-full bg-[#17120d] px-5 py-3 text-[12px] font-semibold text-white transition hover:bg-[#342919]">View tasting notes</button>
-            <button type="button" onClick={() => onAdd(bean)} className="rounded-full border border-[#17120d]/18 px-5 py-3 text-[12px] font-semibold text-[#17120d] transition hover:border-[#17120d]/40">Add to cart · {formatBeanPrice(bean)}</button>
+            <button type="button" onClick={() => onAdd(bean)} className="rounded-full border border-[#17120d]/18 px-5 py-3 text-[12px] font-semibold text-[#17120d] transition hover:border-[#17120d]/40">Add to cart {formatAddToCartPrice(bean)}</button>
           </div>
         </Fade>
         <Fade delay={90} className="order-1 lg:order-2">
@@ -382,9 +368,6 @@ function PanamaFeature({ bean, onOpen, onAdd }) {
     </section>
   );
 }
-
-// ─── Accordion FAQ item ───────────────────────────────────────────────────────
-// ─── IG tile with error fallback ────────────────────────────────────────────
 function IgTile({ src, alt }) {
   const [err, setErr] = useState(false);
   if (err) return (
@@ -417,10 +400,7 @@ function FaqItem({ q, a, index }) {
     </Fade>
   );
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
 // PAGE
-// ═══════════════════════════════════════════════════════════════════════════════
 export default function HomePage() {
   const navigate = useNavigate();
   const { beans, loading, error } = useBeans();
@@ -428,16 +408,17 @@ export default function HomePage() {
 
   const [cartOpen,     setCartOpen]     = useState(false);
   const [navOpen,      setNavOpen]      = useState(false);
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeFilter, setActiveFilter] = useState("All Coffee");
   const [activeGuide,  setActiveGuide]  = useState("");
   const [toast,        setToast]        = useState("");
 
-  const monteblancoBeans = useMemo(() =>
-    beans.filter(b => [b.name,b.origin,b.collection].filter(Boolean).some(v => String(v).toLowerCase().includes("monteblanco")))
+  const fincaMilanTrio = useMemo(() =>
+    beans.find(b => `${b.slug} ${b.name}`.toLowerCase().includes("colombia-finca-milan-trio"))
+      || beans.find(b => `${b.slug} ${b.name}`.toLowerCase().includes("finca milan trio"))
   , [beans]);
 
   const filteredBeans = useMemo(() => {
-    const categoryFiltered = activeFilter === "All" ? beans : beans.filter(b => b.category === activeFilter);
+    const categoryFiltered = beans.filter((bean) => getProductFilterMatches(bean, activeFilter));
     return activeGuide ? categoryFiltered.filter((bean) => getGuideMatches(bean, activeGuide)) : categoryFiltered;
   }, [beans, activeFilter, activeGuide]);
 
@@ -449,8 +430,6 @@ export default function HomePage() {
     beans.filter(b => /\balo\b|ethiopia alo/i.test(`${b.slug} ${b.name} ${b.collection}`))
   , [beans]);
 
-  const bundleBeans = monteblancoBeans.slice(0, 3);
-  const bundleUrl   = buildBundleOrderUrl(bundleBeans, "Monteblanco Series");
   const waUrl       = buildGeneralWhatsAppUrl();
   const wsUrl       = buildWholesaleWhatsAppUrl();
 
@@ -467,7 +446,7 @@ export default function HomePage() {
 
   function openCoffee(slug) { navigate(`/coffee/${slug}`); }
   function handleAdd(bean) { trackAddToCart(bean,"home"); addToCart(bean); setCartOpen(true); setToast(`${bean.name} added`); }
-  function handleBundle() { if (!bundleBeans.length) return; bundleBeans.forEach(b => addToCart(b)); setCartOpen(true); setToast("Bundle added"); }
+  function handleBundle() { if (!fincaMilanTrio) return; addToCart(fincaMilanTrio); setCartOpen(true); setToast("Trio added"); }
 
   return (
     <>
@@ -476,7 +455,7 @@ export default function HomePage() {
         description="Fresh-roasted specialty coffee beans from Johor, Malaysia. Shop filter, espresso, limited lots, and gifts with WhatsApp order confirmation."
         url="/"
         image="https://drunkcoffeeroasters.com/og-default.jpg"
-        imageAlt="Drunk Coffee Roasters — Specialty Coffee from Johor, Malaysia"
+        imageAlt="Drunk Coffee Roasters - Specialty Coffee from Johor, Malaysia"
         jsonLd={{ "@context":"https://schema.org","@type":"Organization",name:"Drunk Coffee Roasters",url:"https://drunkcoffeeroasters.com",sameAs:["https://instagram.com/drunkcoffeeroasters"] }}
       />
 
@@ -486,7 +465,7 @@ export default function HomePage() {
 
       <div style={{ background: DARK }} className="min-h-screen">
 
-        {/* ── HEADER ── */}
+
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06]"
           style={{ background:"rgba(14,12,9,0.88)", backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)" }}>
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
@@ -496,7 +475,7 @@ export default function HomePage() {
 
             {/* desktop nav */}
             <nav className="hidden items-center gap-7 md:flex">
-              {[["Shop","#shop"],["Series","#series"],["Wholesale","#wholesale"],["FAQ","#faq"]].map(([l,h]) => (
+              {[["Shop","#shop"],["Bundles","#series"],["Wholesale","#wholesale"],["FAQ","#faq"]].map(([l,h]) => (
                 <a key={l} href={h} className="text-[11px] uppercase tracking-[0.16em] text-white/40 transition hover:text-white/90">{l}</a>
               ))}
             </nav>
@@ -530,7 +509,7 @@ export default function HomePage() {
           </div>
         </header>
 
-        {/* ── MOBILE NAV ── */}
+
         {navOpen && (
           <div className="fixed inset-0 z-[90]">
             <button type="button" onClick={() => setNavOpen(false)} className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
@@ -542,7 +521,7 @@ export default function HomePage() {
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/40"><X size={15} /></button>
               </div>
               <nav className="flex flex-col">
-                {[["Shop","#shop"],["Series","#series"],["Why us","#why"],["Wholesale","#wholesale"],["FAQ","#faq"]].map(([l,h]) => (
+                {[["Shop","#shop"],["Bundles","#series"],["Why us","#why"],["Wholesale","#wholesale"],["FAQ","#faq"]].map(([l,h]) => (
                   <a key={l} href={h} onClick={() => setNavOpen(false)}
                     className="border-b border-white/[0.05] py-3.5 text-[14px] text-white/55 transition hover:text-white">{l}</a>
                 ))}
@@ -550,7 +529,7 @@ export default function HomePage() {
               <div className="mt-auto pb-8 pt-6" style={{ paddingBottom:"max(2rem,env(safe-area-inset-bottom))" }}>
                 <a href={waUrl} target="_blank" rel="noreferrer"
                   onClick={() => { trackWhatsappClick("mobile_nav","general"); setNavOpen(false); }}
-                  className={cx(P,"w-full justify-center")}>Order via WhatsApp</a>
+                    className="block py-1.5 text-[14px] text-white/44 transition hover:text-white">WhatsApp</a>
               </div>
             </div>
           </div>
@@ -558,14 +537,14 @@ export default function HomePage() {
 
         <main id="top" className="pt-[56px] md:pt-[60px]">
 
-          {/* ── Cart return-visitor nudge ── */}
+
           {cartCount > 0 && !cartOpen && (
             <div
               className="sticky top-[56px] md:top-[60px] z-40 flex items-center justify-between gap-3 border-b border-[#c8922a]/20 px-4 py-2.5 md:px-6"
               style={{ background: "rgba(200,146,42,0.08)", backdropFilter: "blur(12px)" }}>
               <p className="text-[13px] text-[#c8922a]/85">
                 <span className="font-semibold text-[#c8922a]">{cartCount} item{cartCount !== 1 ? "s" : ""}</span>
-                {" "}in your cart — ready to order?
+                {" "}in your cart. Ready to order?
               </p>
               <button type="button" onClick={() => setCartOpen(true)}
                 className="shrink-0 rounded-full bg-[#c8922a] px-4 py-1.5 text-[11px] font-semibold text-[#0e0c09] transition hover:bg-[#d9a23a]">
@@ -574,9 +553,7 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* ══════════════════════════════════════════════════════════
-              HERO
-          ══════════════════════════════════════════════════════════ */}
+
           <section className="relative flex min-h-[88svh] flex-col overflow-hidden md:min-h-[94svh]">
             {/* bg */}
             <div className="absolute inset-0">
@@ -589,7 +566,7 @@ export default function HomePage() {
 
             <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col justify-end px-4 pb-12 pt-20 md:px-6 md:pb-20 md:pt-24">
               <Fade>
-                <Eyebrow>Johor · Malaysia · Est. 2023</Eyebrow>
+                <Eyebrow>Johor / Malaysia / Est. 2023</Eyebrow>
               </Fade>
               <Fade delay={60}>
                 <h1 className="text-[clamp(38px,9.5vw,112px)] font-bold leading-[0.88] tracking-[-0.05em] text-white max-w-[12ch]">
@@ -622,7 +599,7 @@ export default function HomePage() {
                     { n:"100%",   l:"Roasted fresh" },
                     { n:"48 hr",  l:"Typical dispatch" },
                     { n:"MY / SG",l:"Ships to" },
-                    { n:"Filter + Espresso", l:"Brew styles" },
+                    { n:"Filter + Espresso Friendly", l:"Brew styles" },
                   ].map(({ n,l }) => (
                     <div key={l} className="flex items-baseline gap-2">
                       <span className="text-[15px] font-semibold text-white">{n}</span>
@@ -631,7 +608,7 @@ export default function HomePage() {
                   ))}
                 </div>
                 <p className="mt-4 text-[11px] uppercase tracking-[0.16em] text-white/34">
-                  Roasted in Segamat · Specialty Coffee · HB Best Batch Roaster Contest 2026 3rd Place
+                  Roasted in Segamat / Specialty Coffee / HB Best Batch Roaster Contest 2026 3rd Place
                 </p>
               </Fade>
 
@@ -645,9 +622,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* ══════════════════════════════════════════════════════════
-              SHOP — narrow list, flows naturally after hero
-          ══════════════════════════════════════════════════════════ */}
+
           <section className="border-y border-white/[0.06] bg-[#100d09]">
               <div className="mx-auto grid max-w-7xl gap-2.5 px-4 py-4 md:grid-cols-3 md:gap-3 md:px-6 md:py-5">
               {TRUST_ITEMS.map((item) => (
@@ -667,6 +642,9 @@ export default function HomePage() {
                   <div>
                     <h2 className="text-[clamp(28px,3.5vw,44px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">Shop by drinking style.</h2>
                     <p className="mt-4 max-w-[48ch] text-[14px] leading-[1.8] text-white/44">Pick how you drink coffee and we will narrow the menu like a barista would.</p>
+                    <p className="mt-2 max-w-[54ch] text-[13px] leading-[1.75] text-white/36">
+                      Looking for espresso? Start with our Espresso Friendly coffees. Some filter coffees can be brewed as espresso, but they may taste brighter and more complex.
+                    </p>
                   </div>
                   {activeGuide && (
                     <button type="button" onClick={() => setActiveGuide("")} className="self-start text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">
@@ -715,7 +693,7 @@ export default function HomePage() {
               </div>
 
               {/* filter tabs */}
-              <div className="mt-7 flex items-center gap-1 border-b border-white/[0.06]">
+              <div className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-white/[0.06]">
                 {FILTERS.map(f => {
                   const active = activeFilter === f;
                   return (
@@ -743,7 +721,7 @@ export default function HomePage() {
                       <div className="rounded-[14px] border border-white/[0.06] bg-white/[0.025] p-5 text-center">
                         <p className="text-[14px] font-semibold text-white">No exact match in this filter.</p>
                         <p className="mt-1 text-[12px] leading-relaxed text-white/38">Try clearing the drinking style or switching the brew filter.</p>
-                        <button type="button" onClick={() => { setActiveGuide(""); setActiveFilter("All"); }} className="mt-4 text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">Show all coffees</button>
+                        <button type="button" onClick={() => { setActiveGuide(""); setActiveFilter("All Coffee"); }} className="mt-4 text-[12px] font-semibold text-[#d9ad59] transition hover:text-[#f0c878]">Show all coffees</button>
                       </div>
                     )
                 }
@@ -751,9 +729,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* ══════════════════════════════════════════════════════════
-              SERIES — editorial layout, not a product grid
-          ══════════════════════════════════════════════════════════ */}
+
           <PanamaFeature bean={panamaBean} onOpen={openCoffee} onAdd={handleAdd} />
 
           {aloBeans.length > 0 && (
@@ -778,29 +754,28 @@ export default function HomePage() {
             <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
               <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
                 <Fade>
-                  <Eyebrow>Series focus</Eyebrow>
+                  <Eyebrow>Bundle focus</Eyebrow>
                   <h2 className="text-[clamp(26px,3.5vw,44px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">
-                    The Monteblanco<br />Series
+                    Colombia Finca<br />Milan Trio
                   </h2>
                   <p className="mt-4 max-w-[38ch] text-[14px] leading-[1.85] text-white/42">
-                    Fruit-forward, expressive. Three expressions of the same farm — compare side by side or grab the full set.
+                    Three expressive Colombian coffees in one tasting set. A simple way to explore NIU, April, and Watermelon side by side.
                   </p>
                 </Fade>
-                {bundleBeans.length > 0 && (
+                {fincaMilanTrio && (
                   <Fade delay={80} className="flex shrink-0 flex-wrap gap-2">
                     <button type="button" onClick={handleBundle}
                       className={cx(G,"shrink-0")}>Add bundle to cart</button>
-                    <a href={bundleUrl} target="_blank" rel="noreferrer"
-                      onClick={() => trackWhatsappClick("series_bundle","monteblanco")}
-                      className={cx(P,"shrink-0")}>Order bundle on WhatsApp</a>
+                    <button type="button" onClick={() => openCoffee(fincaMilanTrio.slug)}
+                      className={cx(P,"shrink-0")}>Choose bundle size</button>
                   </Fade>
                 )}
               </div>
 
               <div className="mt-10 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-                {bundleBeans.length > 0
-                  ? bundleBeans.map((bean,i) => <SeriesCard key={bean.id} bean={bean} onOpen={openCoffee} index={i} />)
-                  : Array.from({length:3}).map((_,i) => (
+                {fincaMilanTrio
+                  ? <SeriesCard bean={fincaMilanTrio} onOpen={openCoffee} index={0} />
+                  : Array.from({length:1}).map((_,i) => (
                       <div key={i} className="rounded-[18px] border border-white/[0.06] bg-[#1c1814]">
                         <div className="aspect-square animate-pulse bg-white/[0.03]" />
                       </div>
@@ -810,9 +785,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* ══════════════════════════════════════════════════════════
-              WHY + REVIEWS — alternating rhythm
-          ══════════════════════════════════════════════════════════ */}
+
           <section id="why" className="border-t border-white/[0.06]">
             <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
               <Fade>
@@ -860,10 +833,10 @@ export default function HomePage() {
                 <div className="rounded-[18px] border border-white/[0.06] bg-white/[0.025] p-5 md:p-6">
                   <Eyebrow>Brand story</Eyebrow>
                   <p className="max-w-[68ch] text-[15px] leading-[1.85] text-white/56">
-                    Drunk Coffee Roasters is a specialty coffee roastery based in Segamat, focused on roasting coffees that are clear, sweet, and practical for daily brewing.
+                    Drunk Coffee Roasters is a specialty coffee roastery based in Segamat, focused on roasting coffees that are clear, sweet, and practical for home brewing.
                   </p>
                   <p className="mt-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#d9ad59]/80">
-                    HB Best Batch Roaster Contest 2026 — 3rd Place
+                    HB Best Batch Roaster Contest 2026 - 3rd Place.
                   </p>
                 </div>
               </Fade>
@@ -878,7 +851,7 @@ export default function HomePage() {
                   <Fade key={r.handle} delay={i*70}>
                     <div className="flex h-full flex-col rounded-[20px] border border-white/[0.07] bg-[#1c1814] p-6 md:p-7">
 
-                      {/* stars — bigger */}
+
                       <div className="flex gap-1 mb-5">
                         {[0,1,2,3,4].map(s => (
                           <svg key={s} viewBox="0 0 12 12" className="h-4 w-4" fill={AMBER}>
@@ -887,7 +860,7 @@ export default function HomePage() {
                         ))}
                       </div>
 
-                      {/* quote — larger, more breathing room */}
+
                       <p className="flex-1 text-[20px] font-semibold leading-[1.55] tracking-[-0.01em] text-white/90 md:text-[22px]">
                         "{r.quote}"
                       </p>
@@ -914,9 +887,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* ══════════════════════════════════════════════════════════
-              INSTAGRAM — full-bleed mosaic
-          ══════════════════════════════════════════════════════════ */}
+
           <section className="border-t border-white/[0.06]">
             <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
               <div className="flex flex-col gap-5 mb-8 md:flex-row md:items-end md:justify-between">
@@ -961,9 +932,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* ══════════════════════════════════════════════════════════
-              WHOLESALE — cinematic full-width banner
-          ══════════════════════════════════════════════════════════ */}
+
           <section id="wholesale" className="border-t border-white/[0.06]">
             <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
               <Fade>
@@ -980,14 +949,14 @@ export default function HomePage() {
                         Fresh roast,<br />at scale.
                       </h2>
                       <p className="mt-5 max-w-[44ch] text-[15px] leading-[1.9] text-white/52">
-                        We supply cafés, offices, gift shops, and events across Malaysia. House espresso or seasonal filters — tell us what you need.
+                        We supply cafes, offices, gift shops, and events across Malaysia. House espresso or seasonal filters - tell us what you need.
                       </p>
 
                       {/* stat chips */}
                       <div className="mt-6 flex flex-wrap gap-2">
                         {[
                           {v:"Min. 1 kg", l:"Starting order"},
-                          {v:"2–5 days",  l:"Lead time"},
+                          {v:"2-3 days",  l:"Lead time"},
                           {v:"Custom",    l:"Label options"},
                         ].map(({v,l}) => (
                           <div key={l} className="rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-2 flex items-baseline gap-2">
@@ -1008,10 +977,10 @@ export default function HomePage() {
                       </div>
                     </div>
 
-                    {/* right — supply types */}
+
                     <div className="flex flex-col gap-3">
                       {[
-                        { title:"House Espresso", desc:"Consistent and balanced — works black or with milk." },
+                        { title:"House Espresso", desc:"Consistent and balanced - works black or with milk." },
                         { title:"Seasonal Filter", desc:"Expressive and rotating, for menus with character." },
                         { title:"Gift Sets",       desc:"Packaged for retail or corporate gifting." },
                       ].map(item => (
@@ -1027,9 +996,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* ══════════════════════════════════════════════════════════
-              FAQ — accordion, narrow column
-          ══════════════════════════════════════════════════════════ */}
+
           <section id="faq" className="border-t border-white/[0.06]">
             <div className="mx-auto max-w-2xl px-4 py-14 md:px-6 md:py-20">
               <Fade>
@@ -1040,7 +1007,7 @@ export default function HomePage() {
                 {[
                   { q:"How do I place an order?",      a:"Add coffees to cart, send the order on WhatsApp, and we confirm stock, roast timing, payment, and delivery there." },
                   { q:"When will my coffee ship?",     a:"Most orders are packed within 1-3 working days, depending on the roast schedule and order volume." },
-                  { q:"Filter or espresso — which?",   a:"Choose Filter for cleaner black coffee and hand brew. Choose Espresso for shots, milk drinks, and a fuller daily cup." },
+                  { q:"Filter or Espresso Friendly - which?",   a:"Choose Pour Over for cleaner black coffee and hand brew. Choose Espresso Friendly for shots, milk drinks, and a fuller daily cup." },
                   { q:"Is the coffee roasted fresh?",  a:"Yes. We roast in small batches after orders come in, so your bag is not sitting as old shelf stock." },
                   { q:"Can I order gifts or wholesale coffee?", a:"Yes. Message us for gift sets, office coffee, events, cafes, retail, or custom quantities." },
                 ].map((f,i) => <FaqItem key={f.q} q={f.q} a={f.a} index={i} />)}
@@ -1050,9 +1017,7 @@ export default function HomePage() {
 
         </main>
 
-        {/* ══════════════════════════════════════════════════════════
-            FOOTER
-        ══════════════════════════════════════════════════════════ */}
+
         <footer className="border-t border-white/[0.06]">
           {/* ambient glow behind footer */}
           <div className="relative overflow-hidden">
@@ -1064,15 +1029,15 @@ export default function HomePage() {
                 <div>
                   <img src="/logo.png" alt="Drunk Coffee Roasters" className="h-10 object-contain" />
                   <p className="mt-5 max-w-[260px] text-[14px] leading-[1.9] text-white/44">
-                    Drunk Coffee Roasters is a specialty coffee roastery based in Segamat, focused on coffees that are clear, sweet, and practical for daily brewing.
+                    Drunk Coffee Roasters is a specialty coffee roastery based in Segamat, focused on coffees that are clear, sweet, and practical for home brewing.
                   </p>
-                  <p className="mt-2 text-[12px] text-white/30">HB Best Batch Roaster Contest 2026 — 3rd Place.</p>
+                  <p className="mt-2 text-[12px] text-white/30">HB Best Batch Roaster Contest 2026 - 3rd Place.</p>
                 </div>
 
                 {/* pages */}
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.22em] text-white/30 mb-4">Pages</p>
-                  {[["Shop","#shop"],["Series","#series"],["Why us","#why"],["Wholesale","#wholesale"],["FAQ","#faq"]].map(([l,h]) => (
+                  {[["Shop","#shop"],["Bundles","#series"],["Why us","#why"],["Wholesale","#wholesale"],["FAQ","#faq"]].map(([l,h]) => (
                     <a key={l} href={h} className="block py-1.5 text-[14px] text-white/44 transition hover:text-white">{l}</a>
                   ))}
                 </div>
@@ -1080,18 +1045,18 @@ export default function HomePage() {
                 {/* contact */}
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.22em] text-white/30 mb-4">Find us</p>
-                  <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="block py-1.5 text-[14px] text-white/44 transition hover:text-white">@drunkcoffeeroasters ↗</a>
-                  <span className="block py-1.5 text-[14px] text-white/44">小红书 · {XHS_LABEL}</span>
+                  <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="block py-1.5 text-[14px] text-white/44 transition hover:text-white">@drunkcoffeeroasters</a>
+                  <span className="block py-1.5 text-[14px] text-white/44">Xiaohongshu: {XHS_LABEL}</span>
                   <a href={waUrl} target="_blank" rel="noreferrer"
                     onClick={() => trackWhatsappClick("footer","general")}
-                    className="block py-1.5 text-[14px] text-white/44 transition hover:text-white">WhatsApp ↗</a>
+                    className="block py-1.5 text-[14px] text-white/44 transition hover:text-white">WhatsApp</a>
                   <span className="block py-1.5 text-[14px] text-white/44">Johor, Malaysia</span>
                 </div>
               </div>
 
               {/* bottom bar */}
               <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/[0.05] pt-6 md:flex-row">
-                <p className="text-[12px] text-white/28">© {new Date().getFullYear()} Drunk Coffee Roasters · All rights reserved</p>
+                <p className="text-[12px] text-white/28">Copyright {new Date().getFullYear()} Drunk Coffee Roasters. All rights reserved.</p>
                 <div className="flex gap-2.5">
                   <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram"
                     className="flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.07] text-white/22 transition hover:text-white/60">

@@ -10,30 +10,31 @@ import { trackAddToCart, trackProductView, trackWhatsappClick } from "../lib/ana
 import {
   INSTAGRAM_URL,
   appendImageParams,
-  buildBundleOrderUrl,
   buildCartWhatsAppUrl,
   buildGeneralWhatsAppUrl,
   buildSingleOrderUrl,
   cx,
+  formatBeanPrice,
+  formatPackageLabel,
+  formatPackagePrice,
   getBestForLabels,
   getBuyThisIf,
   getConfidenceLevel,
   getDisplayBadges,
+  getDisplayCategory,
+  getEspressoUseDescription,
   getSimilarBeans,
   getSkipThisIf,
   getTasteStyles,
+  isPackageAvailable,
   safeArray,
   selectBeanVariant,
   useBeans,
   usePersistentCart,
 } from "../lib/coffeeStore";
-
-// ─── Tokens ──────────────────────────────────────────────────────────────────
 const AMBER = "#c8922a";
 const P = "inline-flex items-center gap-2 rounded-full bg-[#c8922a] px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-[#0e0c09] transition hover:bg-[#d9a23a] active:scale-[0.97]";
 const G = "inline-flex items-center gap-2 rounded-full border border-white/12 px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-white/55 transition hover:border-white/24 hover:text-white active:scale-[0.97]";
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 function useInView(t = 0.06) {
   const ref = useRef(null);
   const [v, setV] = useState(false);
@@ -73,8 +74,6 @@ function DetailRow({ label, value }) {
     </div>
   );
 }
-
-// ─── Note pill with amber dot ─────────────────────────────────────────────────
 function NotePill({ note }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-3.5 py-1.5 text-[12px] text-white/62">
@@ -83,8 +82,6 @@ function NotePill({ note }) {
     </span>
   );
 }
-
-// ─── Cart Drawer ──────────────────────────────────────────────────────────────
 function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onIncrease, onRemove, onClear }) {
   if (!open) return null;
   if (typeof document === "undefined") return null;
@@ -117,7 +114,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="truncate text-[15px] font-semibold text-white">{item.name}</p>
-                      <p className="mt-0.5 text-[11px] text-white/30">{item.category} · {item.size}</p>
+                      <p className="mt-0.5 text-[11px] text-white/30">{getDisplayCategory(item)} / {[item.size, item.packageLabel].filter(Boolean).join(" ")}</p>
                     </div>
                     <button type="button" onClick={() => onRemove(item.id)}
                       className="shrink-0 text-white/20 transition hover:text-white/60"><X size={13} /></button>
@@ -134,7 +131,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
                         <Plus size={11} />
                       </button>
                     </div>
-                    <p className="text-[14px] font-semibold text-white">RM {Number(item.price || 0) * item.quantity}</p>
+                    <p className="text-[14px] font-semibold text-white">{formatPackagePrice(item, item.quantity)}</p>
                   </div>
                 </div>
               ))
@@ -163,11 +160,9 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
     </div>
   ), document.body);
 }
-
-// ─── Related coffee row ────────────────────────────────────────────────────────
 function RelatedRow({ bean, onAdd }) {
   const img = bean?.image ? appendImageParams(bean.image, { w: 300, h: 300, fit: "pad", fm: "webp", q: 76 }) : "";
-  const notes = safeArray(bean.notes).slice(0, 2).join(" · ");
+  const notes = safeArray(bean.notes).slice(0, 2).join(" / ");
   const badges = getDisplayBadges(bean, 2);
   return (
     <div className="group flex items-center gap-4 rounded-[13px] border border-white/[0.05] px-4 py-3 transition hover:border-white/[0.10] hover:bg-[#1c1814]">
@@ -177,7 +172,7 @@ function RelatedRow({ bean, onAdd }) {
           {img
             ? <img src={img} alt={bean.name}
                 className="h-full w-full object-contain p-1.5 transition duration-400 group-hover:scale-[1.07]" />
-            : <div className="flex h-full items-center justify-center text-[9px] text-white/14">—</div>
+            : <div className="flex h-full items-center justify-center text-[9px] text-white/14">-</div>
           }
         </div>
       </Link>
@@ -186,7 +181,7 @@ function RelatedRow({ bean, onAdd }) {
         {notes && <p className="mt-0.5 truncate text-[12px] text-white/38">{notes}</p>}
         {badges.length > 0 && <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[#d9ad59]/75">{badges.join(" / ")}</p>}
       </Link>
-      <p className="shrink-0 mr-2 text-[14px] font-semibold text-white/70">RM {bean.price}</p>
+      <p className="shrink-0 mr-2 text-[14px] font-semibold text-white/70">{formatBeanPrice(bean)}</p>
       <button type="button" onClick={() => onAdd(bean)}
         className="shrink-0 rounded-full bg-[#c8922a]/10 border border-[#c8922a]/30 px-3.5 py-1.5 text-[11px] font-semibold text-[#c8922a] transition hover:bg-[#c8922a] hover:text-[#0e0c09]">
         + Add
@@ -194,24 +189,22 @@ function RelatedRow({ bean, onAdd }) {
     </div>
   );
 }
-
-// ─── Utility fns ──────────────────────────────────────────────────────────────
 function getRecommendedBrew(bean) {
   if (!bean) return "";
-  return bean.category === "Espresso" ? "Espresso / Americano / Latte or milk coffee" : "Pour Over / French Press / Black Coffee";
+  return getEspressoUseDescription(bean)
+    ? "See espresso use note"
+    : "Pour Over / French Press / Black Coffee";
 }
 function getWhoItsFor(bean) {
   if (!bean) return "";
   const notes = safeArray(bean.notes).join(", ").toLowerCase();
-  if (bean.category === "Espresso") return "Best for a reliable everyday cup, especially espresso or milk-based drinks.";
+  if (getEspressoUseDescription(bean).includes("Recommended")) return "Best for a reliable everyday cup, especially espresso or milk-based drinks.";
   if (notes.includes("floral")) return "Best for lighter, tea-like cups with fragrance and lift.";
   if (["mango", "berry", "apple", "fruit", "orange"].some(n => notes.includes(n)))
     return "Best for brighter, fruit-forward coffees with expressive character.";
   return "Best for a clean, balanced cup that is easy to enjoy and repeat.";
 }
-// ═══════════════════════════════════════════════════════════════════════════════
 // PAGE
-// ═══════════════════════════════════════════════════════════════════════════════
 export default function ProductDetail() {
   const { slug }    = useParams();
   const navigate    = useNavigate();
@@ -227,19 +220,11 @@ export default function ProductDetail() {
   const variants      = bean?.variants || [];
   const selectedVariant = variants.find((variant) => variant.size === selectedSize) || variants[0];
   const selectedBean  = bean ? selectBeanVariant(bean, selectedVariant) : null;
+  const selectedPackageAvailable = isPackageAvailable(selectedBean);
   const currentIndex  = useMemo(() => beans.findIndex(b => b.slug === slug), [beans, slug]);
   const previousBean  = currentIndex > 0 ? beans[currentIndex - 1] : null;
   const nextBean      = currentIndex >= 0 && currentIndex < beans.length - 1 ? beans[currentIndex + 1] : null;
   const relatedBeans  = useMemo(() => getSimilarBeans(bean, beans, 3), [beans, bean]);
-  const monteblancoBeans = useMemo(() =>
-    beans.filter(b => [b.name, b.origin, b.collection].filter(Boolean).some(v => String(v).toLowerCase().includes("monteblanco")))
-  , [beans]);
-  const isMonteblancoBean = useMemo(() =>
-    !bean ? false : [bean.name, bean.origin, bean.collection].filter(Boolean).some(v => String(v).toLowerCase().includes("monteblanco"))
-  , [bean]);
-  const monteblancoBundleUrl = useMemo(() =>
-    buildBundleOrderUrl(monteblancoBeans.slice(0, 3), "Monteblanco Series")
-  , [monteblancoBeans]);
 
   const detailImage       = bean?.image       ? appendImageParams(bean.image,       { w: 1800, h: 1800, fit: "pad", fm: "webp", q: 86 }) : "";
   const detailFlavorImage = bean?.flavorImage ? appendImageParams(bean.flavorImage, { w: 1600, h: 1600, fit: "pad", fm: "webp", q: 86 }) : "";
@@ -249,12 +234,11 @@ export default function ProductDetail() {
   const confidenceLevel   = bean ? getConfidenceLevel(bean) : "";
   const buyThisIf         = bean ? getBuyThisIf(bean) : "";
   const skipThisIf        = bean ? getSkipThisIf(bean) : "";
-
-  // Lightbox — must come after detailImage is declared
+  const espressoUse       = bean ? getEspressoUseDescription(bean) : "";
   const lightboxImages = detailImage ? [{ src: detailImage, alt: bean?.name || "" }] : [];
   const { open: openLightbox, lightboxProps } = useLightbox(lightboxImages);
 
-  const notesForSeo = notes.join(", ");
+  const notesForSeo = notes.join(" / ");
   const productDescription = bean
     ? `Shop ${bean.name} from Drunk Coffee Roasters. ${bean.tagline ? `${bean.tagline}. ` : ""}${notesForSeo ? `Notes: ${notesForSeo}. ` : ""}Fresh-roasted specialty coffee beans in Malaysia.`
     : "Specialty coffee from Drunk Coffee Roasters.";
@@ -268,20 +252,15 @@ export default function ProductDetail() {
 
   function handleAdd(target = bean, q = 1) {
     if (!target) return;
+    if (!isPackageAvailable(target)) {
+      setToast("Please ask us for availability on WhatsApp");
+      return;
+    }
     trackAddToCart(target, "product_detail");
     for (let i = 0; i < q; i++) addToCart(target);
     setCartOpen(true);
     setToast(`${target.name} added`);
   }
-  function handleBundle() {
-    const picks = monteblancoBeans.slice(0, 3);
-    if (!picks.length) return;
-    picks.forEach(b => addToCart(b));
-    setCartOpen(true);
-    setToast("Bundle added");
-  }
-
-  // ── Not found ──
   if (!loading && !bean) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center" style={{ background: "#0e0c09" }}>
@@ -296,11 +275,11 @@ export default function ProductDetail() {
   return (
     <>
       <Seo
-        title={bean ? `${bean.name} | Drunk Coffee Roasters` : "Coffee Detail"}
+        title={bean ? `${bean.name} - Drunk Coffee Roasters` : "Coffee Detail"}
         description={productDescription}
         url={bean ? `/coffee/${bean.slug}` : "/"}
         image={detailImage || undefined}
-        imageAlt={bean ? `${bean.name} — Drunk Coffee Roasters` : undefined}
+        imageAlt={bean ? `${bean.name} -Drunk Coffee Roasters` : undefined}
         type="product"
         jsonLd={bean ? {
           "@context": "https://schema.org", "@type": "Product",
@@ -309,13 +288,15 @@ export default function ProductDetail() {
           category: bean.category,
           url: `https://drunkcoffeeroasters.com/coffee/${bean.slug}`,
           image: detailImage || undefined,
-          offers: { "@type": "Offer", priceCurrency: "MYR", price: String(selectedBean?.price || 0), availability: "https://schema.org/InStock" }
+          offers: selectedPackageAvailable
+            ? { "@type": "Offer", priceCurrency: "MYR", price: String(selectedBean.price), availability: "https://schema.org/InStock" }
+            : { "@type": "Offer", priceCurrency: "MYR", availability: "https://schema.org/LimitedAvailability" }
         } : null}
       />
 
       <div className="min-h-screen" style={{ background: "#0e0c09" }}>
 
-        {/* ── HEADER ── */}
+
         <header className="sticky top-0 z-50 border-b border-white/[0.07]"
           style={{ background: "rgba(14,12,9,0.9)", backdropFilter: "blur(20px)" }}>
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
@@ -348,7 +329,7 @@ export default function ProductDetail() {
           </div>
         </header>
 
-        {/* ── MAIN ── */}
+
         <main className="mx-auto max-w-6xl px-4 pb-32 pt-8 md:px-6 md:pb-16 md:pt-14">
           {error && <p className="mb-6 text-[12px] text-amber-300">{error}</p>}
 
@@ -363,12 +344,10 @@ export default function ProductDetail() {
             </div>
           ) : bean ? (
             <>
-              {/* ════════════════════════════════════════
-                  PRODUCT HERO — sticky image left
-              ════════════════════════════════════════ */}
+
               <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-start lg:gap-10">
 
-                {/* ── Image panel — sticky on desktop, click to lightbox ── */}
+
                 <Fade className="lg:sticky lg:top-[68px]">
                   <div className="group relative overflow-hidden rounded-[24px] border border-white/[0.07]">
                     {detailImage ? (
@@ -429,12 +408,12 @@ export default function ProductDetail() {
                   )}
                 </Fade>
 
-                {/* ── Info panel — scrolls ── */}
+
                 <div className="flex flex-col gap-0">
                   <Fade>
                     {/* breadcrumb */}
                     {bean.collection && <Eyebrow>{bean.collection}</Eyebrow>}
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/36">{bean.category}</p>
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/36">{getDisplayCategory(bean)}</p>
 
                     {/* name */}
                     <h1 className="mt-2 text-[clamp(34px,4.5vw,56px)] font-bold leading-[0.87] tracking-[-0.05em] text-white">
@@ -445,7 +424,7 @@ export default function ProductDetail() {
                     {bean.tagline &&
                       <p className="mt-4 text-[16px] leading-[1.85] text-white/55">{bean.tagline}</p>}
 
-                    {/* notes — visual pills */}
+
                     {notes.length > 0 && (
                       <div className="mt-5 flex flex-wrap gap-2">
                         {notes.map(n => <NotePill key={n} note={n} />)}
@@ -461,6 +440,12 @@ export default function ProductDetail() {
                             {bestForLabels.map((label) => <NotePill key={label} note={label} />)}
                           </div>
                         </div>
+                        {espressoUse && (
+                          <div className="rounded-[14px] border border-white/[0.05] bg-black/10 p-4">
+                            <p className="text-[11px] uppercase tracking-[0.14em] text-white/32">Espresso use</p>
+                            <p className="mt-1.5 text-[13px] leading-relaxed text-white/66">{espressoUse}</p>
+                          </div>
+                        )}
                         <div>
                           <p className="text-[11px] uppercase tracking-[0.14em] text-white/32">Taste style</p>
                           <div className="mt-2 flex flex-wrap gap-2">
@@ -495,19 +480,33 @@ export default function ProductDetail() {
                   {/* detail rows */}
                   <Fade delay={80} className="mt-5 border-t border-white/[0.06]">
                     <DetailRow label="Origin"    value={bean.origin}          />
+                    <DetailRow label="Altitude"  value={bean.altitude}        />
                     <DetailRow label="Process"   value={bean.process}         />
                     <DetailRow label="Roast"     value={bean.roast}           />
                     <DetailRow label="Brew"      value={getRecommendedBrew(bean)} />
+                    <DetailRow label="Espresso use" value={espressoUse} />
                     <DetailRow label="Best for"  value={getWhoItsFor(bean)}   />
                     {bean.variety && <DetailRow label="Variety" value={bean.variety} />}
                     {variants.length === 1 && <DetailRow label="Size" value={selectedBean?.size} />}
                   </Fade>
 
-                  {/* ── Price + Qty + CTA (desktop) ── */}
+
                   <Fade delay={100} className="mt-7 border-t border-white/[0.06] pt-6">
                     {variants.length > 1 && (
                       <fieldset className="mb-6">
-                        <legend className="text-[11px] uppercase tracking-[0.16em] text-white/32">Choose size</legend>
+                        <legend className="text-[11px] uppercase tracking-[0.16em] text-white/32">{bean.category === "Bundle" ? "Choose your set" : "Choose your size"}</legend>
+                        {bean.category === "Bundle" ? (
+                          <div className="mt-2 space-y-1 text-[12px] leading-relaxed text-white/38">
+                            <p>3 x 100g Tasting Set - best for exploring all three coffees.</p>
+                            <p>3 x 200g Full Set - best for filter coffee lovers who want the full experience.</p>
+                          </div>
+                        ) : (
+                          <div className="mt-2 space-y-1 text-[12px] leading-relaxed text-white/38">
+                            <p>100g Trial Pack - best for trying something new.</p>
+                            <p>200g Daily Bag - best for home brewing.</p>
+                            <p>1kg Value Bag - best value for daily drinkers, offices, and espresso users.</p>
+                          </div>
+                        )}
                         <div className="mt-2 grid grid-cols-2 gap-2">
                           {variants.map((variant) => {
                             const active = selectedVariant?.size === variant.size;
@@ -515,8 +514,8 @@ export default function ProductDetail() {
                               <button key={variant.size} type="button" aria-pressed={active}
                                 onClick={() => setSelectedSize(variant.size)}
                                 className={cx("rounded-[14px] border px-4 py-3 text-left transition", active ? "border-[#c8922a] bg-[#c8922a]/10" : "border-white/10 bg-white/[0.025] hover:border-white/24")}>
-                                <span className="block text-[14px] font-semibold text-white">{variant.size}</span>
-                                <span className={cx("mt-0.5 block text-[12px]", active ? "text-[#e0b766]" : "text-white/38")}>RM {variant.price}</span>
+                                <span className="block text-[14px] font-semibold text-white">{formatPackageLabel(variant)}</span>
+                                <span className={cx("mt-0.5 block text-[12px]", active ? "text-[#e0b766]" : "text-white/38")}>{formatPackagePrice(variant)}</span>
                               </button>
                             );
                           })}
@@ -526,10 +525,10 @@ export default function ProductDetail() {
                     <div className="flex items-center justify-between gap-4 mb-5">
                       <div>
                         <p className="text-[11px] uppercase tracking-[0.16em] text-white/32">Price</p>
-                        <p className="mt-1 text-[36px] font-bold tracking-[-0.05em] text-white">RM {selectedBean?.price}</p>
+                        <p className="mt-1 text-[36px] font-bold tracking-[-0.05em] text-white">{formatPackagePrice(selectedBean)}</p>
                       </div>
                       {/* qty stepper desktop */}
-                      <div className="hidden items-center gap-1 rounded-full border border-white/10 px-1 py-1 sm:flex">
+                      {selectedPackageAvailable && <div className="hidden items-center gap-1 rounded-full border border-white/10 px-1 py-1 sm:flex">
                         <button type="button" onClick={() => setQty(q => Math.max(1, q - 1))}
                           className="flex h-7 w-7 items-center justify-center rounded-full text-white/50 transition hover:text-white">
                           <Minus size={12} />
@@ -539,19 +538,20 @@ export default function ProductDetail() {
                           className="flex h-7 w-7 items-center justify-center rounded-full text-white/50 transition hover:text-white">
                           <Plus size={12} />
                         </button>
-                      </div>
+                      </div>}
                     </div>
                     <div className="hidden flex-col gap-2.5 sm:flex">
                       <a href={buildSingleOrderUrl(selectedBean, qty)} target="_blank" rel="noreferrer"
                         onClick={() => trackWhatsappClick("product_detail_order", selectedBean?.slug || bean.slug)}
                         className={cx(P, "w-full justify-center py-3.5 text-[13px]")}>
                         <img src="https://cdn.simpleicons.org/whatsapp/0e0c09" alt="" className="h-3.5 w-3.5" />
-                        Order on WhatsApp · RM {Number(selectedBean?.price || 0) * qty}
+                        {selectedPackageAvailable ? `Order on WhatsApp - ${formatPackagePrice(selectedBean, qty)}` : "Ask for availability"}
                       </a>
                       <button type="button" onClick={() => handleAdd(selectedBean, qty)}
+                        disabled={!selectedPackageAvailable}
                         className={cx(G, "w-full justify-center")}>
                         <ShoppingCart size={13} />
-                        Add {qty > 1 ? `${qty}× ` : ""}to cart
+                        {selectedPackageAvailable ? `Add ${qty > 1 ? `${qty}x ` : ""}to cart ${formatPackagePrice(selectedBean, qty)}` : "Cart available after confirmation"}
                       </button>
                     </div>
                   </Fade>
@@ -561,7 +561,7 @@ export default function ProductDetail() {
                     <div className="space-y-1.5">
                       <p className="flex items-center gap-2 text-[12px] text-white/34">
                         <span className="h-1 w-1 rounded-full bg-[#c8922a]/50" />
-                        Roasted to order · dispatched within 48 hours
+                        Roasted to order - dispatched within 48 hours
                       </p>
                       <p className="text-[12px] leading-relaxed text-white/30">
                         Roasted by Drunk Coffee Roasters, Segamat. Awarded 3rd Place in HB Best Batch Roaster Contest 2026.
@@ -571,9 +571,7 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* ════════════════════════════════════════
-                  FLAVOR IMAGE
-              ════════════════════════════════════════ */}
+
               {detailFlavorImage && (
                 <Fade className="mt-6">
                   <div className="overflow-hidden rounded-[24px] border border-white/[0.08] bg-[#17120d] p-2 shadow-[0_24px_70px_rgba(0,0,0,0.2)]">
@@ -589,42 +587,7 @@ export default function ProductDetail() {
                 </Fade>
               )}
 
-              {/* ════════════════════════════════════════
-                  MONTEBLANCO SERIES UPSELL
-              ════════════════════════════════════════ */}
-              {isMonteblancoBean && monteblancoBeans.length >= 2 && (
-                <Fade className="mt-6">
-                  <div className="relative overflow-hidden rounded-[20px] border border-white/[0.07] bg-[#1c1814] p-6 md:p-8">
-                    {/* amber glow */}
-                    <div className="absolute right-0 top-0 h-[180px] w-[280px] opacity-10"
-                      style={{ background: "radial-gradient(ellipse at top right,#c8922a,transparent 65%)" }} />
-                    <div className="relative">
-                      <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-end md:justify-between">
-                        <div>
-                          <Eyebrow>Monteblanco Series</Eyebrow>
-                          <h2 className="text-[22px] font-bold tracking-[-0.03em] text-white">Explore the full set</h2>
-                          <p className="mt-1.5 text-[14px] text-white/44">Compare the expressions. Order the bundle.</p>
-                        </div>
-                        <div className="flex flex-wrap gap-2 shrink-0">
-                          <Link to="/series/monteblanco" className={G}>View series</Link>
-                          <button type="button" onClick={handleBundle} className={G}>Add bundle</button>
-                          <a href={monteblancoBundleUrl} target="_blank" rel="noreferrer"
-                            onClick={() => trackWhatsappClick("product_detail_bundle", "monteblanco")} className={P}>
-                            Order bundle
-                          </a>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        {monteblancoBeans.slice(0, 3).map(item => <RelatedRow key={item.id} bean={item} onAdd={handleAdd} />)}
-                      </div>
-                    </div>
-                  </div>
-                </Fade>
-              )}
 
-              {/* ════════════════════════════════════════
-                  RELATED
-              ════════════════════════════════════════ */}
               {relatedBeans.length > 0 && (
                 <Fade className="mt-8">
                   <div className="mb-4 flex items-center gap-3">
@@ -640,13 +603,13 @@ export default function ProductDetail() {
           ) : null}
         </main>
 
-        {/* ── MOBILE STICKY BAR ── */}
+
         {bean && (
           <div className="fixed inset-x-0 bottom-0 z-[55] border-t border-white/[0.07] px-4 py-3 sm:hidden"
             style={{ background: "rgba(14,12,9,0.97)", backdropFilter: "blur(20px)", paddingBottom: "max(0.75rem,env(safe-area-inset-bottom))" }}>
             <div className="flex items-center gap-2.5">
               {/* qty stepper mobile */}
-              <div className="flex items-center gap-0.5 rounded-full border border-white/10 px-1 py-1">
+              {selectedPackageAvailable && <div className="flex items-center gap-0.5 rounded-full border border-white/10 px-1 py-1">
                 <button type="button" onClick={() => setQty(q => Math.max(1, q - 1))}
                   className="flex h-8 w-8 items-center justify-center text-white/40 transition hover:text-white">
                   <Minus size={11} />
@@ -656,13 +619,13 @@ export default function ProductDetail() {
                   className="flex h-8 w-8 items-center justify-center text-white/40 transition hover:text-white">
                   <Plus size={11} />
                 </button>
-              </div>
+              </div>}
               <a href={buildSingleOrderUrl(selectedBean, qty)} target="_blank" rel="noreferrer"
                 onClick={() => trackWhatsappClick("product_detail_sticky", selectedBean?.slug || bean.slug)}
                 className="flex flex-1 items-center justify-between rounded-full bg-[#c8922a] px-5 py-3.5">
-                <span className="text-[13px] font-semibold text-[#0e0c09]">Order on WhatsApp</span>
+                <span className="text-[13px] font-semibold text-[#0e0c09]">{selectedPackageAvailable ? "Order on WhatsApp" : "Ask for availability"}</span>
                 <span className="ml-3 shrink-0 text-[13px] font-bold text-[#0e0c09]/70">
-                  RM {Number(selectedBean?.price || 0) * qty}
+                  {selectedPackageAvailable ? formatPackagePrice(selectedBean, qty) : selectedBean?.size}
                 </span>
               </a>
             </div>

@@ -1,24 +1,24 @@
 /**
- * Seo.jsx — unified meta tags for all pages
- * 
+ * Seo.jsx -unified meta tags for all pages
+ *
  * Place at src/components/Seo.jsx (replaces existing Seo component)
- * 
+ *
  * Props:
- *   title        — page title (shown in tab + OG)
- *   description  — meta description + OG description
- *   url          — canonical path e.g. "/coffee/paraiso-java"
- *   image        — OG image URL (full URL). Falls back to /og-default.jpg
- *   imageAlt     — alt text for OG image
- *   type         — "website" | "article" | "product" (default: "website")
- *   jsonLd       — structured data object (will be JSON.stringify'd)
- *   noIndex      — if true, adds noindex meta
+ *   title        -page title (shown in tab + OG)
+ *   description  -meta description + OG description
+ *   url          -canonical path e.g. "/coffee/paraiso-java"
+ *   image        -OG image URL (full URL). Falls back to /og-default.jpg
+ *   imageAlt     -alt text for OG image
+ *   type         -"website" | "article" | "product" (default: "website")
+ *   jsonLd       -structured data object (will be JSON.stringify'd)
+ *   noIndex      -if true, adds noindex meta
  */
 
 import { useEffect } from "react";
 
 const SITE_NAME   = "Drunk Coffee Roasters";
 const SITE_URL    = "https://drunkcoffeeroasters.com";
-const DEFAULT_IMG = `${SITE_URL}/og-default.jpg`;   // put a 1200×630 brand image here
+const DEFAULT_IMG = `${SITE_URL}/og-default.jpg`;   // put a 1200x630 brand image here
 const TWITTER_HDL = "@drunkcoffeemy";               // update if you have one
 
 function setMeta(name, content, attr = "name") {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Seo from "../components/Seo";
 import { trackWhatsappClick } from "../lib/analytics";
@@ -9,6 +9,9 @@ import {
   cx,
   formatBeanPrice,
   getDisplayBadges,
+  getPackageSizeSummary,
+  getProductFilterMatches,
+  getSimplePositioning,
   safeArray,
   useBeans,
 } from "../lib/coffeeStore";
@@ -30,8 +33,8 @@ function Eyebrow({ children }) {
 function BeanRow({ bean }) {
   const img = bean.image ? appendImageParams(bean.image, { w:400, h:400, fit:"pad", fm:"webp", q:78 }) : "";
   const notes = safeArray(bean.notes).slice(0, 3);
-  const bestFor = bean.bestFor || bean.category;
-  const meta = [bean.size, bean.category].filter(Boolean).join(" / ");
+  const positioning = getSimplePositioning(bean);
+  const packageSummary = getPackageSizeSummary(bean);
   const badges = getDisplayBadges(bean, 3);
   return (
     <Link to={`/coffee/${bean.slug}`}
@@ -40,7 +43,7 @@ function BeanRow({ bean }) {
       <div className="shrink-0 rounded-[9px] bg-[#130f0a] overflow-hidden h-[64px] w-[64px]">
         {img
           ? <img src={img} alt={bean.name} className="h-full w-full object-contain p-2 transition duration-400 group-hover:scale-[1.08]" />
-          : <div className="flex h-full items-center justify-center text-[9px] uppercase tracking-widest text-white/16">—</div>
+          : <div className="flex h-full items-center justify-center text-[9px] uppercase tracking-widest text-white/16">-</div>
         }
       </div>
       {/* info */}
@@ -52,15 +55,15 @@ function BeanRow({ bean }) {
           ))}
         </div>
         {notes.length > 0 && <p className="mt-1 text-[12px] leading-relaxed text-white/50">{notes.join(" / ")}</p>}
-        <p className="mt-1 text-[11px] leading-relaxed text-white/34">Best for: {bestFor}</p>
-        <p className="mt-0.5 text-[11px] leading-relaxed text-white/26 sm:hidden">{formatBeanPrice(bean)} / {meta}</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-white/34">{positioning}</p>
+        <p className="mt-0.5 text-[11px] leading-relaxed text-white/26 sm:hidden">{formatBeanPrice(bean)} / {packageSummary}</p>
       </div>
       {/* price + category */}
       <div className="hidden shrink-0 text-right sm:block">
         <p className="text-[14px] font-semibold text-white/80">{formatBeanPrice(bean)}</p>
-        <p className="text-[10px] text-white/24 mt-0.5">{meta}</p>
+        <p className="text-[10px] text-white/24 mt-0.5">{packageSummary}</p>
       </div>
-      <span className="shrink-0 text-[11px] text-white/24 transition group-hover:text-white/60">→</span>
+      <span className="shrink-0 text-[11px] text-white/24 transition group-hover:text-white/60">View</span>
     </Link>
   );
 }
@@ -78,15 +81,15 @@ function SkeletonRow() {
   );
 }
 
-const FILTERS = ["All", "Filter", "Espresso"];
+const FILTERS = ["All Coffee", "Espresso Friendly", "Pour Over", "Bundles", "Limited Release"];
 
 export default function CoffeeBeansPage() {
   const navigate = useNavigate();
   const { beans, loading, error } = useBeans();
-  const [active, setActive] = useState("All");
+  const [active, setActive] = useState("All Coffee");
   const waUrl = buildGeneralWhatsAppUrl();
 
-  const filtered = active === "All" ? beans : beans.filter(b => b.category === active);
+  const filtered = beans.filter((bean) => getProductFilterMatches(bean, active));
 
   return (
     <>
@@ -136,7 +139,7 @@ export default function CoffeeBeansPage() {
           </p>
 
           {/* filter tabs */}
-          <div className="flex items-center gap-1 border-b border-white/[0.06] mb-4">
+          <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-white/[0.06]">
             {FILTERS.map(f => {
               const on = active === f;
               return (

@@ -11,7 +11,7 @@ export default function LabelPreview() {
           alt="Drunk Coffee Roasters Fazendal Pinhal coffee label"
         />
       </section>
-      <p className="label-preview__caption">Fazendal Pinhal · kraft bag label preview</p>
+      <p className="label-preview__caption">Fazendal Pinhal / kraft bag label preview</p>
     </main>
   );
 }

@@ -1,26 +1,26 @@
 /**
  * BlurImage.jsx
- * 
+ *
  * Drop-in replacement for <img> that shows a blurred low-res placeholder
  * while the full image loads, then crossfades to the real image.
- * 
+ *
  * Usage:
  *   import BlurImage from "./components/BlurImage";
- * 
+ *
  *   // Basic
  *   <BlurImage src={bean.image} alt={bean.name} className="h-full w-full object-contain" />
- * 
+ *
  *   // With explicit aspect ratio wrapper
  *   <BlurImage src={img} alt="..." aspect="square" className="p-10" />
- * 
+ *
  * Props:
- *   src        — full resolution image URL
- *   alt        — alt text
- *   className  — classes forwarded to the <img>
- *   aspect     — "square" | "video" | "4/3" | undefined (no forced ratio)
- *   thumbSrc   — optional low-res thumb; if omitted we generate one via ?w=40
- *   priority   — if true, skip lazy loading (use for above-the-fold hero images)
- *   onLoad     — callback when image finishes loading
+ *   src        -full resolution image URL
+ *   alt        -alt text
+ *   className  -classes forwarded to the <img>
+ *   aspect     -"square" | "video" | "4/3" | undefined (no forced ratio)
+ *   thumbSrc   -optional low-res thumb; if omitted we generate one via ?w=40
+ *   priority   -if true, skip lazy loading (use for above-the-fold hero images)
+ *   onLoad     -callback when image finishes loading
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -67,7 +67,7 @@ export default function BlurImage({
       className={`relative overflow-hidden ${wrapperAspect}`}
       style={{ background: "#130f0a" }}
     >
-      {/* ── Low-res blur thumb ── */}
+
       <img
         ref={thumbRef}
         src={thumb}
@@ -83,7 +83,7 @@ export default function BlurImage({
         }}
       />
 
-      {/* ── Full resolution image ── */}
+
       <img
         ref={imgRef}
         src={src || PLACEHOLDER_SVG}
@@ -100,7 +100,7 @@ export default function BlurImage({
         {...rest}
       />
 
-      {/* ── Shimmer overlay while neither has loaded ── */}
+
       {!thumbDone && !loaded && (
         <div
           aria-hidden
