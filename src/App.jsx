@@ -24,6 +24,7 @@ export default function App() {
         <Route path="/"                       element={<HomePage />}              />
         <Route path="/coffee/:slug"           element={<ProductDetail />}         />
         <Route path="/wholesale"              element={<WholesalePage />}         />
+        <Route path="/shop"                   element={<CoffeeBeansPage />}       />
         <Route path="/beans"                  element={<CoffeeBeansPage />}       />
         <Route path="/label-preview"          element={<LabelPreview />}          />
         {<Route path="*" element={<NotFoundPage />} />}

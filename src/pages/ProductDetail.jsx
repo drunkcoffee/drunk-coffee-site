@@ -1,5 +1,6 @@
 import { ArrowLeft, ChevronLeft, ChevronRight, Instagram, Minus, Plus, ShoppingCart, X } from "lucide-react";
 import BlurImage from "../components/BlurImage";
+import DcrLogo from "../components/DcrLogo";
 import Toast from "../components/Toast";
 import { Lightbox, useLightbox } from "../components/Lightbox";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -33,8 +34,8 @@ import {
   usePersistentCart,
 } from "../lib/coffeeStore";
 const AMBER = "#c8922a";
-const P = "inline-flex items-center gap-2 rounded-full bg-[#c8922a] px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-[#0e0c09] transition hover:bg-[#d9a23a] active:scale-[0.97]";
-const G = "inline-flex items-center gap-2 rounded-full border border-white/12 px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-white/55 transition hover:border-white/24 hover:text-white active:scale-[0.97]";
+const P = "inline-flex items-center gap-2 rounded-[11px] bg-accent px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-text transition hover:bg-accent-hover active:scale-[0.97]";
+const G = "inline-flex items-center gap-2 rounded-[11px] border border-kraft bg-transparent px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-text transition hover:bg-background active:scale-[0.97]";
 function useInView(t = 0.06) {
   const ref = useRef(null);
   const [v, setV] = useState(false);
@@ -93,8 +94,7 @@ function CartDrawer({ open, onClose, cart, cartCount, cartTotal, onDecrease, onI
         role="dialog"
         aria-modal="true"
         aria-label="Shopping cart"
-        className="relative z-[80] flex h-dvh max-h-dvh w-full max-w-md flex-col overflow-hidden border-l border-white/[0.07]"
-        style={{ background: "#100e0b" }}>
+        className="dcr-cart-surface relative z-[80] flex h-dvh max-h-dvh w-full max-w-md flex-col overflow-hidden border-l border-dcr-border">
         <div className="shrink-0 flex items-center justify-between border-b border-white/[0.07] px-5 py-4">
           <div>
             <p className="text-[17px] font-semibold tracking-[-0.02em] text-white">Your cart</p>
@@ -263,7 +263,7 @@ export default function ProductDetail() {
   }
   if (!loading && !bean) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center" style={{ background: "#0e0c09" }}>
+      <div className="dcr-brand-v2 flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <p className="mb-4 text-[10px] uppercase tracking-[0.24em] text-[#c8922a]/70">Not found</p>
         <h1 className="text-[32px] font-bold tracking-[-0.04em] text-white">Coffee not found</h1>
         <p className="mt-3 max-w-xs text-[13px] text-white/40">This coffee may have been removed or the link has changed.</p>
@@ -294,7 +294,7 @@ export default function ProductDetail() {
         } : null}
       />
 
-      <div className="min-h-screen" style={{ background: "#0e0c09" }}>
+      <div className="dcr-brand-v2 min-h-screen">
 
 
         <header className="sticky top-0 z-50 border-b border-white/[0.07]"
@@ -305,13 +305,13 @@ export default function ProductDetail() {
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/40 transition hover:text-white">
                 <ArrowLeft size={15} />
               </button>
-              <Link to="/"><img src="/logo.png" alt="Drunk Coffee Roasters" className="h-11 object-contain" /></Link>
+              <Link to="/" aria-label="Drunk Coffee Roasters home"><DcrLogo className="h-11" showName /></Link>
             </div>
             <div className="flex items-center gap-2">
               <a href={buildGeneralWhatsAppUrl()} target="_blank" rel="noreferrer"
                 onClick={() => trackWhatsappClick("product_detail_header", bean?.slug || "")}
                 className="hidden h-9 w-9 items-center justify-center rounded-full border border-white/10 transition hover:border-white/20 md:flex">
-                <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="WhatsApp" className="h-3.5 w-3.5 opacity-38 transition hover:opacity-80" />
+                <img src="https://cdn.simpleicons.org/whatsapp/1F1F1F" alt="WhatsApp" className="h-3.5 w-3.5 opacity-60 transition hover:opacity-90" />
               </a>
               <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer"
                 className="hidden h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/38 transition hover:text-white md:flex">
@@ -365,7 +365,7 @@ export default function ProductDetail() {
                           className="h-full w-full object-contain p-10 md:p-14 transition duration-700 group-hover:scale-[1.03]"
                         />
                         {/* zoom hint */}
-                        <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-white/14 bg-black/50 px-3 py-1.5 opacity-0 backdrop-blur-sm transition duration-300 group-hover:opacity-100">
+                        <div className="dcr-dark-surface absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-white/14 bg-black/50 px-3 py-1.5 opacity-0 backdrop-blur-sm transition duration-300 group-hover:opacity-100">
                           <svg viewBox="0 0 16 16" className="h-3 w-3 text-white/60" fill="none" stroke="currentColor" strokeWidth="1.5">
                             <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3 3"/><path d="M6.5 4.5v4M4.5 6.5h4"/>
                           </svg>
@@ -477,21 +477,7 @@ export default function ProductDetail() {
                     </Fade>
                   )}
 
-                  {/* detail rows */}
-                  <Fade delay={80} className="mt-5 border-t border-white/[0.06]">
-                    <DetailRow label="Origin"    value={bean.origin}          />
-                    <DetailRow label="Altitude"  value={bean.altitude}        />
-                    <DetailRow label="Process"   value={bean.process}         />
-                    <DetailRow label="Roast"     value={bean.roast}           />
-                    <DetailRow label="Brew"      value={getRecommendedBrew(bean)} />
-                    <DetailRow label="Espresso use" value={espressoUse} />
-                    <DetailRow label="Best for"  value={getWhoItsFor(bean)}   />
-                    {bean.variety && <DetailRow label="Variety" value={bean.variety} />}
-                    {variants.length === 1 && <DetailRow label="Size" value={selectedBean?.size} />}
-                  </Fade>
-
-
-                  <Fade delay={100} className="mt-7 border-t border-white/[0.06] pt-6">
+                  <Fade delay={80} className="mt-7 border-t border-white/[0.06] pt-6">
                     {variants.length > 1 && (
                       <fieldset className="mb-6">
                         <legend className="text-[11px] uppercase tracking-[0.16em] text-white/32">{bean.category === "Bundle" ? "Choose your set" : "Choose your size"}</legend>
@@ -502,9 +488,8 @@ export default function ProductDetail() {
                           </div>
                         ) : (
                           <div className="mt-2 space-y-1 text-[12px] leading-relaxed text-white/38">
-                            <p>100g Trial Pack - best for trying something new.</p>
-                            <p>200g Daily Bag - best for home brewing.</p>
-                            <p>1kg Value Bag - best value for daily drinkers, offices, and espresso users.</p>
+                            <p>100g Trial Pack - best for finding your preferred flavor first.</p>
+                            <p>200g Daily Bag - best once this coffee belongs in your home brew routine.</p>
                           </div>
                         )}
                         <div className="mt-2 grid grid-cols-2 gap-2">
@@ -545,7 +530,12 @@ export default function ProductDetail() {
                         onClick={() => trackWhatsappClick("product_detail_order", selectedBean?.slug || bean.slug)}
                         className={cx(P, "w-full justify-center py-3.5 text-[13px]")}>
                         <img src="https://cdn.simpleicons.org/whatsapp/0e0c09" alt="" className="h-3.5 w-3.5" />
-                        {selectedPackageAvailable ? `Order on WhatsApp - ${formatPackagePrice(selectedBean, qty)}` : "Ask for availability"}
+                        {selectedPackageAvailable ? `Order this coffee - ${formatPackagePrice(selectedBean, qty)}` : "Ask for availability"}
+                      </a>
+                      <a href={buildGeneralWhatsAppUrl()} target="_blank" rel="noreferrer"
+                        onClick={() => trackWhatsappClick("product_detail_fit_check", selectedBean?.slug || bean.slug)}
+                        className="text-center text-[12px] font-semibold text-white/36 transition hover:text-white/60">
+                        Ask if this suits my brew setup
                       </a>
                       <button type="button" onClick={() => handleAdd(selectedBean, qty)}
                         disabled={!selectedPackageAvailable}
@@ -567,6 +557,19 @@ export default function ProductDetail() {
                         Roasted by Drunk Coffee Roasters, Segamat. Awarded 3rd Place in HB Best Batch Roaster Contest 2026.
                       </p>
                     </div>
+                  </Fade>
+
+                  {/* detail rows */}
+                  <Fade delay={140} className="mt-5 border-t border-white/[0.06]">
+                    <DetailRow label="Origin"    value={bean.origin}          />
+                    <DetailRow label="Altitude"  value={bean.altitude}        />
+                    <DetailRow label="Process"   value={bean.process}         />
+                    <DetailRow label="Roast"     value={bean.roast}           />
+                    <DetailRow label="Brew"      value={getRecommendedBrew(bean)} />
+                    <DetailRow label="Espresso use" value={espressoUse} />
+                    <DetailRow label="Best for"  value={getWhoItsFor(bean)}   />
+                    {bean.variety && <DetailRow label="Variety" value={bean.variety} />}
+                    {variants.length === 1 && <DetailRow label="Size" value={selectedBean?.size} />}
                   </Fade>
                 </div>
               </div>
@@ -605,8 +608,8 @@ export default function ProductDetail() {
 
 
         {bean && (
-          <div className="fixed inset-x-0 bottom-0 z-[55] border-t border-white/[0.07] px-4 py-3 sm:hidden"
-            style={{ background: "rgba(14,12,9,0.97)", backdropFilter: "blur(20px)", paddingBottom: "max(0.75rem,env(safe-area-inset-bottom))" }}>
+          <div className="fixed inset-x-0 bottom-0 z-[55] border-t border-divider bg-surface/95 px-4 py-3 sm:hidden"
+            style={{ backdropFilter: "blur(20px)", paddingBottom: "max(0.75rem,env(safe-area-inset-bottom))" }}>
             <div className="flex items-center gap-2.5">
               {/* qty stepper mobile */}
               {selectedPackageAvailable && <div className="flex items-center gap-0.5 rounded-full border border-white/10 px-1 py-1">
@@ -622,9 +625,9 @@ export default function ProductDetail() {
               </div>}
               <a href={buildSingleOrderUrl(selectedBean, qty)} target="_blank" rel="noreferrer"
                 onClick={() => trackWhatsappClick("product_detail_sticky", selectedBean?.slug || bean.slug)}
-                className="flex flex-1 items-center justify-between rounded-full bg-[#c8922a] px-5 py-3.5">
-                <span className="text-[13px] font-semibold text-[#0e0c09]">{selectedPackageAvailable ? "Order on WhatsApp" : "Ask for availability"}</span>
-                <span className="ml-3 shrink-0 text-[13px] font-bold text-[#0e0c09]/70">
+                className="flex flex-1 items-center justify-between rounded-[11px] bg-accent px-5 py-3.5 transition hover:bg-accent-hover">
+                <span className="text-[13px] font-semibold text-text">{selectedPackageAvailable ? "Order on WhatsApp" : "Ask for availability"}</span>
+                <span className="ml-3 shrink-0 text-[13px] font-bold text-text/70">
                   {selectedPackageAvailable ? formatPackagePrice(selectedBean, qty) : selectedBean?.size}
                 </span>
               </a>

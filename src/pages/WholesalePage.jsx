@@ -2,20 +2,21 @@ import { ArrowLeft, ChevronDown, Instagram } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Seo from "../components/Seo";
+import DcrLogo from "../components/DcrLogo";
 import { trackWhatsappClick } from "../lib/analytics";
 import {
   INSTAGRAM_URL,
   buildWholesaleWhatsAppUrl,
   cx,
 } from "../lib/coffeeStore";
-const P = "inline-flex items-center gap-2 rounded-full bg-[#c8922a] px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-[#0e0c09] transition hover:bg-[#d9a23a] active:scale-[0.97]";
-const G = "inline-flex items-center gap-2 rounded-full border border-white/12 px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-white/60 transition hover:border-white/24 hover:text-white active:scale-[0.97]";
+const P = "inline-flex items-center gap-2 rounded-[11px] bg-accent px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-text transition hover:bg-accent-hover active:scale-[0.97]";
+const G = "inline-flex items-center gap-2 rounded-[11px] border border-kraft bg-transparent px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-text transition hover:bg-background active:scale-[0.97]";
 
 function Eyebrow({ children }) {
   return (
     <div className="flex items-center gap-2.5 mb-3">
-      <span className="h-px w-5 bg-[#c8922a]/50" />
-      <span className="text-[10px] uppercase tracking-[0.28em] text-[#c8922a]/70">{children}</span>
+      <span className="h-px w-5 bg-kraft/50" />
+      <span className="text-[10px] uppercase tracking-[0.28em] text-kraft">{children}</span>
     </div>
   );
 }
@@ -38,6 +39,28 @@ function InfoRow({ title, body }) {
   );
 }
 
+function AccordionItem({ q, a, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div className="border-b border-divider last:border-b-0">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-center justify-between gap-4 py-5 text-left text-[14px] font-semibold text-text transition hover:text-accent-hover"
+      >
+        <span>{q}</span>
+        <ChevronDown
+          size={16}
+          className={cx("shrink-0 text-kraft transition-transform", open && "rotate-180")}
+        />
+      </button>
+      {open && <p className="max-w-[60ch] pb-5 text-[13px] leading-[1.8] text-text/60">{a}</p>}
+    </div>
+  );
+}
+
 export default function WholesalePage() {
   const navigate = useNavigate();
   const wsUrl = buildWholesaleWhatsAppUrl();
@@ -51,7 +74,7 @@ export default function WholesalePage() {
         jsonLd={{ "@context":"https://schema.org","@type":"Service",name:"Wholesale Coffee Supply",provider:{"@type":"Organization",name:"Drunk Coffee Roasters"},areaServed:"Malaysia" }}
       />
 
-      <div className="min-h-screen" style={{ background:"#0e0c09" }}>
+      <div className="dcr-brand-v2 min-h-screen">
 
         {/* header */}
         <header className="sticky top-0 z-50 border-b border-white/[0.07]"
@@ -64,7 +87,7 @@ export default function WholesalePage() {
                 <ArrowLeft size={15} />
               </button>
               <Link to="/">
-                <img src="/logo.png" alt="Drunk Coffee Roasters" className="h-11 object-contain" />
+                <DcrLogo className="h-11" showName />
               </Link>
             </div>
             <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer"
@@ -81,7 +104,7 @@ export default function WholesalePage() {
             <Eyebrow>Wholesale</Eyebrow>
             <h1 className="text-[clamp(36px,6vw,72px)] font-bold leading-[0.88] tracking-[-0.05em] text-white">
               Fresh roast,<br />
-              <em className="not-italic text-[#c8922a]">at scale.</em>
+              <em className="not-italic text-accent">at scale.</em>
             </h1>
             <p className="mt-6 max-w-[44ch] text-[16px] leading-[1.9] text-white/52">
               We supply cafes, offices, gift shops, and events across Malaysia. Small-batch roasting - consistent, repeatable, and roasted fresh per order.
@@ -89,7 +112,7 @@ export default function WholesalePage() {
             <div className="mt-7 flex flex-wrap gap-3">
               <a href={wsUrl} target="_blank" rel="noreferrer"
                 onClick={() => trackWhatsappClick("wholesale_page","hero")} className={P}>
-                <img src="https://cdn.simpleicons.org/whatsapp/0e0c09" alt="" className="h-3.5 w-3.5" />
+                <img src="https://cdn.simpleicons.org/whatsapp/1F1F1F" alt="" className="h-3.5 w-3.5" />
                 Enquire on WhatsApp
               </a>
               <Link to="/" className={G}>Back to home</Link>
@@ -98,7 +121,7 @@ export default function WholesalePage() {
 
           {/* stat chips */}
           <div className="flex flex-wrap gap-2.5 mb-12">
-            <Chip value="Min. 1 kg"    label="Starting order" />
+            <Chip value="Flexible"    label="Starting order" />
             <Chip value="2- days"     label="Lead time"      />
             <Chip value="Custom"       label="Label options"  />
             <Chip value="MY / SG"      label="Ships to"       />
@@ -137,7 +160,7 @@ export default function WholesalePage() {
           {/* final CTA */}
           <div className="rounded-[18px] border border-white/[0.07] bg-[#1c1814] p-7 md:p-8 relative overflow-hidden">
             <div className="absolute right-0 top-0 h-[200px] w-[300px] opacity-10"
-              style={{ background:"radial-gradient(ellipse at top right,#c8922a,transparent 65%)" }} />
+              style={{ background:"radial-gradient(ellipse at top right,var(--color-accent),transparent 65%)" }} />
             <div className="relative">
               <p className="text-[18px] font-bold tracking-[-0.02em] text-white">Ready to start?</p>
               <p className="mt-2 text-[14px] leading-relaxed text-white/50">
@@ -146,7 +169,7 @@ export default function WholesalePage() {
               <a href={wsUrl} target="_blank" rel="noreferrer"
                 onClick={() => trackWhatsappClick("wholesale_page","final_cta")}
                 className={cx(P,"mt-5")}>
-                <img src="https://cdn.simpleicons.org/whatsapp/0e0c09" alt="" className="h-3.5 w-3.5" />
+                <img src="https://cdn.simpleicons.org/whatsapp/1F1F1F" alt="" className="h-3.5 w-3.5" />
                 Start wholesale enquiry
               </a>
             </div>

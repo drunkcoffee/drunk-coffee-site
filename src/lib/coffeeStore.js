@@ -131,8 +131,14 @@ export const FALLBACK_BEANS = [
 const STANDARD_PACKAGE_OPTIONS = [
   { size: "100g", label: "Trial Pack" },
   { size: "200g", label: "Daily Bag" },
-  { size: "1kg", label: "Value Bag" },
 ];
+
+const REMOVED_PUBLIC_PACKAGE_SIZES = new Set(["1kg", "1 kg", "1000g", "1000 g"]);
+
+function isPublicPackageSize(size) {
+  const normalized = String(size || "").trim().toLowerCase();
+  return normalized && !REMOVED_PUBLIC_PACKAGE_SIZES.has(normalized);
+}
 
 export function cx(...parts) {
   return parts.filter(Boolean).join(" ");
@@ -188,12 +194,21 @@ export function normalizeVariants(value, fallback = {}) {
       label: packageLabelForSize(String(item?.size || "").trim(), item?.label),
       price: item?.price === null ? null : Number(item?.price),
     }))
-    .filter((item) => item.size && (item.price === null || (Number.isFinite(item.price) && item.price >= 0)));
+    .filter((item) => isPublicPackageSize(item.size) && (item.price === null || (Number.isFinite(item.price) && item.price >= 0)));
 
   if (variants.length) return variants;
+
+  const fallbackSize = String(fallback.size || "200g");
+  if (!isPublicPackageSize(fallbackSize)) {
+    return [{
+      size: "200g",
+      label: packageLabelForSize("200g"),
+      price: null,
+    }];
+  }
   return [{
-    size: String(fallback.size || "200g"),
-    label: packageLabelForSize(String(fallback.size || "200g")),
+    size: fallbackSize,
+    label: packageLabelForSize(fallbackSize),
     price: Number(fallback.price || 0),
   }];
 }
@@ -539,9 +554,18 @@ export function normalizeContentfulImage(asset) {
 const FLAVOR_IMAGE_OVERRIDES = {
   "alo-sidama-g1-natural-slow-dry": "/flavors/alo-sidama-g1-natural-slow-dry.png",
   "alo-bona-zuria-gute-natural-g1": "/flavors/alo-bona-zuria-gute-natural-g1.png",
+  "bensa-arsi-g1": "/flavors/bensa-arsi-g1.png",
+  "april": "/flavors/april.png",
   "colombia-finca-milan-niu": "/flavors/colombia-finca-milan-niu.png",
+  "watermelon": "/flavors/watermelon.png",
+  "el-diviso-ombligon": "/flavors/el-diviso-ombligon.png",
+  "fazenda-pinhal": "/flavors/fazenda-pinhal.png",
+  "iri-s-esta-te-sym-bio-sis": "/flavors/iris-estate-symbiosis.png",
+  "lan-chang": "/flavors/lan-chang.png",
   "panama-lamastus-gesha-alto-quiel-selecto-natural": "/flavors/panama-lamastus-gesha-alto-quiel-selecto-natural.png",
   "meranti-liberica-g1": "/flavors/meranti-liberica-g1.png",
+  "paraiso-java": "/flavors/paraiso-java.png",
+  "spring-bloom-blend": "/flavors/spring-bloom-blend.png",
 };
 
 export function normalizeSlug(value) {
@@ -736,17 +760,17 @@ export function buildSingleOrderUrl(bean, quantity = 1) {
   const orderQuantity = Math.max(1, Number.parseInt(quantity, 10) || 1);
   const available = isPackageAvailable(bean);
   const message = available
-    ? `Hi Drunk Coffee Roasters,\n\nI would like to order:\n\n${name} - ${formatPackageLabel({ size, label })} - ${formatPackagePrice(bean)}\nQuantity: ${orderQuantity}\nCategory: ${category}\nTotal: ${formatPackagePrice(bean, orderQuantity)}\n\nPlease share availability and roasting lead time.\nThank you.`
-    : `Hi Drunk Coffee Roasters,\n\nI would like to ask about ${size} availability for ${name}.\n\nPlease share availability and roasting lead time.\nThank you.`;
+    ? `Hi Drunk Coffee Roasters, I'd like to order:\n\n${name}\nPack: ${formatPackageLabel({ size, label })}\nQty: ${orderQuantity}\nCategory: ${category}\nTotal: ${formatPackagePrice(bean, orderQuantity)}\n\nCan you confirm availability, roast timing, payment, and delivery?`
+    : `Hi Drunk Coffee Roasters, I'd like to ask about availability for ${name}.\n\nPack: ${formatPackageLabel({ size, label })}\n\nCan you confirm roast timing, payment, and delivery?`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
 export function buildBundleOrderUrl(bundleBeans, title = "Coffee Set") {
   if (!bundleBeans?.length) return `https://wa.me/${WHATSAPP_NUMBER}`;
 
-  const message = `Hi Drunk Coffee Roasters,\n\nI would like to order the ${title}:\n\n${bundleBeans
+  const message = `Hi Drunk Coffee Roasters, I'd like to order the ${title}:\n\n${bundleBeans
     .map((bean, index) => `${index + 1}. ${bean.name} (${bean.size})`)
-    .join("\n")}\n\nPlease share availability and roasting lead time.\nThank you.`;
+    .join("\n")}\n\nCan you confirm availability, roast timing, payment, and delivery?`;
 
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
@@ -759,21 +783,21 @@ export function buildCartWhatsAppUrl(cart) {
 
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     cart.length
-      ? `Hi Drunk Coffee Roasters,\n\nI would like to place an order:\n\n${cart
+      ? `Hi Drunk Coffee Roasters, I'd like to place an order:\n\n${cart
           .map(
             (item, index) =>
               `${index + 1}. ${item.name} (${[item.size, item.packageLabel].filter(Boolean).join(" ")}) x${item.quantity}\n${
                 formatPackagePrice(item, item.quantity)
               }`,
           )
-          .join("\n\n")}\n\nTotal: RM ${cartTotal}\n\nPlease confirm availability and roasting lead time.\nThank you.`
-      : "Hi Drunk Coffee Roasters, I would like to place an order.",
+          .join("\n\n")}\n\nTotal: RM ${cartTotal}\n\nCan you confirm availability, roast timing, payment, and delivery?`
+      : "Hi Drunk Coffee Roasters, I'm not sure which coffee to choose. I usually drink black coffee / milk coffee and prefer chocolatey / fruity / floral / not too acidic. Can you recommend one?",
   )}`;
 }
 
 export function buildGeneralWhatsAppUrl() {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    "Hi Drunk Coffee Roasters, I would like to order fresh roast coffee.",
+    "Hi Drunk Coffee Roasters, I'm not sure which coffee to choose.\n\nI usually drink:\n1. Black coffee / milk coffee\n2. Hand brew / espresso / French press\n3. Prefer: chocolatey / fruity / floral / not too acidic\n\nCan you recommend one?",
   )}`;
 }
 

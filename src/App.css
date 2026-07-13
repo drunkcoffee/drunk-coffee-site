@@ -1,9 +1,50 @@
 @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
+@theme {
+  --color-background: #f6f1e8;
+  --color-text: #1f1f1f;
+  --color-kraft: #b68a5a;
+  --color-accent: #d8a1a8;
+  --color-accent-hover: #ca9199;
+  --color-premium: #b08d57;
+  --color-surface: #fcfcfa;
+  --color-divider: #ddd0bd;
+  --color-dcr-bg: #f6f1e8;
+  --color-dcr-cream: #fcfcfa;
+  --color-dcr-olive: #1f1f1f;
+  --color-dcr-charcoal: #1f1f1f;
+  --color-dcr-gold: #b08d57;
+  --color-dcr-brown: #b68a5a;
+  --color-dcr-border: #ddd0bd;
+  --font-dcr-heading: "Cormorant Garamond", serif;
+  --font-dcr-body: "Inter", sans-serif;
+  --shadow-dcr-soft: 0 24px 80px rgba(31, 31, 31, 0.08);
+  --shadow-dcr-card: 0 18px 50px rgba(31, 31, 31, 0.06);
+}
+
 :root {
+  color-scheme: light;
   --font-display: "Cormorant Garamond", serif;
   --font-body: "Inter", sans-serif;
+  --color-background: #f6f1e8;
+  --color-text: #1f1f1f;
+  --color-kraft: #b68a5a;
+  --color-accent: #d8a1a8;
+  --color-accent-hover: #ca9199;
+  --color-premium: #b08d57;
+  --color-surface: #fcfcfa;
+  --color-divider: #ddd0bd;
+  --dcr-bg: var(--color-background);
+  --dcr-cream: var(--color-surface);
+  --dcr-olive: var(--color-text);
+  --dcr-charcoal: var(--color-text);
+  --dcr-gold: var(--color-premium);
+  --dcr-brown: var(--color-kraft);
+  --dcr-border: var(--color-divider);
+  --dcr-muted: color-mix(in srgb, var(--color-text) 64%, transparent);
+  --dcr-soft-shadow: 0 18px 48px rgba(31, 31, 31, 0.06);
+  --dcr-card-shadow: 0 10px 28px rgba(31, 31, 31, 0.045);
 }
 
 html {
@@ -13,8 +54,10 @@ html {
 body {
   margin: 0;
   font-family: var(--font-body);
-  background: #000000;
-  color: #ffffff;
+  background: var(--dcr-bg);
+  color: var(--dcr-charcoal);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .font-display {
@@ -37,6 +80,444 @@ a {
 
 button {
   font: inherit;
+}
+
+:where(a, button):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.dcr-page {
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--dcr-bg);
+  color: var(--dcr-charcoal);
+}
+
+.dcr-container {
+  width: min(1180px, calc(100% - 32px));
+  margin-inline: auto;
+}
+
+.dcr-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--dcr-brown);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.dcr-kicker::before {
+  content: "";
+  width: 1.75rem;
+  height: 1px;
+  background: color-mix(in srgb, var(--dcr-gold) 72%, transparent);
+}
+
+.dcr-heading {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--dcr-olive);
+}
+
+.dcr-body-copy {
+  color: var(--dcr-muted);
+  font-size: 0.95rem;
+  line-height: 1.85;
+}
+
+.dcr-nav-link {
+  color: color-mix(in srgb, var(--dcr-charcoal) 58%, transparent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  transition: color 160ms ease;
+}
+
+.dcr-nav-link:hover,
+.dcr-nav-link--active {
+  color: var(--color-accent-hover);
+}
+
+.dcr-nav-link--active {
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.45rem;
+}
+
+.dcr-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 11px;
+  padding: 0.82rem 1.25rem;
+  border: 1px solid transparent;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.dcr-button:hover {
+  transform: translateY(-1px);
+}
+
+.dcr-button:active {
+  transform: translateY(0);
+}
+
+.dcr-button--primary {
+  background: var(--color-accent);
+  color: var(--color-text);
+}
+
+.dcr-button--primary:hover {
+  background: var(--color-accent-hover);
+}
+
+.dcr-button--secondary {
+  border-color: var(--color-kraft);
+  background: transparent;
+  color: var(--color-text);
+}
+
+.dcr-button--secondary:hover {
+  border-color: var(--color-kraft);
+  background: var(--color-background);
+}
+
+.dcr-button--gold {
+  background: var(--color-premium);
+  color: var(--color-text);
+}
+
+.dcr-card {
+  border: 1px solid var(--color-divider);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: none;
+}
+
+.dcr-product-card {
+  border: 1px solid var(--color-divider);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: var(--dcr-card-shadow);
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+
+.dcr-product-card:hover {
+  border-color: var(--color-kraft);
+  transform: translateY(-2px);
+}
+
+.dcr-product-media {
+  position: relative;
+  border-bottom: 1px solid var(--dcr-border);
+  background:
+    radial-gradient(circle at 76% 18%, color-mix(in srgb, var(--color-accent) 28%, transparent), transparent 32%),
+    radial-gradient(circle at 32% 58%, color-mix(in srgb, var(--color-premium) 24%, transparent), transparent 46%),
+    repeating-linear-gradient(112deg, color-mix(in srgb, var(--color-kraft) 4%, transparent) 0 1px, transparent 1px 7px),
+    linear-gradient(145deg, var(--color-surface) 0%, var(--color-background) 62%, color-mix(in srgb, var(--color-kraft) 38%, var(--color-background)) 100%);
+}
+
+.dcr-packaging-composite {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  isolation: isolate;
+  transition: transform 500ms ease;
+}
+
+.group:hover .dcr-packaging-composite {
+  transform: scale(1.025);
+}
+
+.dcr-packaging-bag {
+  position: absolute;
+  inset: 0 2%;
+  z-index: 0;
+  width: 96%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 18px rgba(66, 44, 20, 0.18));
+}
+
+.dcr-packaging-flavor-card {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto auto;
+  width: 48%;
+  height: auto;
+  margin-top: 17%;
+  overflow: visible;
+  border: 1px solid rgba(72, 55, 35, 0.18);
+  background: #f7efe2;
+  box-shadow: 0 7px 16px rgba(73, 49, 20, 0.2);
+  transform: rotate(-0.8deg);
+}
+
+.dcr-packaging-paperclip {
+  position: absolute;
+  top: -7%;
+  left: 50%;
+  z-index: 3;
+  width: 9%;
+  min-width: 10px;
+  height: 22%;
+  border: 2px solid #929789;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+  transform: translateX(-50%);
+}
+
+.dcr-packaging-paperclip::after {
+  content: "";
+  position: absolute;
+  top: 18%;
+  left: 23%;
+  width: 54%;
+  height: 72%;
+  border: 1px solid #929789;
+  border-radius: 999px;
+}
+
+.dcr-packaging-flavor-visual {
+  min-height: 0;
+  margin: 5% 5% 0;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #e9ddca;
+}
+
+.dcr-packaging-flavor-fallback {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 28% 30%, rgba(184, 155, 94, 0.34), transparent 26%),
+    linear-gradient(145deg, #eadcc5, #f8f0e5 58%, #d8bd8d);
+  color: rgba(38, 49, 38, 0.66);
+  font-family: var(--font-display);
+  font-size: clamp(9px, 1.1vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.dcr-packaging-label-copy {
+  padding: 7% 7% 8%;
+  color: #25231e;
+  text-align: center;
+}
+
+.dcr-packaging-label-name {
+  display: -webkit-box;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: clamp(8px, 1vw, 14px);
+  font-weight: 700;
+  line-height: 1;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.dcr-packaging-label-origin {
+  margin-top: 4%;
+  overflow: hidden;
+  font-size: clamp(5px, 0.46vw, 7px);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dcr-packaging-label-notes {
+  display: -webkit-box;
+  margin-top: 5%;
+  overflow: hidden;
+  font-size: clamp(5px, 0.48vw, 7px);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.dcr-media-frame {
+  border: 1px solid color-mix(in srgb, var(--dcr-border) 86%, transparent);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-surface) 96%, transparent), color-mix(in srgb, var(--color-divider) 36%, transparent)),
+    var(--color-surface);
+}
+
+.dcr-rule {
+  border-color: color-mix(in srgb, var(--dcr-border) 78%, transparent);
+}
+
+.dcr-noise {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-text) 2.8%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-text) 2.2%, transparent) 1px, transparent 1px);
+  background-size: 42px 42px;
+}
+
+/* Brand Color System v2.0 bridge for legacy editorial pages. */
+.dcr-brand-v2 {
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--color-background) !important;
+  color: var(--color-text);
+}
+
+.dcr-brand-v2 header {
+  border-color: var(--color-divider) !important;
+  background: color-mix(in srgb, var(--color-background) 92%, transparent) !important;
+}
+
+.dcr-brand-v2 [class~="text-white"],
+.dcr-cart-surface [class~="text-white"] {
+  color: var(--color-text) !important;
+}
+
+.dcr-brand-v2 [class*="text-white/"],
+.dcr-cart-surface [class*="text-white/"] {
+  color: color-mix(in srgb, var(--color-text) 48%, transparent) !important;
+}
+
+.dcr-brand-v2 [class*="text-white/7"],
+.dcr-cart-surface [class*="text-white/7"] {
+  color: color-mix(in srgb, var(--color-text) 72%, transparent) !important;
+}
+
+.dcr-brand-v2 [class*="text-white/6"],
+.dcr-cart-surface [class*="text-white/6"] {
+  color: color-mix(in srgb, var(--color-text) 64%, transparent) !important;
+}
+
+.dcr-brand-v2 [class*="text-white/5"],
+.dcr-cart-surface [class*="text-white/5"] {
+  color: color-mix(in srgb, var(--color-text) 56%, transparent) !important;
+}
+
+.dcr-brand-v2 [class*="text-white/4"],
+.dcr-cart-surface [class*="text-white/4"] {
+  color: color-mix(in srgb, var(--color-text) 48%, transparent) !important;
+}
+
+.dcr-brand-v2 [class*="text-white/3"],
+.dcr-cart-surface [class*="text-white/3"] {
+  color: color-mix(in srgb, var(--color-text) 40%, transparent) !important;
+}
+
+.dcr-brand-v2 [class*="text-white/2"],
+.dcr-cart-surface [class*="text-white/2"] {
+  color: color-mix(in srgb, var(--color-text) 32%, transparent) !important;
+}
+
+.dcr-brand-v2 [class*="text-white/1"],
+.dcr-cart-surface [class*="text-white/1"] {
+  color: color-mix(in srgb, var(--color-text) 24%, transparent) !important;
+}
+
+.dcr-brand-v2 [class*="border-white"],
+.dcr-cart-surface [class*="border-white"] {
+  border-color: var(--color-divider) !important;
+}
+
+.dcr-brand-v2 [class*="bg-white/"],
+.dcr-cart-surface [class*="bg-white/"] {
+  background-color: color-mix(in srgb, var(--color-kraft) 7%, var(--color-surface)) !important;
+}
+
+.dcr-brand-v2 [class*="bg-[#1c1814]"],
+.dcr-brand-v2 [class*="bg-[#17120d]"],
+.dcr-brand-v2 [class*="bg-[#130f0a]"] {
+  background-color: var(--color-surface) !important;
+}
+
+.dcr-brand-v2 [class*="bg-[#c8922a]"],
+.dcr-cart-surface [class*="bg-[#c8922a]"] {
+  background-color: var(--color-accent) !important;
+}
+
+.dcr-brand-v2 [class*="text-[#c8922a]"],
+.dcr-brand-v2 [class*="text-[#d9ad59]"],
+.dcr-cart-surface [class*="text-[#c8922a]"] {
+  color: var(--color-kraft) !important;
+}
+
+.dcr-brand-v2 [class*="border-[#c8922a]"] {
+  border-color: var(--color-kraft) !important;
+}
+
+.dcr-brand-v2 [class*="bg-black/10"] {
+  background-color: color-mix(in srgb, var(--color-kraft) 8%, transparent) !important;
+}
+
+.dcr-cart-surface {
+  background: var(--color-surface) !important;
+  color: var(--color-text);
+  box-shadow: -18px 0 70px rgba(31, 31, 31, 0.12);
+}
+
+.dcr-cart-surface .dcr-button,
+.dcr-brand-v2 .dcr-button {
+  border-radius: 11px;
+}
+
+.dcr-dark-surface,
+.dcr-brand-v2 .dcr-dark-surface [class*="text-white"] {
+  color: #ffffff !important;
+}
+
+.dcr-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--color-text);
+}
+
+.dcr-logo__mark {
+  width: auto;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+.dcr-logo__name {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  line-height: 0.9;
+}
+
+.dcr-logo__name small {
+  display: block;
+  margin-top: 0.24rem;
+  font-family: var(--font-body);
+  font-size: 0.36rem;
+  font-weight: 700;
+  letter-spacing: 0.19em;
 }
 
 /* Temporary presentation for the reusable coffee-label SVG. */

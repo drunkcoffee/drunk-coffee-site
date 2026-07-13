@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { buildGeneralWhatsAppUrl, cx } from "../lib/coffeeStore";
 import { trackWhatsappClick } from "../lib/analytics";
 import Seo from "../components/Seo";
+import DcrLogo from "../components/DcrLogo";
 
-const P = "inline-flex items-center gap-2 rounded-full bg-[#c8922a] px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-[#0e0c09] transition hover:bg-[#d9a23a] active:scale-[0.97]";
-const G = "inline-flex items-center gap-2 rounded-full border border-white/12 px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-white/60 transition hover:border-white/24 hover:text-white active:scale-[0.97]";
+const P = "inline-flex items-center gap-2 rounded-[11px] bg-accent px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-text transition hover:bg-accent-hover active:scale-[0.97]";
+const G = "inline-flex items-center gap-2 rounded-[11px] border border-kraft bg-transparent px-5 py-3 text-[12px] font-semibold tracking-[0.05em] text-text transition hover:bg-background active:scale-[0.97]";
 
 // Animated coffee drip SVG
 function CoffeeDrip() {
@@ -13,21 +14,21 @@ function CoffeeDrip() {
     <svg viewBox="0 0 120 160" className="h-28 w-auto opacity-70" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* cup */}
       <path d="M28 72 L32 132 Q32 140 42 140 L78 140 Q88 140 88 132 L92 72 Z"
-        fill="#1c1814" stroke="rgba(255,255,255,0.10)" strokeWidth="1.5" />
+        fill="var(--color-surface)" stroke="var(--color-divider)" strokeWidth="1.5" />
       {/* handle */}
       <path d="M88 84 Q108 84 108 100 Q108 116 88 116"
-        fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6" strokeLinecap="round" />
+        fill="none" stroke="var(--color-divider)" strokeWidth="6" strokeLinecap="round" />
       {/* liquid */}
       <path d="M34 82 L36 128 Q36 134 44 134 L76 134 Q84 134 84 128 L86 82 Z"
-        fill="#c8922a" opacity="0.15" />
+        fill="var(--color-accent)" opacity="0.42" />
       {/* steam lines */}
-      <path d="M50 60 Q53 50 50 42" stroke="rgba(200,146,42,0.35)" strokeWidth="2" strokeLinecap="round" />
-      <path d="M60 56 Q63 44 60 34" stroke="rgba(200,146,42,0.25)" strokeWidth="2" strokeLinecap="round" />
-      <path d="M70 60 Q67 50 70 42" stroke="rgba(200,146,42,0.35)" strokeWidth="2" strokeLinecap="round" />
+      <path d="M50 60 Q53 50 50 42" stroke="var(--color-kraft)" strokeOpacity="0.5" strokeWidth="2" strokeLinecap="round" />
+      <path d="M60 56 Q63 44 60 34" stroke="var(--color-kraft)" strokeOpacity="0.35" strokeWidth="2" strokeLinecap="round" />
+      <path d="M70 60 Q67 50 70 42" stroke="var(--color-kraft)" strokeOpacity="0.5" strokeWidth="2" strokeLinecap="round" />
       {/* saucer */}
-      <ellipse cx="60" cy="144" rx="42" ry="6" fill="#1c1814" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
+      <ellipse cx="60" cy="144" rx="42" ry="6" fill="var(--color-surface)" stroke="var(--color-divider)" strokeWidth="1" />
       {/* 404 on cup */}
-      <text x="60" y="112" textAnchor="middle" fill="rgba(200,146,42,0.55)" fontSize="18" fontWeight="700" fontFamily="system-ui" letterSpacing="-1">404</text>
+      <text x="60" y="112" textAnchor="middle" fill="var(--color-premium)" fontSize="18" fontWeight="700" fontFamily="system-ui" letterSpacing="-1">404</text>
     </svg>
   );
 }
@@ -45,7 +46,7 @@ function Particles() {
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       {dots.map((d, i) => (
         <div key={i}
-          className="absolute rounded-full bg-[#c8922a]"
+          className="absolute rounded-full bg-accent"
           style={{
             left: `${d.x}%`, top: `${d.y}%`,
             width: d.size, height: d.size,
@@ -88,14 +89,13 @@ export default function NotFoundPage() {
         url="/404"
       />
 
-      <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-20"
-        style={{ background: "#0e0c09" }}>
+      <div className="dcr-brand-v2 relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-20">
 
         <Particles />
 
         {/* Ambient glow */}
         <div className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 opacity-[0.06]"
-          style={{ background: "radial-gradient(circle, #c8922a, transparent 65%)" }} />
+          style={{ background: "radial-gradient(circle, var(--color-accent), transparent 65%)" }} />
 
         {/* Content */}
         <div
@@ -109,14 +109,14 @@ export default function NotFoundPage() {
           <CoffeeDrip />
 
           <div className="mt-8 flex items-center gap-2.5">
-            <span className="h-px w-8 bg-[#c8922a]/40" />
-            <span className="text-[10px] uppercase tracking-[0.28em] text-[#c8922a]/60">Page not found</span>
-            <span className="h-px w-8 bg-[#c8922a]/40" />
+            <span className="h-px w-8 bg-kraft/40" />
+            <span className="text-[10px] uppercase tracking-[0.28em] text-kraft">Page not found</span>
+            <span className="h-px w-8 bg-kraft/40" />
           </div>
 
           <h1 className="mt-4 text-[clamp(28px,5vw,44px)] font-bold leading-[0.92] tracking-[-0.04em] text-white">
             We lost this page<br />
-            <em className="not-italic text-[#c8922a]">but not the coffee.</em>
+            <em className="not-italic text-accent">but not the coffee.</em>
           </h1>
 
           <p className="mt-5 max-w-[34ch] text-[14px] leading-[1.85] text-white/42">
@@ -149,7 +149,7 @@ export default function NotFoundPage() {
             Can't find what you need?{" "}
             <a href={waUrl} target="_blank" rel="noreferrer"
               onClick={() => trackWhatsappClick("404_page", "general")}
-              className="text-[#c8922a]/70 underline underline-offset-2 transition hover:text-[#c8922a]">
+              className="text-accent underline underline-offset-2 transition hover:text-accent-hover">
               Message us on WhatsApp
             </a>
           </p>
@@ -159,7 +159,7 @@ export default function NotFoundPage() {
         {/* Footer note */}
         <div className="absolute bottom-6 left-0 right-0 text-center">
           <Link to="/">
-            <img src="/logo.png" alt="Drunk Coffee Roasters" className="mx-auto h-8 object-contain opacity-20 transition hover:opacity-40" />
+            <DcrLogo className="mx-auto h-10 opacity-45 transition hover:opacity-75" showName />
           </Link>
         </div>
 
